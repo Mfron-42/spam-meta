@@ -1,10 +1,13 @@
-// Loads the generated JSON once and builds the lookups every view needs.
+// Loads the generated JSON once and builds the lookups every view needs. Every request carries the publish version
+// (version.js), so a new publish never mixes with data an earlier visit cached.
+
+import { versioned, withQuery } from "./version.js?v=abc018be6f";
 
 const cache = new Map();
 
 async function getJSON(path) {
   if (!cache.has(path)) {
-    cache.set(path, fetch(path).then((r) => {
+    cache.set(path, fetch(versioned(path)).then((r) => {
       if (!r.ok) throw new Error(`${path}: HTTP ${r.status}`);
       return r.json();
     }).catch((e) => { cache.delete(path); throw e; }));
@@ -60,7 +63,7 @@ export function loadCardCounters() {
   const path = "data/cardcounters.json";
   if (!ccLoad) {
     ccLoad = getJSON(path)
-      .catch(() => new Promise((r) => setTimeout(r, 1200)).then(() => getJSON(`${path}?retry=${Date.now()}`)))
+      .catch(() => new Promise((r) => setTimeout(r, 1200)).then(() => getJSON(withQuery(path, "retry=" + Date.now()))))
       .then((d) => { DB.cardCounters = d; return d; })
       .catch((e) => { ccLoad = null; throw e; });
   }

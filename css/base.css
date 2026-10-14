@@ -65,14 +65,14 @@ main.wrap { padding-block: 32px 64px; }
 
 /* ---------------------------------------------------------------- header */
 .chrome { position: sticky; top: 0; z-index: 30; background: var(--night); border-bottom: 1px solid var(--line); }
-.chrome-in { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: 32px; min-height: var(--chrome-h); }
+.chrome-in { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: 24px; min-height: var(--chrome-h); }
 .chrome-top { display: contents; }
 .brand { grid-column: 1; grid-row: 1; flex: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: var(--ink); border-radius: 8px; font: 400 22px/1 var(--display); letter-spacing: .01em; }
 .brand-mark { display: block; width: 32px; height: 32px; border-radius: 8px; }
 .tabs { grid-column: 2; grid-row: 1; display: flex; gap: 8px; }
 .tools { grid-column: 3; grid-row: 1; display: flex; align-items: center; gap: 8px; min-width: 0; }
 
-.tab { position: relative; text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 20px; border-radius: 20px;
+.tab { position: relative; flex: none; text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 20px;
   background: var(--panel); border: 1px solid var(--line); color: var(--ink); font: 400 18px/1 var(--display); cursor: pointer;
   transition: background var(--t-state) var(--curve), color var(--t-state) var(--curve); }
 .tab:hover { background: var(--panel-hi); }
@@ -81,8 +81,11 @@ main.wrap { padding-block: 32px 64px; }
 .tab[aria-selected="true"]:hover { background: var(--accent); filter: brightness(1.06); }
 .tab-n { display: inline-grid; place-items: center; min-width: 24px; height: 22px; padding: 0 6px; border-radius: 11px; background: var(--socket); box-shadow: var(--sunken);
   color: var(--ink-2); font: 600 14px/1 var(--text); }
-/* a tab label with a long form and a short form for phones ("Card tier list" / "Card tiers") */
+/* a tab label with a long form and a short form for phones ("Card tier list" / "Cards"); the page heading keeps the full title */
 .tab-short { display: none; }
+.tab-ico { color: var(--muted); transition: color var(--t-state) var(--curve); }
+.tab:hover .tab-ico { color: var(--ink); }
+.tab[aria-selected="true"] .tab-ico { color: var(--accent-ink); }
 .tab[aria-selected="true"] .tab-n { background: rgba(13, 10, 26, .2); box-shadow: none; color: var(--accent-ink); }
 
 /* segmented control: sunken track, raised active segment */
@@ -107,23 +110,29 @@ main.wrap { padding-block: 32px 64px; }
 .icon-btn:hover { background: rgba(255, 255, 255, .1); color: var(--ink); }
 .icon-btn:active { background: rgba(0, 0, 0, .35); }
 
-@media (max-width: 1079px) {
+/* Five tabs. One row from 1200px (brand, tabs, tools); below, two rows: the brand row scrolls away and the tab row stays
+   stuck under the top edge. Under 760px the tabs use their short labels; under 600px they share the row at 16px. If they
+   still do not fit (a large text setting), the row scrolls sideways, the edge hiding a tab fades and the current tab is kept
+   in view (main.js). */
+@media (max-width: 1199px) {
   :root { --chrome-h: 52px; }
-  /* two rows: the brand row scrolls away, the tab row stays stuck under the top edge */
   .chrome { top: -56px; }
   .chrome-in { display: block; }
   .chrome-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 56px; }
-  .tabs { display: flex; height: 52px; align-items: center; padding-bottom: 0; }
-  .tab { flex: 1 1 0; padding: 0 8px; }
+  .tabs { height: 52px; align-items: center; margin-inline: -4px; padding-inline: 4px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tabs.more-r { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent); }
+  .tabs.more-l { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent); }
+  .tabs.more-l.more-r { -webkit-mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent); }
 }
-@media (min-width: 600px) and (max-width: 1079px) {
-  .tab { flex: 0 0 auto; padding: 0 24px; }
-}
-@media (max-width: 599px) {
+@media (max-width: 759px) {
   .tab-long { display: none; }
   .tab-short { display: inline; }
+}
+@media (max-width: 599px) {
   .tabs { gap: 4px; }
-  .tab { padding: 0 4px; font-size: 16px; }
+  .tab { flex: 1 0 auto; padding: 0 4px; font-size: 16px; }
+  .tab-ico { display: none; }
 }
 @media (max-width: 479px) {
   .own-pill-t, .tab-n { display: none; }
@@ -134,6 +143,8 @@ main.wrap { padding-block: 32px 64px; }
 @media (max-width: 389px) {
   .brand-name { display: none; }
   .tools { gap: 4px; }
+  /* the five tabs share what is left of the row: no fixed padding, the spare width spreads evenly (flex-grow) */
+  .tab { padding: 0; }
 }
 
 /* ---------------------------------------------------------------- buttons */

@@ -1,19 +1,22 @@
 // My decks tab: the best decks the visitor can build from the cards they marked as owned, plus the best decks that are
 // exactly one card away. Order is the one docs/DATA.md defines: evidence level first, then rank_score (the rows are
 // already sorted that way, so the first rows that fit are the best). A deck that is also in the tier list carries its
-// tier tag (joined by card set, never by position).
+// tier tag (joined by card set, never by position). The card search of the Deck tier list (search.js) keeps only the decks
+// of both lists that hold a matching card; the query survives a redraw (a card ticked, a language change).
 
-import { h, icon, fmtInt } from "./util.js";
-import { DB, loadDecks, loadTier } from "./data.js";
-import { on, isOwned, ownedCount } from "./store.js";
-import { deckRow, missingLine, paged, legend, modeSwitch } from "./decklist.js";
-import { openCollection } from "./dialogs.js";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js";
-import { t } from "./i18n.js";
-import { patchNotice } from "./patch.js";
+import { h, icon, fmtInt } from "./util.js?v=abc018be6f";
+import { DB, loadDecks, loadTier } from "./data.js?v=abc018be6f";
+import { on, isOwned, ownedCount } from "./store.js?v=abc018be6f";
+import { deckRow, missingLine, paged, legend } from "./decklist.js?v=abc018be6f";
+import { findRow, terms, namedCards } from "./search.js?v=abc018be6f";
+import { openCollection } from "./dialogs.js?v=abc018be6f";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=abc018be6f";
+import { t } from "./i18n.js?v=abc018be6f";
+import { patchNotice } from "./patch.js?v=abc018be6f";
 
 let root, D, listeners = new Set();
 let result = { build: [], near: [] };
+let query = "", find, lists;
 
 export const onCount = (fn) => { listeners.add(fn); fn(result.build.length); };
 export const buildableCount = () => result.build.length;
@@ -50,7 +53,6 @@ function render() {
   if (!root) return;
   const n = ownedCount();
   const head = h("div.vhead", [
-    modeSwitch("decks"),
     h("h1", t("md.h1")),
     h("p.lede", t("md.lede")),
     patchNotice(),
@@ -73,23 +75,48 @@ function render() {
     noStore.el,
   ]);
 
-  const parts = [head, notice, summary, legend("md-legend", legendState)].filter(Boolean);
+  find = findRow({ id: "md-q", name: "deck-card", placeholder: t("find.decksPh"), label: t("find.decksAria"), clearLabel: t("cx.clearSearch"), value: query,
+    onChange: (v) => { query = v; paintLists(); },
+    onEnter: () => { const x = lists.querySelector(".dr"); if (x && query.trim()) x.scrollIntoView({ block: "start" }); } });
+  lists = h("div.md-lists");
+  // the search row sits right above the lists it filters, under the collection bar (whose counts are the whole collection's)
+  root.replaceChildren(...[head, notice, summary, legend("md-legend", legendState), find.el, lists].filter(Boolean));
+  paintLists();
+}
 
-  parts.push(h("section.mdsec", { "aria-labelledby": "md-build" }, [
-    h("h2#md-build", t("md.buildH")),
-    build.length
-      ? paged(build, (r, i) => deckRow(r, `#${i + 1}`))
-      : h("div.panel.soft", [h("p", t("md.buildNone")), h("a.btn", { href: "#codex", "data-goto": "codex" }, t("md.markMore"))]),
-  ]));
-
-  parts.push(h("section.mdsec", { "aria-labelledby": "md-near" }, [
-    h("h2#md-near", t("md.nearH")),
-    near.length
-      ? [h("p.muted.sub", t("md.nearSub")),
-        paged(near, (x, i) => deckRow(x.row, `#${i + 1}`, { note: missingLine(x.miss) }))]
-      : h("div.panel.soft", h("p", t("md.nearNone"))),
-  ]));
-  root.replaceChildren(...parts);
+/**
+ * The two lists, filtered by the card search: a deck shows when one of its cards is named by the query, its other cards dim,
+ * and a list left with no deck hides (as a tier does on the Deck tier list). Without a query both lists show as they are.
+ */
+function paintLists() {
+  const ts = terms(query);
+  const hits = ts.length ? namedCards(ts) : null;
+  const holds = (r) => !hits || r.cards.some((c) => hits.includes(c));
+  const build = result.build.filter(holds), near = result.near.filter((x) => holds(x.row));
+  const opt = hits ? { hits } : {};
+  const parts = [];
+  if (!hits || build.length) {
+    parts.push(h("section.mdsec", { "aria-labelledby": "md-build" }, [
+      h("h2#md-build", t("md.buildH")),
+      build.length
+        ? paged(build, (r, i) => deckRow(r, `#${i + 1}`, opt))
+        : h("div.panel.soft", [h("p", t("md.buildNone")), h("a.btn", { href: "#codex", "data-goto": "codex" }, t("md.markMore"))]),
+    ]));
+  }
+  if (!hits || near.length) {
+    parts.push(h("section.mdsec", { "aria-labelledby": "md-near" }, [
+      h("h2#md-near", t("md.nearH")),
+      near.length
+        ? [h("p.muted.sub", t("md.nearSub")),
+          paged(near, (x, i) => deckRow(x.row, `#${i + 1}`, { ...opt, note: missingLine(x.miss) }))]
+        : h("div.panel.soft", h("p", t("md.nearNone"))),
+    ]));
+  }
+  lists.replaceChildren(...parts);
+  if (hits) {
+    const all = [...result.build, ...result.near.map((x) => x.row)];
+    find.paint(ts, hits, hits.filter((c) => all.some((r) => r.cards.includes(c))), build.length + near.length);
+  } else find.paint(ts, [], [], 0);
 }
 
 function emptyState() {
@@ -102,6 +129,6 @@ function emptyState() {
       h("button.btn.ghost", { type: "button", onclick: openCollection }, [icon("copy"), t("md.import")]),
     ]),
     // no collection yet: the Deck finder works without one
-    h("p.empty-alt", [t("md.orFind") + " ", h("a.link", { href: "#builder", "data-goto": "builder" }, t("fd.modeFind"))]),
+    h("p.empty-alt", [t("md.orFind") + " ", h("a.link", { href: "#builder", "data-goto": "builder" }, t("fd.title"))]),
   ]);
 }

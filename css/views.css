@@ -91,16 +91,24 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .guide .levels { list-style: none; padding: 0; gap: 12px; color: var(--ink-2); }
 .levels li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: start; }
 .levels .meter { margin-top: 5px; }
-/* card search row (search.js): the Codex field, then one live line beside it (below it on a phone) */
+/* card search row (search.js): the Codex field, then one live line beside it (below it on a phone). It sits right under the
+   page heading of the Deck tier list and My decks, above the callout or the collection bar. */
 .find { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 8px 16px; align-items: center; margin-top: 24px; }
+.vhead + .find, .inapp + .find { margin-top: 0; }
+.find + .callout, .find + .cbar { margin-top: 24px; }
 .find-say { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-width: 0; max-width: none; color: var(--ink-2); font-size: 16px; line-height: 1.4; }
 .find-cards { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0 8px; min-width: 0; }
 .find-hit { display: inline-flex; align-items: center; gap: 4px; }
 .find-clear { height: 36px; padding: 0 16px; font-size: 16px; }
+/* "Decks with this card": the way from a list's search to the Deck finder, pushed to the end of the line */
+.find-more { height: 36px; padding: 0 12px; margin-left: auto; font-size: 16px; }
+.guide-wrap + .find { margin-top: 16px; }
 @media (max-width: 759px) {
   /* the line keeps its row while empty, so the first letter typed moves nothing */
   .find { grid-template-columns: minmax(0, 1fr); }
   .find-say { min-height: 36px; }
+  .find + .callout, .find + .cbar { margin-top: 16px; }      /* the reserved line already gives the row its air */
+  .find-more { margin-left: -12px; }                          /* on its own line: the glyph lines up with the text */
 }
 /* inside a deck that matches, the other cards step back (the icon opacity floor); hover or focus brings one back */
 .slot.miss .gc { opacity: .45; }
@@ -177,17 +185,6 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .meter i.on { background: var(--ink-2); box-shadow: none; }
 .more { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 16px; }
 
-/* the two modes of the My decks tab (decklist.js): a segmented control of two links, the current one raised */
-.modes { justify-self: start; margin-bottom: 8px; }
-.modes a { position: relative; display: inline-flex; align-items: center; justify-content: center; height: 36px; padding: 0 16px; border-radius: 20px;
-  color: var(--ink-2); font: 400 18px/1 var(--display); text-decoration: none; white-space: nowrap; cursor: pointer;
-  transition: background var(--t-state) var(--curve), color var(--t-state) var(--curve); }
-.modes a::after { content: ""; position: absolute; inset: -4px -2px; }
-.modes a:hover { background: rgba(255, 255, 255, .08); color: var(--ink); }
-.modes a:active { background: rgba(0, 0, 0, .35); }
-.modes a[aria-current="page"] { background: var(--accent); color: var(--accent-ink); box-shadow: var(--raised); }
-.modes a[aria-current="page"]:hover { filter: brightness(1.06); }
-
 /* ---------------------------------------------------------------- Deck finder */
 .fd-pick { display: grid; gap: 12px; }
 .fd-field { max-width: 420px; }
@@ -227,46 +224,13 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .fd-head + .guide-wrap { margin: 8px 0 16px; }
 .fd-none { color: var(--ink-2); font-size: 18px; line-height: 1.5; margin-bottom: 24px; }
 .fd-res > .fd-none:last-child { margin-bottom: 0; }
-/* the card dialog's link to the Deck finder, under the owned toggle */
-.dlg-find { width: 100%; }
-
-/* ---------------------------------------------------------------- card dialog */
-.dlg { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 32px; padding: 32px; }
-.dlg-card { display: grid; gap: 12px; align-content: start; }
-.gcwrap { padding: 10px 10px 14px; }
-.dlg-hint { color: var(--muted); font-size: 14px; text-align: center; }
-.dlg-txt { display: grid; gap: 24px; align-content: start; min-width: 0; padding-right: 32px; }
-.dlg-title { display: grid; gap: 2px; }
-.dlg-title h2 { font-size: 28px; }
-.facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.fact { display: grid; gap: 2px; padding: 8px 12px; border-radius: 8px; background: var(--socket); box-shadow: var(--sunken); min-width: 0; }
-.fact-k { color: var(--muted); font: 600 14px/1.3 var(--text); }
-.fact-v { display: flex; align-items: center; gap: 6px; font: 400 18px/1.2 var(--display); }
-.fact-ico { width: 22px; height: 22px; flex: none; background-size: contain; background-repeat: no-repeat; background-position: center; }
-.dlg-sec { display: grid; gap: 12px; }
-.dlg-sec > h3 { font-size: 22px; }
-.ress { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
-.res { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; background: var(--socket); box-shadow: var(--sunken); font: 400 16px/1 var(--display); }
-.res i { width: 20px; height: 20px; flex: none; background-size: contain; background-repeat: no-repeat; background-position: center; }
-.ab { display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
-.dlg-sec > h3 + .ab, .dlg-sec > p + .ab { border-top: 0; padding-top: 0; }
-.ab-h { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
-.ab-h h4 { font-size: 18px; }
+/* ability orb and talent glyph (card dialog, Card tier list pinned card); the card dialog itself lives in card.css */
 .ab-orb, .ab-talent { width: 24px; height: 24px; flex: none; background-size: contain; background-repeat: no-repeat; background-position: center; }
-.ab-d { color: var(--ink-2); white-space: pre-line; }
-.ab-t { color: var(--muted); font-size: 14px; }
 /* data notice: where a value comes from, before the numbers it qualifies; a caption line, no box, never an error colour (DESIGN.md) */
 .dnote { display: flex; align-items: flex-start; gap: 8px; max-width: none; color: var(--muted); font: 600 14px/1.4 var(--text); text-wrap: pretty; }
 /* the glyph box is one text line tall, so the glyph centres on the first line however the sentence wraps */
 .dnote .ico { height: 1lh; }
 .dnote > span { min-width: 0; }
-.dlg-where { font-size: 14px; }
-.dlg-rk { display: grid; gap: 4px; }
-.dlg-rk:empty { display: none; }
-.pline { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-top: 8px; color: var(--muted); font: 600 14px/1.4 var(--text); }
-.pline > span:not(.tag) { min-width: 0; text-wrap: pretty; }
-.cm-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
-.cm-head h3 { font-size: 22px; }
 /* the suggested talent's tag: a quiet outline one step brighter than .tag.soft, never cyan (it is not an action) */
 .tag.sugg { background: none; box-shadow: inset 0 0 0 1px var(--edge); color: var(--ink-2); cursor: help; }
 
@@ -287,31 +251,6 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .pnotice .ico { height: 1lh; color: var(--muted); }
 .pnotice > span { min-width: 0; }
 .pnotice-key { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); white-space: nowrap; }
-/* "With and against": up to 5 card chips per list, each with its signed win-rate points; a quiet tag beside each list heading */
-.cm-g { display: grid; gap: 8px; justify-items: start; }
-.cm-g + .cm-g { padding-top: 12px; border-top: 1px solid var(--line); }
-.cm-g .cm-l + .ab-h, .cm-g .cm-none + .ab-h { margin-top: 8px; }
-/* one entry per line, strongest first; the points form one right-aligned column, at the same place in the three lists
-   (the name column fits the longest card name, about 260px, and shrinks on a phone) */
-.cm-l { display: grid; grid-template-columns: minmax(0, 264px) 56px; gap: 4px 12px; max-width: 100%; }
-.cm-e { display: grid; grid-column: 1 / -1; grid-template-columns: minmax(0, 1fr) 56px; grid-template-columns: subgrid; column-gap: 12px; align-items: center; min-width: 0; }
-.cm-e .cc { justify-self: start; min-width: 0; margin: 0; }
-.cm-v { justify-self: end; font: 400 16px/1 var(--display); letter-spacing: .01em; white-space: nowrap; }
-.cm-v.up { color: var(--win); }
-.cm-v.down { color: var(--loss); }
-.cm-u { color: var(--muted); font: 600 14px/1 var(--text); letter-spacing: 0; }
-.cm-none { color: var(--muted); font: 600 14px/1.4 var(--text); }
-.cm-foot { display: grid; justify-items: start; margin-top: -4px; }
-.cm-how { display: inline-flex; align-items: center; gap: 4px; height: 36px; margin-left: -12px; padding: 0 12px; border: 0; border-radius: 20px; background: transparent; color: var(--muted);
-  font: 600 14px/1 var(--text); cursor: pointer; transition: background var(--t-state) var(--curve), color var(--t-state) var(--curve); }
-.cm-how:hover { background: rgba(255, 255, 255, .1); color: var(--ink); }
-.cm-how:active { background: rgba(0, 0, 0, .35); }
-.cm-how .ico { transition: transform var(--t-move) var(--curve); }
-.cm-how[aria-expanded="true"] .ico { transform: rotate(180deg); }
-.cm-how-l { display: grid; gap: 4px; padding: 4px 0 0; color: var(--muted); font: 600 14px/1.4 var(--text); max-width: 68ch; }
-.cm-how-l b { color: var(--ink-2); }
-.cm-skel { padding-top: 4px; }
-.cm-err { display: grid; justify-items: start; gap: 12px; color: var(--ink-2); }
 
 /* ---------------------------------------------------------------- About and collection code */
 .about, .codebox { display: grid; gap: 24px; padding: 32px; }
@@ -349,13 +288,6 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
   .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 760px) {
-  .dlg { grid-template-columns: minmax(0, 1fr); padding: 56px 16px 24px; gap: 24px; }
-  .dlg-card { justify-items: center; }
-  .dlg-card .gcwrap { width: 260px; max-width: 100%; }
-  .dlg-card .btn { width: 100%; max-width: 320px; }
-  .dlg-txt { padding-right: 0; }
-  .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .ress { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .about, .codebox { padding: 24px 16px; }
   .cbar { grid-template-columns: minmax(0, 1fr); }  .cb-act { justify-content: flex-start; }
 }
@@ -381,8 +313,6 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
   .tb-bulk .btn { flex: 1 1 auto; }
   .deck-head .obadge { margin-left: 0; }
   .deck > .disc { margin-left: -8px; }
-  .modes { display: flex; width: 100%; }
-  .modes a { flex: 1 1 0; padding: 0 8px; font-size: 16px; }
   .fd-slots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .fd-field { max-width: none; }
   /* a phone: the label on its own line, the four cards two by two, long names cut */

@@ -1,14 +1,13 @@
 // The one way to list measured decks (decks.json rows), shared by My decks and the Deck finder: the deck row (four game
-// cards, the evidence level, the win rate, the tier tag), the paging, the "How reliable?" legend, the owned badge, and the
-// switch between the two modes of the My decks tab. Rows arrive already sorted by the rank key of docs/DATA.md (level
+// cards, the evidence level, the win rate, the tier tag), the paging, the "How reliable?" legend and the owned badge. Rows arrive already sorted by the rank key of docs/DATA.md (level
 // descending, then rank_score), so a filter that keeps their order keeps the canonical ranking.
 
-import { h, icon, pct } from "./util.js";
-import { DB, deckKey } from "./data.js";
-import { isOwned, ownedCount } from "./store.js";
-import { gameCard, chip } from "./cards.js";
-import { disclosure } from "./ui.js";
-import { t } from "./i18n.js";
+import { h, icon, pct } from "./util.js?v=abc018be6f";
+import { DB, deckKey } from "./data.js?v=abc018be6f";
+import { isOwned, ownedCount } from "./store.js?v=abc018be6f";
+import { gameCard, chip } from "./cards.js?v=abc018be6f";
+import { disclosure } from "./ui.js?v=abc018be6f";
+import { t } from "./i18n.js?v=abc018be6f";
 
 // ---------------------------------------------------------------- evidence, in plain words
 // level -> funnel stage; the numbers of each stage come from meta.json `methodology.pipeline`
@@ -57,15 +56,15 @@ export function paintOwned(el, cards) {
 /**
  * A measured deck as a row: its rank label, its four game cards (list size), its evidence level and win rate, its tier tag.
  * `cards` reorders the cards for display (a deck is a set); `tag` is one more quiet tag; `note` and `badge` are nodes
- * added under the facts (a "missing" line, an owned badge).
+ * added under the facts (a "missing" line, an owned badge); `hits` (the cards a card search found) dims the other cards.
  */
-export function deckRow(r, rankLabel, { cards = r.cards, tag = null, note = null, badge = null } = {}) {
+export function deckRow(r, rankLabel, { cards = r.cards, tag = null, note = null, badge = null, hits = null } = {}) {
   const tr = tierDeckOf(r);
   const rank = tr ? tr.rank : r.tierRank;
   const tags = [tag, rank ? h("span.tag", tr ? t("md.tagTier", { tier: tr.tier, rank }) : t("md.tagRank", { rank })) : null].filter(Boolean);
   return h("article.dr", [
     h("div.dr-rank", [h("h3.rk", rankLabel)]),
-    h("div.deck-cards", cards.map((c) => h("div.slot", gameCard(c, { size: "list" })))),
+    h("div.deck-cards", cards.map((c) => h("div.slot", { class: hits && !hits.includes(c) ? "miss" : null }, gameCard(c, { size: "list" })))),
     h("div.dr-info", [
       h("div.ev", [meter(r.level), h("b", t(`stage.${STAGE[r.level]}.title`)), h("span.muted", t("ev." + r.level))]),
       h("div.dr-fig", [h("b.stat-v", pct(r.rate)), h("span.stat-s", t("md.rateCap"))]),
@@ -115,11 +114,4 @@ export function legend(id, state) {
   ])));
   disclosure(btn, region, { open: state.open, onToggle: (v) => { state.open = v; } });
   return h("div.guide-wrap", [btn, region]);
-}
-
-// ---------------------------------------------------------------- the two modes of the My decks tab
-/** "My collection | Deck finder": links to #decks and #builder, the current one raised. */
-export function modeSwitch(current) {
-  const link = (view, key) => h("a", { href: "#" + view, "data-goto": view, "aria-current": view === current ? "page" : null }, t(key));
-  return h("nav.seg.modes", { "aria-label": t("fd.modes") }, [link("decks", "fd.modeMine"), link("builder", "fd.modeFind")]);
 }

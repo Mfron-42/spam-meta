@@ -1,15 +1,15 @@
 // Codex tab: every released card as a game card, with search, filters, sort and the Owned toggle on every card.
 // A language change rebuilds the tab from the same state (search, filters, sort, open panels).
 
-import { h, icon, norm, fmtInt } from "./util.js";
-import { searchField, terms as searchTerms, hasAll } from "./search.js";
-import { DB } from "./data.js";
-import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js";
-import { gameCard, ownToggle, setOwnedView, cardName, ELEMENTS, RARITIES, elName, raName, unsize } from "./cards.js";
-import { disclosure, flip, segmented, filterChip, setChip } from "./ui.js";
-import { toast, openCollection } from "./dialogs.js";
-import { t, STRINGS } from "./i18n.js";
+import { h, icon, norm, fmtInt } from "./util.js?v=abc018be6f";
+import { searchField, terms as searchTerms, hasAll } from "./search.js?v=abc018be6f";
+import { DB } from "./data.js?v=abc018be6f";
+import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js?v=abc018be6f";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=abc018be6f";
+import { gameCard, ownToggle, setOwnedView, cardName, ELEMENTS, RARITIES, elName, raName, unsize } from "./cards.js?v=abc018be6f";
+import { disclosure, flip, segmented, filterChip, setChip } from "./ui.js?v=abc018be6f";
+import { toast, openCollection } from "./dialogs.js?v=abc018be6f";
+import { t, STRINGS } from "./i18n.js?v=abc018be6f";
 
 // ---- traits, derived from the English texts and numbers of the data (no hand-made tags); names are "trait.<id>"
 const anyText = (c, rx) => c.abilities.some((a) => rx.test(a.description_en)) || c.passives.some((p) => rx.test(p.description_en));

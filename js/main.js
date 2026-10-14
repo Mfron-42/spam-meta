@@ -1,18 +1,15 @@
 // Entry point: loads the core data, wires the header, the tabs and the delegated clicks, and mounts the five views.
 
-import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js";
-import { t, applyStatic, millions } from "./i18n.js";
-import { copyText } from "./ui.js";
-import { DB, loadCore } from "./data.js";
-import { on, ownedCount, setKnown, getLang, setLang } from "./store.js";
-import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js";
+import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=abc018be6f";
+import { t, applyStatic, millions } from "./i18n.js?v=abc018be6f";
+import { copyText } from "./ui.js?v=abc018be6f";
+import { DB, loadCore } from "./data.js?v=abc018be6f";
+import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=abc018be6f";
+import { versioned, withQuery } from "./version.js?v=abc018be6f";
+import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=abc018be6f";
 
-// Four tabs, five views: the My decks tab holds two modes, "My collection" (#decks) and the Deck finder (#builder).
-const TABS = ["tiers", "card-tiers", "codex", "decks"];
-const VIEWS = [...TABS, "builder"];
-const TAB_OF = { builder: "decks" };
-const tabOf = (view) => TAB_OF[view] || view;
-const lastView = { decks: "decks" };   // the tab opens the mode the visitor used last
+// Five tabs, one view each; the Deck finder (#builder) sits next to My decks.
+const TABS = ["tiers", "card-tiers", "codex", "decks", "builder"];
 const TITLE_KEYS = { tiers: "tab.tiers", "card-tiers": "tab.cardTiers", codex: "tab.codex", decks: "tab.decks", builder: "fd.title" };
 const tabName = (tab) => t(TITLE_KEYS[tab]);
 let firstTab = true;         // the landing page keeps the site title until the visitor moves
@@ -61,16 +58,16 @@ function pickCard(key) {
 }
 
 // ---- tabs
-// #tiers, #card-tiers, #codex, #decks, #builder (the Deck finder, inside the My decks tab), or #<view>/<card key> which
-// also opens that card. A natural spelling of My decks
-// (#my-decks, #mes-decks, #mydecks) opens it too and is replaced in place by the canonical #decks.
-const ALIASES = { "my-decks": "decks", "mes-decks": "decks", mydecks: "decks" };
+// #tiers, #card-tiers, #codex, #decks, #builder (the Deck finder), or #<view>/<card key> which also opens that card. A natural
+// spelling of My decks (#my-decks, #mes-decks, #mydecks) or of the Deck finder (#finder, #deck-finder, #trouver) opens it too
+// and is replaced in place by the canonical hash.
+const ALIASES = { "my-decks": "decks", "mes-decks": "decks", mydecks: "decks", finder: "builder", "deck-finder": "builder", trouver: "builder" };
 function parseHash() {
   const [raw, ...rest] = location.hash.replace(/^#/, "").split("/");
   const t = ALIASES[raw.toLowerCase()] || raw;
   if (t !== raw) history.replaceState(history.state, "", "#" + [t, ...rest].join("/"));
   const key = rest[0];
-  return { tab: VIEWS.includes(t) ? t : "tiers", key: key && DB.byKey.has(key) ? key : null };
+  return { tab: TABS.includes(t) ? t : "tiers", key: key && DB.byKey.has(key) ? key : null };
 }
 const tabFromHash = () => parseHash().tab;
 
@@ -80,21 +77,19 @@ function go(tab) {
 }
 
 function show(tab, force) {
-  if (!VIEWS.includes(tab)) tab = "tiers";
+  if (!TABS.includes(tab)) tab = "tiers";
   if (tab === current && !force) return;
   const first = current === null;
   if (current) scrolls[current] = window.scrollY;
   current = tab;
-  if (tabOf(tab) !== tab || tab in lastView) lastView[tabOf(tab)] = tab;
   for (const t of TABS) {
-    const on_ = t === tabOf(tab);
+    const on_ = t === tab;
     const btn = $("#tab-" + t);
     btn.setAttribute("aria-selected", String(on_));
     btn.tabIndex = on_ ? 0 : -1;
-    btn.setAttribute("href", "#" + (lastView[t] || t));
-    btn.setAttribute("aria-controls", "view-" + (lastView[t] || t));
   }
-  for (const v of VIEWS) {
+  revealTab(tab);
+  for (const v of TABS) {
     const view = $("#view-" + v);
     view.hidden = v !== tab;
     view.classList.remove("enter");
@@ -146,11 +141,11 @@ async function ensure(tab) {
 // of image requests, a dropped connection). The retry adds a query so the browser does not hand back the failed fetch.
 async function loadView(tab) {
   try {
-    return await import(MODULES[tab]);
+    return await import(versioned(MODULES[tab]));
   } catch (err) {
     console.warn(`${MODULES[tab]} did not load; trying once more`, err);
     await new Promise((r) => setTimeout(r, RETRY_MS));
-    return import(`${MODULES[tab]}?retry=${Date.now()}`);
+    return import(withQuery(versioned(MODULES[tab]), "retry=" + Date.now()));
   }
 }
 
@@ -175,7 +170,26 @@ function onKeyTabs(e) {
   if (n === null) return;
   e.preventDefault();
   $("#tab-" + TABS[n]).focus();
-  go(lastView[TABS[n]] || TABS[n]);
+  go(TABS[n]);
+}
+
+// The tab strip scrolls sideways when the five tabs do not fit (a narrow phone, a large text setting): the edge that hides
+// a tab fades, and the current tab is kept in view.
+const strip = () => $(".tabs");
+function paintStrip() {
+  const s = strip();
+  const more = s.scrollWidth - s.clientWidth > 1;
+  s.classList.toggle("more-l", more && s.scrollLeft > 1);
+  s.classList.toggle("more-r", more && s.scrollLeft < s.scrollWidth - s.clientWidth - 1);
+}
+function revealTab(tab) {
+  const s = strip(), b = $("#tab-" + tab);
+  if (s.scrollWidth - s.clientWidth > 1) {
+    const l = b.offsetLeft - s.offsetLeft, r = l + b.offsetWidth;
+    if (l < s.scrollLeft + 24) s.scrollLeft = Math.max(0, l - 24);
+    else if (r > s.scrollLeft + s.clientWidth - 24) s.scrollLeft = r - s.clientWidth + 24;
+  }
+  paintStrip();
 }
 
 // ---- header
@@ -248,7 +262,7 @@ function paintChrome() {
   paintFooter();
   updatePill();
   updateTabCount(lastCount);
-  if (current) paintTitle();
+  if (current) { paintTitle(); revealTab(current); }    // the labels changed width
 }
 
 // ---- boot
@@ -271,15 +285,18 @@ async function boot() {
 
   $("#names-seg").addEventListener("click", (e) => { const b = e.target.closest("button[data-v]"); if (b) setLang(b.dataset.v); });
   $("#about-btn").addEventListener("click", openAbout);
-  $(".tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-tab]"); if (b && plain(e)) { e.preventDefault(); go(lastView[b.dataset.tab] || b.dataset.tab); } });
+  $(".tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-tab]"); if (b && plain(e)) { e.preventDefault(); go(b.dataset.tab); } });
   $(".tabs").addEventListener("keydown", onKeyTabs);
+  $(".tabs").addEventListener("scroll", paintStrip, { passive: true });
+  if (window.ResizeObserver) new ResizeObserver(() => revealTab(current || "tiers")).observe($(".tabs"));
+  if (document.fonts) document.fonts.ready.then(() => revealTab(current || "tiers"));
   $(".brand").addEventListener("click", (e) => { if (plain(e)) { e.preventDefault(); go("tiers"); } });
   window.addEventListener("hashchange", () => { const { tab, key } = parseHash(); show(tab); if (key) openCard(key, "url"); });
 
   show(tabFromHash(), true);
   if (parseHash().key) openCard(parseHash().key, "url");
   const idle = window.requestIdleCallback || ((f) => setTimeout(f, 300));
-  idle(() => { for (const v of VIEWS) ensure(v); });
+  idle(() => { for (const v of TABS) ensure(v); });
 }
 
 applyStatic();               // the static markup in the page language before the data arrives

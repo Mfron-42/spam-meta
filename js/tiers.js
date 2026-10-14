@@ -10,18 +10,18 @@
 // withheld and secret decks have no cards and hide while it is on.
 // A language change redraws the page and keeps what the visitor opened (the reading guide, deck details, the filter).
 
-import { h, icon, pm, pct, pct1, dec } from "./util.js";
-import { DB, loadTier } from "./data.js";
-import { on, isOwned, ownedCount } from "./store.js";
-import { gameCard, cardBack, secretCard, chip, strip, cardName } from "./cards.js";
-import { disclosure, segmented, scrollToEl } from "./ui.js";
-import { t, tx, millions } from "./i18n.js";
-import { searchField, announcer, terms, hasAll, nameHay } from "./search.js";
-import { patchNotice, patchMark } from "./patch.js";
-import { paintOwned } from "./decklist.js";
+import { h, icon, pm, pct, pct1, dec } from "./util.js?v=abc018be6f";
+import { DB, loadTier } from "./data.js?v=abc018be6f";
+import { on, isOwned, ownedCount } from "./store.js?v=abc018be6f";
+import { gameCard, cardBack, secretCard, strip, cardName } from "./cards.js?v=abc018be6f";
+import { disclosure, segmented, scrollToEl } from "./ui.js?v=abc018be6f";
+import { t, tx, millions } from "./i18n.js?v=abc018be6f";
+import { findRow, terms, namedCards } from "./search.js?v=abc018be6f";
+import { patchNotice, patchMark } from "./patch.js?v=abc018be6f";
+import { paintOwned } from "./decklist.js?v=abc018be6f";
 
 let root, tier, decks = [], stubs = [], sections = [], jumpChips = new Map(), banner, detailBtns = [], readyBtn, readyOnly = false, spotted = false;
-let field, findStatus, findVoice;
+let find;
 let openDetails = new Set(), guideOpen = false, query = "";      // kept across a redraw (language change)
 
 export async function mount(el) {
@@ -53,8 +53,8 @@ function render() {
       h("p.lede", t("tl.lede", { patch: tier.patch, games: games ? millions(games) : "—" })),
       patchNotice({ legend: true }),
     ]),
+    findBar(),
     banner,
-    findRow(),
     jumpNav(guide.btn),
     guide.region,
   ];
@@ -67,31 +67,11 @@ function render() {
 
 // ---------------------------------------------------------------- card search: the decks that hold a card
 // A withheld or secret deck has no cards in the data, so it never matches and hides like any other deck while a search is on.
-function findRow() {
-  field = searchField({ id: "tl-q", name: "deck-card", placeholder: t("find.decksPh"), label: t("find.decksAria"), clearLabel: t("cx.clearSearch"), value: query,
+function findBar() {
+  find = findRow({ id: "tl-q", name: "deck-card", placeholder: t("find.decksPh"), label: t("find.decksAria"), clearLabel: t("cx.clearSearch"), value: query,
     onChange: (v) => { query = v; applyShown(); },
     onEnter: () => { const x = decks.find((k) => !k.el.hidden); if (x && query.trim()) scrollToEl(x.el); } });
-  findStatus = h("p.find-say");
-  findVoice = announcer();
-  return h("div.find", [field.el, findStatus, findVoice.el]);
-}
-
-/** The cards whose French or English name holds every word of the query. */
-const hitCards = (ts) => DB.cards.filter((c) => hasAll(nameHay(c), ts));
-
-function paintFind(ts, hits, shown) {
-  if (!ts.length) { findStatus.replaceChildren(); findVoice.say(""); return; }
-  const inDecks = hits.filter((c) => decks.some((x) => x.cs.includes(c)));
-  const clear = h("button.btn.ghost.find-clear", { type: "button", onclick: () => { field.set(""); query = ""; applyShown(); field.input.focus(); } }, t("find.clear"));
-  const named = (list) => list.flatMap((c, i) => (i ? [t("find.or"), chip(c)] : [chip(c)]));
-  let say;
-  if (!hits.length) say = [t("find.noCard", { q: query.trim() }), clear];
-  else if (!shown) say = [...(hits.length <= 2 ? tx("find.noDeck", { cards: h("span.find-cards", named(hits)) }) : [t("find.noDeckN", { m: hits.length })]), clear];
-  else if (inDecks.length <= 2) say = tx("find.decks", { n: shown, cards: h("span.find-cards", named(inDecks)) });
-  else say = [t("find.decksN", { n: shown, m: inDecks.length })];
-  findStatus.replaceChildren(...say);
-  // the screen reader hears the sentence without the Clear button
-  findVoice.say([...findStatus.childNodes].filter((n) => n !== clear).map((n) => n.textContent).join(""));
+  return find.el;
 }
 
 // ---------------------------------------------------------------- reading guide
@@ -331,7 +311,7 @@ function applyShown() {
   readyBtn.disabled = !ready.length && !readyOnly;
   readyBtn.title = t(ready.length ? "tl.readyOn" : "tl.readyOff");
   const ts = terms(query);
-  const hits = ts.length ? hitCards(ts) : [];
+  const hits = ts.length ? namedCards(ts) : [];
   let found = 0;
   for (const x of decks) {
     const hit = !ts.length || x.cs.some((c) => hits.includes(c));
@@ -354,7 +334,7 @@ function applyShown() {
       else { chipRef.a.setAttribute("aria-disabled", "true"); chipRef.a.tabIndex = -1; chipRef.a.title = t(ts.length ? "tl.jumpNoHit" : "tl.jumpOff", { tier: name }); }
     }
   }
-  paintFind(ts, hits, found);
+  find.paint(ts, hits, hits.filter((c) => decks.some((x) => x.cs.includes(c))), found);
 }
 
 function updateBanner() {

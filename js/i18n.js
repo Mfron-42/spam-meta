@@ -10,8 +10,8 @@
 // {one, other} chosen by Intl.PluralRules on the parameter `count`, else `n` (French: 0 to 1.99 are "one"). `**bold**` is honoured by tx()
 // only. French copy uses plain spaces before : ; ? ! - they become no-break spaces when the table loads.
 
-import { h, fmtInt, dec } from "./util.js";
-import { getLang } from "./store.js";
+import { h, fmtInt, dec } from "./util.js?v=abc018be6f";
+import { getLang } from "./store.js?v=abc018be6f";
 
 const EN = {
   // ---- document and header
@@ -25,12 +25,15 @@ const EN = {
   "head.about": "About this site",
   "head.sections": "Sections",
   "tab.tiers": "Deck tier list",
-  "tab.tiersShort": "Deck tiers",
+  "tab.tiersShort": "Decks",
   "tab.cardTiers": "Card tier list",
-  "tab.cardTiersShort": "Card tiers",
+  "tab.cardTiersShort": "Cards",
   "tab.codex": "Codex",
   "tab.decks": "My decks",
   "tab.decksCount": { one: "{n} deck you can build", other: "{n} decks you can build" },
+  "tab.finder": "Find a deck",
+  "tab.finderShort": "Find",
+  "tab.finderName": "Find a deck",
   "app.loading": "Loading…",
   "err.viewTitle": "{tab} could not be loaded",
   "err.viewText": "Part of the page did not arrive. Reload to try again.",
@@ -101,7 +104,6 @@ const EN = {
   "card.abilities": "Abilities",
   "card.noAbility": "No active ability.",
   "card.passives": "Passives",
-  "card.passive": "Passive",
   "card.talents": "Talents",
   "card.talentsNote": "A deck drafts one talent per card.",
   "card.cooldown": "Cooldown",
@@ -112,8 +114,14 @@ const EN = {
   "card.crit": "Crit",
   "card.echo": "Echo",
   "card.targets": "Targets:",
-  "card.inDecks": { one: "In {n} tier-list deck; best #{rank} (tier {tier}).", other: "In {n} tier-list decks; best #{rank} (tier {tier})." },
-  "card.inNoDeck": "In no tier-list deck.",
+  // card dialog layout (2026-10-15): the suggested talent's cell, and the Meta band
+  "card.suggestedH": "Suggested talent",
+  "card.otherTalents": "Other talents",
+  "card.metaH": "Meta",
+  "card.tlK": "Tier-list decks",
+  "card.tlBest": "Best: #{rank}, tier {tier}",
+  "card.tlNone": "No listed deck plays it.",
+  "card.ctK": "Card tier",
   // per-card lists of the card dialog (data/cardcounters.json): "With and against"
   "card.strongWith": "Strong with",
   "card.strongAgainst": "Strong against",
@@ -435,11 +443,8 @@ const EN = {
   "md.tagTier": "Tier {tier} · #{rank} overall",
   "md.tagRank": "#{rank} overall",
 
-  // ---- deck finder (#builder, the second mode of the My decks tab)
+  // ---- deck finder (#builder, its own tab next to My decks)
   "fd.title": "Deck finder",
-  "fd.modes": "My decks: by collection or by card",
-  "fd.modeMine": "My collection",
-  "fd.modeFind": "Deck finder",
   "fd.h1": "Deck finder",
   "fd.lede": "Pick up to 4 cards to see the best decks that hold them.",
   "fd.ph": "Add a card…",
@@ -539,12 +544,15 @@ const FR = {
   "head.about": "À propos du site",
   "head.sections": "Rubriques",
   "tab.tiers": "Tier list decks",
-  "tab.tiersShort": "Top decks",
+  "tab.tiersShort": "Decks",
   "tab.cardTiers": "Tier list cartes",
-  "tab.cardTiersShort": "Top cartes",
+  "tab.cardTiersShort": "Cartes",
   "tab.codex": "Codex",
   "tab.decks": "Mes decks",
   "tab.decksCount": { one: "{n} deck à ta portée", other: "{n} decks à ta portée" },
+  "tab.finder": "Trouver",
+  "tab.finderShort": "Trouver",
+  "tab.finderName": "Trouver un deck",
   "app.loading": "Chargement…",
   "err.viewTitle": "{tab} n’a pas pu se charger",
   "err.viewText": "Une partie de la page n’est pas arrivée. Recharge pour réessayer.",
@@ -611,7 +619,6 @@ const FR = {
   "card.abilities": "Capacités",
   "card.noAbility": "Pas de capacité active.",
   "card.passives": "Passifs",
-  "card.passive": "Passif",
   "card.talents": "Talents",
   "card.talentsNote": "Un deck choisit un talent par carte.",
   "card.cooldown": "Recharge",
@@ -622,8 +629,14 @@ const FR = {
   "card.crit": "Critique",
   "card.echo": "Écho",
   "card.targets": "Cibles :",
-  "card.inDecks": { one: "Dans {n} deck de la tier list ; meilleur : #{rank} (tier {tier}).", other: "Dans {n} decks de la tier list ; meilleur : #{rank} (tier {tier})." },
-  "card.inNoDeck": "Dans aucun deck de la tier list.",
+  // card dialog layout (2026-10-15): the suggested talent's cell, and the Meta band
+  "card.suggestedH": "Talent conseillé",
+  "card.otherTalents": "Autres talents",
+  "card.metaH": "Méta",
+  "card.tlK": "Decks de la tier list",
+  "card.tlBest": "Meilleur : #{rank}, tier {tier}",
+  "card.tlNone": "Aucun deck affiché ne la joue.",
+  "card.ctK": "Tier de la carte",
   "card.strongWith": "Forte avec",
   "card.strongAgainst": "Forte contre",
   "card.weakAgainst": "Faible contre",
@@ -941,9 +954,6 @@ const FR = {
 
   // ---- trouver un deck
   "fd.title": "Trouver un deck",
-  "fd.modes": "Mes decks : par collection ou par carte",
-  "fd.modeMine": "Ma collection",
-  "fd.modeFind": "Trouver un deck",
   "fd.h1": "Trouver un deck",
   "fd.lede": "Choisis jusqu’à 4 cartes pour voir les meilleurs decks qui les contiennent.",
   "fd.ph": "Ajouter une carte…",

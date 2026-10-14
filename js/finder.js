@@ -1,4 +1,4 @@
-// Deck finder (#builder, the second mode of the My decks tab): the visitor picks 1 to 4 cards they want to play and the
+// Deck finder (#builder, its own tab next to My decks): the visitor picks 1 to 4 cards they want to play and the
 // page lists the measured decks (decks.json) that hold all of them, best first by the canonical rank (rows are already
 // sorted by it). When no measured deck holds every pick, one line says so and the decks holding the most of them follow,
 // labelled "3 of your 4 cards". Only decks.json rows are read: the withheld and hidden decks have none, so they can never
@@ -6,14 +6,14 @@
 // The picks live in memory only (the address holds a tab and, while a card dialog is open, a card key; SPEC.md); the card
 // dialog's "Decks with this card" sets them through pick().
 
-import { h, icon, fmtInt } from "./util.js";
-import { DB, loadDecks, loadTier } from "./data.js";
-import { on, isOwned, ownedCount } from "./store.js";
-import { cardName, chip } from "./cards.js";
-import { t } from "./i18n.js";
-import { patchNotice } from "./patch.js";
-import { searchField, announcer, terms, hasAll, nameHay } from "./search.js";
-import { deckRow, paged, legend, modeSwitch, paintOwned } from "./decklist.js";
+import { h, icon, fmtInt } from "./util.js?v=abc018be6f";
+import { DB, loadDecks, loadTier } from "./data.js?v=abc018be6f";
+import { on, isOwned, ownedCount } from "./store.js?v=abc018be6f";
+import { cardName, chip } from "./cards.js?v=abc018be6f";
+import { t } from "./i18n.js?v=abc018be6f";
+import { patchNotice } from "./patch.js?v=abc018be6f";
+import { searchField, announcer, terms, namedCards } from "./search.js?v=abc018be6f";
+import { deckRow, paged, legend, paintOwned } from "./decklist.js?v=abc018be6f";
 
 const MAX = 4;           // four picks are a whole deck
 const PAGE = 10;         // results shown, then ten more on request
@@ -84,7 +84,7 @@ function render() {
   resEl = h("div.fd-res");
   voice = announcer();
   root.replaceChildren(
-    h("div.vhead", [modeSwitch("builder"), h("h1", t("fd.h1")), h("p.lede", t("fd.lede")), patchNotice()]),
+    h("div.vhead", [h("h1", t("fd.h1")), h("p.lede", t("fd.lede")), patchNotice()]),
     h("div.fd-pick", [h("div.fd-field", field.el), sugEl, slotsEl, voice.el]),
     resEl,
   );
@@ -147,7 +147,7 @@ function paintSuggest() {
   const ts = terms(query);
   let label, list;
   if (ts.length) {
-    list = DB.cards.filter((c) => hasAll(nameHay(c), ts) && !picks.includes(c));
+    list = namedCards(ts).filter((c) => !picks.includes(c));
     if (!list.length) { sugEl.replaceChildren(h("span", t("find.noCard", { q: query.trim() }))); voice.say(t("find.noCard", { q: query.trim() })); return; }
     label = t("fd.matches", { n: list.length });
     voice.say(label.replace(/\s*:\s*$/, "") + ": " + list.slice(0, SUGGEST).map(cardName).join(", "));

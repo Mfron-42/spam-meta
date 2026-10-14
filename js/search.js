@@ -1,8 +1,12 @@
-// The one card search of the site: the search field (Codex, Deck tier list, Card tier list) and its matching.
+// The one card search of the site: the search field (Codex, Deck tier list, Card tier list, My decks, Deck finder), its
+// matching, and the search row of the two deck lists (Deck tier list, My decks): the field and its one live result line.
 // Matching is accent- and case-insensitive and every word must match ("chouette", "leviathan", "lames en"); a phrase in
 // double quotes must match as written. The field clears with its clear button or Escape.
 
-import { h, icon, norm, debounce } from "./util.js";
+import { h, icon, norm, debounce } from "./util.js?v=abc018be6f";
+import { DB } from "./data.js?v=abc018be6f";
+import { chip } from "./cards.js?v=abc018be6f";
+import { t, tx } from "./i18n.js?v=abc018be6f";
 
 /** The words of a query, normalised: `polychrome "en peine"` -> ["polychrome", "en peine"]. */
 export function terms(q) {
@@ -20,6 +24,9 @@ export function nameHay(c) {
   if (!names.has(c.key)) names.set(c.key, norm(`${c.name_fr}\n${c.name_en}`));
   return names.get(c.key);
 }
+
+/** The cards whose French or English name holds every word. */
+export const namedCards = (ts) => DB.cards.filter((c) => hasAll(nameHay(c), ts));
 
 /**
  * A visually hidden polite live region for a search result, in plain text. It speaks once the typing has paused, so a screen
@@ -51,4 +58,36 @@ export function searchField({ id, name = "q", placeholder, label, clearLabel, va
   sync();
   const el = h("div.field.search" + cls, { onpointerdown: (e) => { if (e.target === el) { e.preventDefault(); input.focus(); } } }, [icon("search"), input, clear]);
   return { el, input, set(v) { input.value = v; sync(); } };
+}
+
+/**
+ * The card search row of a deck list (Deck tier list, My decks): the field, then one live line beside it that names what was
+ * found ("3 decks with <chip>") or says nothing matched, with a Clear button. When the query names exactly one card that a deck
+ * holds, the line ends with "Decks with this card", which opens the Deck finder with that card picked (every measured deck, not
+ * only the ones of this list). The caller filters its decks in onChange and
+ * then calls paint(ts, hits, inDecks, shown): the query's words, the cards it names, those of them some deck of the list
+ * holds, and how many decks are shown. Returns { el, field, paint }.
+ */
+export function findRow({ id, name, placeholder, label, clearLabel, value = "", onChange, onEnter }) {
+  const field = searchField({ id, name, placeholder, label, clearLabel, value, onChange, onEnter });
+  const status = h("p.find-say");
+  const voice = announcer();
+  function paint(ts, hits, inDecks, shown) {
+    if (!ts.length) { status.replaceChildren(); voice.say(""); return; }
+    const q = field.input.value.trim();
+    const clear = h("button.btn.ghost.find-clear", { type: "button", onclick: () => { field.set(""); onChange(""); field.input.focus(); } }, t("find.clear"));
+    const named = (list) => list.flatMap((c, i) => (i ? [t("find.or"), chip(c)] : [chip(c)]));
+    let say;
+    if (!hits.length) say = [t("find.noCard", { q }), clear];
+    else if (!shown) say = [...(hits.length <= 2 ? tx("find.noDeck", { cards: h("span.find-cards", named(hits)) }) : [t("find.noDeckN", { m: hits.length })]), clear];
+    else if (inDecks.length <= 2) say = tx("find.decks", { n: shown, cards: h("span.find-cards", named(inDecks)) });
+    else say = [t("find.decksN", { n: shown, m: inDecks.length })];
+    if (hits.length === 1 && shown) {
+      say.push(h("a.btn.ghost.find-more", { href: "#builder", "data-goto": "builder", "data-pick": hits[0].key }, [icon("search"), t("card.findDecks")]));
+    }
+    status.replaceChildren(...say);
+    // the screen reader hears the sentence without the Clear button
+    voice.say([...status.childNodes].filter((n) => n !== clear && !n.classList?.contains("find-more")).map((n) => n.textContent).join(""));
+  }
+  return { el: h("div.find", [field.el, status, voice.el]), field, paint };
 }

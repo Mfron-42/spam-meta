@@ -3,10 +3,10 @@
 // filled when a value, an ability or a passive changed (the class "mechanical"), hollow when only talents or texts did.
 // The data carries codes and positions; every word comes from i18n.js ("pc.*").
 
-import { h, icon } from "./util.js";
-import { DB } from "./data.js";
-import { L } from "./cards.js";
-import { t } from "./i18n.js";
+import { h, icon } from "./util.js?v=abc018be6f";
+import { DB } from "./data.js?v=abc018be6f";
+import { L } from "./cards.js?v=abc018be6f";
+import { t } from "./i18n.js?v=abc018be6f";
 
 export const changeOf = (c) => (c && c.patch_change) || null;
 /** A value, an ability or a passive changed: the rankings' numbers for this card are from before the change. */
