@@ -91,6 +91,20 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .guide .levels { list-style: none; padding: 0; gap: 12px; color: var(--ink-2); }
 .levels li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: start; }
 .levels .meter { margin-top: 5px; }
+/* card search row (search.js): the Codex field, then one live line beside it (below it on a phone) */
+.find { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 8px 16px; align-items: center; margin-top: 24px; }
+.find-say { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-width: 0; max-width: none; color: var(--ink-2); font-size: 16px; line-height: 1.4; }
+.find-cards { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0 8px; min-width: 0; }
+.find-hit { display: inline-flex; align-items: center; gap: 4px; }
+.find-clear { height: 36px; padding: 0 16px; font-size: 16px; }
+@media (max-width: 759px) {
+  /* the line keeps its row while empty, so the first letter typed moves nothing */
+  .find { grid-template-columns: minmax(0, 1fr); }
+  .find-say { min-height: 36px; }
+}
+/* inside a deck that matches, the other cards step back (the icon opacity floor); hover or focus brings one back */
+.slot.miss .gc { opacity: .45; }
+.slot.miss:hover .gc, .slot.miss:focus-within .gc { opacity: 1; }
 .jump { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 16px 0 0; }
 .jump-chip { padding: 0 14px; }
 .jump-chip .chip-l { font: 400 18px/1 var(--display); }

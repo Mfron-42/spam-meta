@@ -171,6 +171,7 @@ main.wrap { padding-block: 32px 64px; }
 /* ---------------------------------------------------------------- fields and chips */
 .field { position: relative; display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 12px; border-radius: 8px; background: var(--socket); box-shadow: var(--sunken), inset 0 0 0 1px var(--edge); color: var(--muted);
   transition: box-shadow var(--t-state) var(--curve); }
+.field:hover { box-shadow: var(--sunken), inset 0 0 0 1px var(--muted); }
 .field:focus-within { box-shadow: var(--sunken), inset 0 0 0 1px var(--accent), var(--ring); }
 .field input, .field select { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; background: transparent; color: var(--ink); font: 400 16px/1 var(--text); outline: none; appearance: none; -webkit-appearance: none; }
 .field input::placeholder { color: var(--muted); opacity: 1; }

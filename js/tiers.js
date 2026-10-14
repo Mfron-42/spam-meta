@@ -6,6 +6,8 @@
 // it. A secret deck (`secret: true`, only its rank and tier) is drawn as four blank grey cards and the word "Secret", nothing
 // else. Ranks 1-10 are the finals; the decks after them are ranked by their win rate against the top 10 (`tier.ordering`).
 // Every deck keeps its rank in that full order, so a rank the data does not list is simply absent.
+// A card search (the shared field of search.js) keeps only the decks holding a card whose French or English name matches;
+// withheld and secret decks have no cards and hide while it is on.
 // A language change redraws the page and keeps what the visitor opened (the reading guide, deck details, the filter).
 
 import { h, icon, pm, pct, pct1, dec } from "./util.js";
@@ -14,15 +16,17 @@ import { on, isOwned, ownedCount } from "./store.js";
 import { gameCard, cardBack, secretCard, chip, strip, cardName } from "./cards.js";
 import { disclosure, segmented, scrollToEl } from "./ui.js";
 import { t, tx, millions } from "./i18n.js";
+import { searchField, announcer, terms, hasAll, nameHay } from "./search.js";
 
 let root, tier, decks = [], stubs = [], sections = [], jumpChips = new Map(), banner, detailBtns = [], readyBtn, readyOnly = false, spotted = false;
-let openDetails = new Set(), guideOpen = false;      // kept across a redraw (language change)
+let field, findStatus, findVoice;
+let openDetails = new Set(), guideOpen = false, query = "";      // kept across a redraw (language change)
 
 export async function mount(el) {
   root = el;
   tier = await loadTier();
   render();
-  on("owned", () => { updateBadges(); updateBanner(); applyReady(); });
+  on("owned", () => { updateBadges(); updateBanner(); applyShown(); });
   on("lang", () => render());
 }
 
@@ -48,6 +52,7 @@ function render() {
       recomputeNote(),
     ]),
     banner,
+    findRow(),
     jumpNav(guide.btn),
     guide.region,
   ];
@@ -55,7 +60,36 @@ function render() {
   root.replaceChildren(...nodes);
   updateBanner();
   updateBadges();
-  applyReady();
+  applyShown();
+}
+
+// ---------------------------------------------------------------- card search: the decks that hold a card
+// A withheld or secret deck has no cards in the data, so it never matches and hides like any other deck while a search is on.
+function findRow() {
+  field = searchField({ id: "tl-q", name: "deck-card", placeholder: t("find.decksPh"), label: t("find.decksAria"), clearLabel: t("cx.clearSearch"), value: query,
+    onChange: (v) => { query = v; applyShown(); },
+    onEnter: () => { const x = decks.find((k) => !k.el.hidden); if (x && query.trim()) scrollToEl(x.el); } });
+  findStatus = h("p.find-say");
+  findVoice = announcer();
+  return h("div.find", [field.el, findStatus, findVoice.el]);
+}
+
+/** The cards whose French or English name holds every word of the query. */
+const hitCards = (ts) => DB.cards.filter((c) => hasAll(nameHay(c), ts));
+
+function paintFind(ts, hits, shown) {
+  if (!ts.length) { findStatus.replaceChildren(); findVoice.say(""); return; }
+  const inDecks = hits.filter((c) => decks.some((x) => x.cs.includes(c)));
+  const clear = h("button.btn.ghost.find-clear", { type: "button", onclick: () => { field.set(""); query = ""; applyShown(); field.input.focus(); } }, t("find.clear"));
+  const named = (list) => list.flatMap((c, i) => (i ? [t("find.or"), chip(c)] : [chip(c)]));
+  let say;
+  if (!hits.length) say = [t("find.noCard", { q: query.trim() }), clear];
+  else if (!shown) say = [...(hits.length <= 2 ? tx("find.noDeck", { cards: h("span.find-cards", named(hits)) }) : [t("find.noDeckN", { m: hits.length })]), clear];
+  else if (inDecks.length <= 2) say = tx("find.decks", { n: shown, cards: h("span.find-cards", named(inDecks)) });
+  else say = [t("find.decksN", { n: shown, m: inDecks.length })];
+  findStatus.replaceChildren(...say);
+  // the screen reader hears the sentence without the Clear button
+  findVoice.say([...findStatus.childNodes].filter((n) => n !== clear).map((n) => n.textContent).join(""));
 }
 
 // The lab is recomputing the ranking with a stronger AI (2026-10-14): one quiet line, no figures beyond the ranks that move.
@@ -93,7 +127,7 @@ function opponents() {
 }
 
 function jumpNav(guideBtn) {
-  readyBtn = h("button.chip.ready", { type: "button", "aria-pressed": "false", hidden: true, onclick: () => { readyOnly = !readyOnly; applyReady(); } }, [h("span.chip-l", t("tl.ready")), h("span.n")]);
+  readyBtn = h("button.chip.ready", { type: "button", "aria-pressed": "false", hidden: true, onclick: () => { readyOnly = !readyOnly; applyShown(); } }, [h("span.chip-l", t("tl.ready")), h("span.n")]);
   jumpChips = new Map();
   const expand = h("button.btn.ghost.expand", { type: "button", onclick: toggleAll }, t(openDetails.size ? "tl.closeAll" : "tl.openAll"));
   return h("nav.jump", { "aria-label": t("tl.jump") }, [
@@ -178,8 +212,8 @@ function deckPanel(d) {
   disclosure(btn, region, { open: openDetails.has(String(d.rank)), onToggle: (v) => { if (v && !built) { built = true; inner.append(...details(d)); } } });
   detailBtns.push(btn);
 
-  const cardsEl = h("div.deck-cards" + (spotlight ? ".full" : ""), cs.map((c) =>
-    h("div.slot", gameCard(c, { size: spotlight ? "full" : "list", eager: spotlight }))));
+  const slots = cs.map((c) => h("div.slot", gameCard(c, { size: spotlight ? "full" : "list", eager: spotlight })));
+  const cardsEl = h("div.deck-cards" + (spotlight ? ".full" : ""), slots);
 
   const el = h("article.deck.panel" + (spotlight ? ".spot" : ""), { id: "deck-" + d.rank, "aria-label": t("tl.rankAria", { rank: d.rank, cards: cs.map(cardName).join(", ") }) }, [
     h("div.deck-head", [
@@ -193,7 +227,7 @@ function deckPanel(d) {
     ]),
     btn, region,
   ]);
-  decks.push({ d, cs, badge, el });
+  decks.push({ d, cs, badge, el, slots });
   return el;
 }
 
@@ -298,8 +332,11 @@ function updateBadges() {
   }
 }
 
-/** The "Ready to play" chip: shown once there is a collection, hides the decks that are not fully owned. */
-function applyReady() {
+/**
+ * Which decks show: the "Ready to play" chip (shown once there is a collection) hides the decks that are not fully owned,
+ * and a card search hides the decks that hold no matching card. Withheld and secret decks hide under either.
+ */
+function applyShown() {
   if (!readyBtn) return;
   const any = ownedCount() > 0;
   const ready = decks.filter((x) => x.ready);
@@ -309,20 +346,31 @@ function applyReady() {
   readyBtn.querySelector(".n").textContent = String(ready.length);
   readyBtn.disabled = !ready.length && !readyOnly;
   readyBtn.title = t(ready.length ? "tl.readyOn" : "tl.readyOff");
-  for (const x of decks) x.el.hidden = readyOnly && !x.ready;
-  for (const el of stubs) el.hidden = readyOnly;          // a withheld or secret deck can never be owned
+  const ts = terms(query);
+  const hits = ts.length ? hitCards(ts) : [];
+  let found = 0;
+  for (const x of decks) {
+    const hit = !ts.length || x.cs.some((c) => hits.includes(c));
+    x.show = hit && (!readyOnly || x.ready);
+    x.el.hidden = !x.show;
+    if (hit && ts.length) found += x.show ? 1 : 0;
+    // inside a deck that matches, the cards that do not are dimmed, so the matching card stands out
+    x.slots.forEach((s, i) => s.classList.toggle("miss", ts.length > 0 && !hits.includes(x.cs[i])));
+  }
+  for (const el of stubs) el.hidden = readyOnly || ts.length > 0;          // no cards: never owned, never found
   for (const s of sections) {
-    // withheld and secret stubs are not in `decks`, so a section holding only stubs hides under the filter
-    const shown = s.list.some((d) => { const x = decks.find((k) => k.d === d); return !readyOnly || (x && x.ready); });
+    // withheld and secret stubs are not in `decks`, so a section holding only stubs hides under either filter
+    const shown = s.list.some((d) => { const x = decks.find((k) => k.d === d); return x ? x.show : !readyOnly && !ts.length; });
     s.el.hidden = !shown;
     // a hidden tier keeps its jump chip in place, disabled, and says why (nothing jumps, nothing points at an empty box)
     const name = s.el.id.replace(/^tier-/, "");
     const chipRef = jumpChips.get(name);
     if (chipRef) {
       if (shown) { chipRef.a.removeAttribute("aria-disabled"); chipRef.a.removeAttribute("tabindex"); chipRef.a.title = chipRef.title; }
-      else { chipRef.a.setAttribute("aria-disabled", "true"); chipRef.a.tabIndex = -1; chipRef.a.title = t("tl.jumpOff", { tier: name }); }
+      else { chipRef.a.setAttribute("aria-disabled", "true"); chipRef.a.tabIndex = -1; chipRef.a.title = t(ts.length ? "tl.jumpNoHit" : "tl.jumpOff", { tier: name }); }
     }
   }
+  paintFind(ts, hits, found);
 }
 
 function updateBanner() {

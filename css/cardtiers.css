@@ -31,7 +31,7 @@
 .ct-fgroup-l { margin-right: 4px; color: var(--muted); font: 600 14px/1.4 var(--text); }
 .ct-fstatus { flex: 1 1 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; }
 .ct-fcount { color: var(--ink-2); font: 600 14px/1.4 var(--text); }
-.ct-q { flex: 1 1 100%; max-width: 420px; }
+.ct-find { margin-top: 16px; }
 .ct-clear { margin-left: auto; }
 .ct-notes { display: grid; margin-top: 12px; }
 .ct-notes > p { grid-area: 1 / 1; max-width: 68ch; color: var(--muted); font: 600 14px/1.4 var(--text); transition: opacity var(--t-fade) var(--curve); }
@@ -51,7 +51,11 @@
 .ct-list { overflow: clip; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
 .ct-list:focus { outline: none; }
 .ct-row { display: grid; grid-template-columns: 88px minmax(0, 1fr); }
-.ct-row + .ct-row { border-top: 1px solid var(--line); }
+/* a line above every row that follows a shown row, so a search that hides rows never doubles the panel's top edge */
+.ct-row:not([hidden]) ~ .ct-row { border-top: 1px solid var(--line); }
+/* a search hides the cards that do not match and lets the rows shrink to what is left (sizeRows sets their height inline) */
+.ct-finding .ct-ic.dim { display: none; }
+.ct-finding .ct-cards { min-height: 0 !important; }
 .ct-tl { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px; background: var(--tc); color: var(--accent-ink); text-align: center; }
 /* the letter and the count follow the scroll inside a tall row, so the tier stays named while its cards scroll by */
 .ct-tl-in { position: sticky; top: calc(var(--chrome-h) + 64px); display: flex; flex-direction: column; align-items: center; gap: 4px; }

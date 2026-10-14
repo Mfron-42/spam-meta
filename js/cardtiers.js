@@ -8,7 +8,8 @@
 // here from tierlist.json and decks.json, the files the other tabs already read. No counter is shown per card.
 // A language change rebuilds the page from the same state (measurement, view, filters, rings, open panels).
 
-import { h, $, $$, icon, fmtInt, pct, pct1, sgn, reducedMotion, norm } from "./util.js";
+import { h, $, $$, icon, fmtInt, pct, pct1, sgn, reducedMotion } from "./util.js";
+import { searchField, announcer, terms, hasAll, nameHay } from "./search.js";
 import { DB, loadCardTiers, loadTier, loadDecks } from "./data.js";
 import { on, getLang } from "./store.js";
 import { cardName, otherName, chip, ELEMENTS, RARITIES, elName, raName } from "./cards.js";
@@ -97,6 +98,7 @@ function build() {
     caveat(),
     toolbar(),
     filtersRegion(),
+    findRow(),
     ui.announce,
     axisNotes(),
     h("section.ct-view", { id: "ct-view-list", role: "tabpanel", "aria-labelledby": "ct-tab-list" }, [
@@ -171,12 +173,6 @@ function filtersRegion() {
   const toggle = (set, v) => { if (set.has(v)) set.delete(v); else set.add(v); applyFilters(); };
   ui.raChips = RARITIES.map((id) => Object.assign(filterChip(raName(id), "sp-gem-" + id, () => toggle(S.ra, id)), { id, label: raName(id) }));
   ui.elChips = ELEMENTS.map((id) => Object.assign(filterChip(elName(id), "sp-el-" + id, () => toggle(S.el, id)), { id, label: elName(id) }));
-  const qClear = h("button.field-clear", { type: "button", "aria-label": t("ct.clearSearch"), hidden: !S.q, onclick: () => { ui.q.value = ""; S.q = ""; qClear.hidden = true; applyFilters(); ui.q.focus(); } }, icon("close", 16));
-  ui.q = h("input", { type: "search", id: "ct-q", name: "card-search", autocomplete: "off", spellcheck: "false", placeholder: t("ct.findPh"),
-    oninput: () => { S.q = norm(ui.q.value.trim()); qClear.hidden = !ui.q.value; applyFilters(); } });
-  ui.q.value = S.qRaw || "";
-  ui.q.addEventListener("input", () => { S.qRaw = ui.q.value; });
-  ui.qClear = qClear;
   ui.fcount = h("p.ct-fcount", { "aria-live": "polite" });
   ui.clear = h("button.btn.ghost.ct-clear", { type: "button", disabled: true, title: t("ct.clearOff"), onclick: clearAll }, t("ct.clear"));
   // a display option, not a filter: Clear filters leaves it as it is
@@ -185,7 +181,6 @@ function filtersRegion() {
     [h("i.ct-ring-ic", { "aria-hidden": "true" }), h("span.chip-l", t("ct.rings"))]);
   const group = (key, kids) => h("div.ct-fgroup", { role: "group", "aria-label": t(key) }, [h("span.ct-fgroup-l", { "aria-hidden": "true" }, t(key)), ...kids]);
   const region = h("div", { id: "ct-filters" }, h("div.collapse-in", h("div.ct-filters", { role: "group", "aria-label": t("ct.filters") }, [
-    h("label.field.ct-q", [icon("search"), h("span.sr", t("ct.find")), ui.q, qClear]),
     group("ct.gRarity", ui.raChips.map((c) => c.el)),
     group("ct.gElement", ui.elChips.map((c) => c.el)),
     group("ct.gDots", [rings]),
@@ -293,7 +288,7 @@ function rove(b) {
   if (b) b.tabIndex = 0;
 }
 function step(b, key) {
-  const all = $$(".ct-ic", ui.list), i = all.indexOf(b);
+  const all = $$(".ct-ic", ui.list).filter((x) => x.offsetParent), i = all.indexOf(b);   // cards a search hides are skipped
   if (key === "ArrowRight") return all[i + 1];
   if (key === "ArrowLeft") return all[i - 1];
   if (key === "Home") return all[0];
@@ -351,12 +346,14 @@ function saveState() {
 }
 
 // ---------------------------------------------------------------- filters: dim on the tier rows, hide in the table
-const found = (x) => !S.q || norm(x.c.name_fr).includes(S.q) || norm(x.c.name_en).includes(S.q);
+let TS = [];                                       // the words of the card search (search.js), set by applyFilters
+const found = (x) => hasAll(nameHay(x.c), TS);
 const matches = (x) => found(x) && (!S.ra.size || S.ra.has(x.c.rarity)) && (!S.el.size || S.el.has(x.c.element));
 const matchesTier = (x) => !S.tier.size || S.tier.has(tierOf(x, S.axis));
 
 function applyFilters() {
-  const on_ = !!S.q || S.ra.size + S.el.size + (S.view === "details" ? S.tier.size : 0) > 0;
+  TS = terms(S.q);
+  const on_ = TS.length > 0 || S.ra.size + S.el.size + (S.view === "details" ? S.tier.size : 0) > 0;
   let shown = 0;
   for (const x of rows) {
     const ok = matches(x);
@@ -375,25 +372,73 @@ function applyFilters() {
   const counts = {};
   rows.forEach((x) => { if (matches(x)) { const tr = tierOf(x, S.axis); counts[tr] = (counts[tr] || 0) + 1; } });
   for (const c of ui.tierChips) setChip(c, counts[c.id] || 0, S.tier.has(c.id), t("filter.show", { label: c.label }), t("ct.tierChipOff"));
-  const nOn = S.ra.size + S.el.size + (S.q ? 1 : 0);
+  const nOn = S.ra.size + S.el.size;               // the search has its own field, outside the filters
   const fn = ui.fbtn.querySelector(".ct-fn");
   fn.hidden = nOn === 0;
   fn.textContent = String(nOn);
   ui.fbtn.title = nOn ? t("ct.filtersOn", { n: nOn }) : t("ct.filtersTitle");
-  // row counts follow the filters: "2 of 7 cards" while some cards of the row are dimmed
+  // row counts follow the filters: "2 of 7 cards" while some cards of the row are dimmed or, during a search, hidden.
+  // A search keeps only the matching cards and the rows that hold one, so the matches sit right under the field (on a phone
+  // too); the rarity and element filters alone only dim. Clearing the search brings every row and card back.
+  const finding = TS.length > 0;
+  root.classList.toggle("ct-finding", finding);
   for (const tr of TIERS) {
     const all = ui.order[S.axis][tr], k = all.filter(matches).length;
     ui.rowN[tr].textContent = k === all.length ? t("ct.cards", { n: all.length }) : t("ct.cardsOf", { k, n: all.length });
+    ui.rows[tr].parentElement.hidden = finding && k === 0;
   }
+  ui.list.hidden = finding && shown === 0 && S.view === "list";
   ui.clear.disabled = !on_;
   ui.clear.title = t(on_ ? "ct.clearOn" : "ct.clearOff");
   ui.dtEmpty.hidden = !(S.view === "details" && shown === 0);
+  paintFind();
 }
 
+/** Clear filters: the chips, and the search too (the Details view's empty state uses it to show every card again). */
 function clearAll() {
   S.ra.clear(); S.el.clear(); S.tier.clear();
-  S.q = ""; S.qRaw = ""; ui.q.value = ""; ui.qClear.hidden = true;
+  S.q = ""; ui.search.set("");
   applyFilters();
+}
+
+// ---------------------------------------------------------------- card search: the field above the rows, its live line
+function findRow() {
+  ui.search = searchField({ id: "ct-q", name: "card-search", placeholder: t("ct.findPh"), label: t("ct.find"), clearLabel: t("ct.clearSearch"), value: S.q,
+    onChange: (v) => { S.q = v; applyFilters(); },
+    onEnter: jumpToFirst });
+  ui.findSay = h("p.find-say");
+  ui.findVoice = announcer();
+  return h("div.find.ct-find", [ui.search.el, ui.findSay, ui.findVoice.el]);
+}
+
+/**
+ * The cards the search finds, whatever the rarity and element filters (they have their own count). Up to three are named, each
+ * with its tier on the measurement shown, so the line answers "which tier?" before the eye finds the ring.
+ */
+function paintFind() {
+  if (!TS.length) { ui.findSay.replaceChildren(); ui.findVoice.say(""); return; }
+  const hits = rows.filter(found);
+  const clear = h("button.btn.ghost.find-clear", { type: "button", onclick: () => { S.q = ""; ui.search.set(""); applyFilters(); ui.search.input.focus(); } }, t("find.clear"));
+  const tierWord = (x) => (x.ax[S.axis] ? t("ct.tierN", { tier: x.ax[S.axis].tier }) : t("ct.nm"));
+  let say, voice;
+  if (!hits.length) { say = [t("find.noCard", { q: S.q.trim() }), clear]; voice = t("find.noCard", { q: S.q.trim() }); }
+  else if (hits.length <= 3) {
+    say = tx("find.cards", { n: hits.length, cards: h("span.find-cards", hits.map((x) =>
+      h("span.find-hit", [chip(x.c), h("span.ct-tchip.tc-" + TC[tierOf(x, S.axis)], { title: tierWord(x) }, tierOf(x, S.axis) === "nm" ? t("ct.nm") : tierOf(x, S.axis))]))) });
+    voice = t("find.cards", { n: hits.length, cards: hits.map((x) => `${cardName(x.c)} (${tierWord(x)})`).join(", ") });
+  } else { say = [t("find.cardsN", { n: hits.length, total: rows.length })]; voice = say[0]; }
+  ui.findSay.replaceChildren(...say);
+  ui.findVoice.say(voice);
+}
+
+/** Enter in the search: focus moves to the first matching card of the tier rows (its short numbers show; Enter pins them). */
+function jumpToFirst() {
+  if (!TS.length || S.view !== "list") return;
+  const x = TIERS.flatMap((tr) => ui.order[S.axis][tr]).find(matches);
+  if (!x) return;
+  x.ic.scrollIntoView({ block: "center", behavior: "auto" });
+  rove(x.ic);
+  x.ic.focus({ preventScroll: true });
 }
 
 // ---------------------------------------------------------------- the card numbers (hover, focus, tap)

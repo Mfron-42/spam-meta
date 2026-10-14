@@ -1,7 +1,8 @@
 // Codex tab: every released card as a game card, with search, filters, sort and the Owned toggle on every card.
 // A language change rebuilds the tab from the same state (search, filters, sort, open panels).
 
-import { h, icon, norm, fmtInt, debounce } from "./util.js";
+import { h, icon, norm, fmtInt } from "./util.js";
+import { searchField, terms as searchTerms, hasAll } from "./search.js";
 import { DB, dumpDay } from "./data.js";
 import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js";
 import { keepLine, paintNoStore, inAppNotice } from "./keep.js";
@@ -47,11 +48,7 @@ function haystack(c) {
   return norm(parts.filter(Boolean).join("\n"));
 }
 
-function terms() {
-  const out = [];
-  norm(S.q).replace(/"([^"]+)"|(\S+)/g, (_, phrase, word) => { const w = (phrase || word).trim(); if (w) out.push(w); });
-  return out;
-}
+const terms = () => searchTerms(S.q);
 
 // ---- the filter predicate, with one facet left out so each chip can show "how many would I get"
 function passes(x, ts, skip) {
@@ -63,7 +60,7 @@ function passes(x, ts, skip) {
     if (S.own === "missing" && isOwned(c.key)) return false;
   }
   if (skip !== "trait") for (const tr of S.traits) if (!x.traits.has(tr)) return false;
-  return ts.every((w) => x.hay.includes(w));
+  return hasAll(x.hay, ts);
 }
 
 // ---- highlighting the matching effect under a card while a search is active
@@ -166,12 +163,9 @@ function build() {
   ]);
 
   // toolbar
-  ui.q = h("input#cx-q", { type: "search", autocomplete: "off", spellcheck: "false", enterkeyhint: "search", name: "q",
-    placeholder: t("cx.searchPh"), "aria-label": t("cx.searchAria") });
-  ui.q.value = S.q;
-  ui.clear = h("button.field-clear", { type: "button", "aria-label": t("cx.clearSearch"), title: t("cx.clearSearch"), hidden: true, onclick: () => { ui.q.value = ""; S.q = ""; apply(); ui.q.focus(); } }, icon("close"));
-  ui.q.addEventListener("input", debounce(() => { S.q = ui.q.value; apply(); }, 90));
-  const search = h("div.field.search", [icon("search"), ui.q, ui.clear]);
+  ui.search = searchField({ id: "cx-q", placeholder: t("cx.searchPh"), label: t("cx.searchAria"), clearLabel: t("cx.clearSearch"), value: S.q,
+    onChange: (v) => { S.q = v; apply(); } });
+  const search = ui.search.el;
 
   ui.sort = h("select#cx-sort", { "aria-label": t("cx.sortAria"), onchange: () => { S.sort = ui.sort.value; apply(); } },
     Object.entries(SORTS).map(([k, v]) => h("option", { value: k }, t(v[0]))));
@@ -230,7 +224,7 @@ function toggle(set, v) { set.has(v) ? set.delete(v) : set.add(v); }
 
 function reset() {
   S.q = ""; S.els.clear(); S.ras.clear(); S.traits.clear(); S.own = "all";
-  ui.q.value = ""; ui.ownSeg.set("all");
+  ui.search.set(""); ui.ownSeg.set("all");
   apply();
 }
 
@@ -250,7 +244,6 @@ function apply(first) {
   const mutate = () => grid.replaceChildren(...order);
   if (!same) { if (first) mutate(); else flip(grid, mutate); }
   ui.empty.hidden = shown.length > 0;
-  ui.clear.hidden = !S.q;
   ui.result.textContent = shown.length === cells.length ? t("cx.result", { n: shown.length }) : t("cx.resultOf", { n: shown.length, total: cells.length });
   ui.markAll.disabled = !shown.some((x) => !isOwned(x.c.key));
   ui.markAll.title = !shown.length ? t("cx.markNone") : ui.markAll.disabled ? t("cx.markDone") : t("cx.markN", { n: shown.filter((x) => !isOwned(x.c.key)).length });
