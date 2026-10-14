@@ -1,20 +1,26 @@
-// Entry point: loads the core data, wires the header, the tabs and the delegated clicks, and mounts the four views.
+// Entry point: loads the core data, wires the header, the tabs and the delegated clicks, and mounts the five views.
 
 import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js";
 import { t, applyStatic, millions } from "./i18n.js";
 import { copyText } from "./ui.js";
 import { DB, loadCore } from "./data.js";
 import { on, ownedCount, setKnown, getLang, setLang } from "./store.js";
-import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned } from "./dialogs.js";
+import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js";
 
+// Four tabs, five views: the My decks tab holds two modes, "My collection" (#decks) and the Deck finder (#builder).
 const TABS = ["tiers", "card-tiers", "codex", "decks"];
-const TITLE_KEYS = { tiers: "tab.tiers", "card-tiers": "tab.cardTiers", codex: "tab.codex", decks: "tab.decks" };
+const VIEWS = [...TABS, "builder"];
+const TAB_OF = { builder: "decks" };
+const tabOf = (view) => TAB_OF[view] || view;
+const lastView = { decks: "decks" };   // the tab opens the mode the visitor used last
+const TITLE_KEYS = { tiers: "tab.tiers", "card-tiers": "tab.cardTiers", codex: "tab.codex", decks: "tab.decks", builder: "fd.title" };
 const tabName = (tab) => t(TITLE_KEYS[tab]);
 let firstTab = true;         // the landing page keeps the site title until the visitor moves
 const mounted = {};
+const mods = {};             // the view modules once mounted
 const scrolls = {};          // where each tab was scrolled to, so coming back does not lose the place
 let freshNav = false;        // a button that sends you to a tab starts it at the top
-const MODULES = { tiers: "./tiers.js", "card-tiers": "./cardtiers.js", codex: "./codex.js", decks: "./mydecks.js" };
+const MODULES = { tiers: "./tiers.js", "card-tiers": "./cardtiers.js", codex: "./codex.js", decks: "./mydecks.js", builder: "./finder.js" };
 const RETRY_MS = 1200;       // a view module that fails to load gets one more try after this pause
 let current = null;
 
@@ -30,17 +36,33 @@ document.addEventListener("error", (e) => {
   }
 }, true);
 
-// ---- delegated clicks: card chips and cards open the dialog; [data-goto] jumps to a tab
+// ---- delegated clicks: card chips and cards open the dialog; [data-goto] jumps to a view ([data-pick]: the Deck finder
+// with that card picked, from the card dialog)
 const plain = (e) => e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey;   // let "open in a new tab" work on links
 document.addEventListener("click", (e) => {
   const g = e.target.closest("[data-goto]");
-  if (g) { if (plain(e)) { e.preventDefault(); freshNav = true; go(g.dataset.goto); } return; }
+  if (g) {
+    if (!plain(e)) return;
+    e.preventDefault();
+    freshNav = true;
+    if (g.dataset.pick) pickCard(g.dataset.pick);
+    else go(g.dataset.goto);
+    return;
+  }
   const c = e.target.closest("[data-card]");
   if (c) { e.preventDefault(); openCard(c.dataset.card); }
 });
 
+/** The Deck finder with one card picked: the card dialog closes in place (its address becomes #builder), then the view opens. */
+function pickCard(key) {
+  leaveCard("builder");
+  go("builder");
+  ensure("builder").then(() => { if (mods.builder) mods.builder.pick([key]); });
+}
+
 // ---- tabs
-// #tiers, #card-tiers, #codex, #decks, or #<tab>/<card key> which also opens that card. A natural spelling of My decks
+// #tiers, #card-tiers, #codex, #decks, #builder (the Deck finder, inside the My decks tab), or #<view>/<card key> which
+// also opens that card. A natural spelling of My decks
 // (#my-decks, #mes-decks, #mydecks) opens it too and is replaced in place by the canonical #decks.
 const ALIASES = { "my-decks": "decks", "mes-decks": "decks", mydecks: "decks" };
 function parseHash() {
@@ -48,7 +70,7 @@ function parseHash() {
   const t = ALIASES[raw.toLowerCase()] || raw;
   if (t !== raw) history.replaceState(history.state, "", "#" + [t, ...rest].join("/"));
   const key = rest[0];
-  return { tab: TABS.includes(t) ? t : "tiers", key: key && DB.byKey.has(key) ? key : null };
+  return { tab: VIEWS.includes(t) ? t : "tiers", key: key && DB.byKey.has(key) ? key : null };
 }
 const tabFromHash = () => parseHash().tab;
 
@@ -58,18 +80,23 @@ function go(tab) {
 }
 
 function show(tab, force) {
-  if (!TABS.includes(tab)) tab = "tiers";
+  if (!VIEWS.includes(tab)) tab = "tiers";
   if (tab === current && !force) return;
   const first = current === null;
   if (current) scrolls[current] = window.scrollY;
   current = tab;
+  if (tabOf(tab) !== tab || tab in lastView) lastView[tabOf(tab)] = tab;
   for (const t of TABS) {
-    const on_ = t === tab;
+    const on_ = t === tabOf(tab);
     const btn = $("#tab-" + t);
     btn.setAttribute("aria-selected", String(on_));
     btn.tabIndex = on_ ? 0 : -1;
-    const view = $("#view-" + t);
-    view.hidden = !on_;
+    btn.setAttribute("href", "#" + (lastView[t] || t));
+    btn.setAttribute("aria-controls", "view-" + (lastView[t] || t));
+  }
+  for (const v of VIEWS) {
+    const view = $("#view-" + v);
+    view.hidden = v !== tab;
     view.classList.remove("enter");
   }
   const view = $("#view-" + tab);
@@ -103,6 +130,7 @@ async function ensure(tab) {
     }
     try {
       await mod.mount(view);
+      mods[tab] = mod;
       if (tab === "decks") mod.onCount(updateTabCount);
     } catch (err) {
       console.error(err);
@@ -147,7 +175,7 @@ function onKeyTabs(e) {
   if (n === null) return;
   e.preventDefault();
   $("#tab-" + TABS[n]).focus();
-  go(TABS[n]);
+  go(lastView[TABS[n]] || TABS[n]);
 }
 
 // ---- header
@@ -243,7 +271,7 @@ async function boot() {
 
   $("#names-seg").addEventListener("click", (e) => { const b = e.target.closest("button[data-v]"); if (b) setLang(b.dataset.v); });
   $("#about-btn").addEventListener("click", openAbout);
-  $(".tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-tab]"); if (b && plain(e)) { e.preventDefault(); go(b.dataset.tab); } });
+  $(".tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-tab]"); if (b && plain(e)) { e.preventDefault(); go(lastView[b.dataset.tab] || b.dataset.tab); } });
   $(".tabs").addEventListener("keydown", onKeyTabs);
   $(".brand").addEventListener("click", (e) => { if (plain(e)) { e.preventDefault(); go("tiers"); } });
   window.addEventListener("hashchange", () => { const { tab, key } = parseHash(); show(tab); if (key) openCard(key, "url"); });
@@ -251,7 +279,7 @@ async function boot() {
   show(tabFromHash(), true);
   if (parseHash().key) openCard(parseHash().key, "url");
   const idle = window.requestIdleCallback || ((f) => setTimeout(f, 300));
-  idle(() => { for (const t of TABS) ensure(t); });
+  idle(() => { for (const v of VIEWS) ensure(v); });
 }
 
 applyStatic();               // the static markup in the page language before the data arrives

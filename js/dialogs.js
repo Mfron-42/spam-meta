@@ -2,12 +2,13 @@
 // inert and closes on Escape; we add the 280 ms enter, the back-button close and the backdrop click.
 
 import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js";
-import { DB, loadTier, loadCardCounters, dumpDay } from "./data.js";
+import { DB, loadTier, loadCardCounters } from "./data.js";
 import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js";
 import { gameCard, chip, L, cardName, otherName, ELEMENTS, elName, raName, unsize } from "./cards.js";
 import { encode, decode } from "./code.js";
 import { copyText, disclosure } from "./ui.js";
 import { t, tx, millions } from "./i18n.js";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent } from "./patch.js";
 
 let openDlg = null, pushed = false;
 
@@ -84,6 +85,19 @@ export function openCard(key, mode) {
   dlg.querySelector(".dlg-scroll").scrollTop = 0;
 }
 
+/**
+ * Leave the open card dialog for another view (its "Decks with this card" link): the dialog's history entry is replaced
+ * by `#<view>` instead of going back, so the Back button then returns to where the dialog was opened from.
+ */
+export function leaveCard(view) {
+  const dlg = cardDlg();
+  if (!dlg.open) return;
+  dlg._fromUrl = false;
+  pushed = false;
+  history.replaceState(null, "", "#" + view);
+  closeModal(dlg);
+}
+
 /** A language change redraws what the dialogs show: the open card, the About text, the collection dialog's counts. */
 export function refreshDialogs() {
   if (currentKey && cardDlg().open) renderCardDialog();
@@ -93,14 +107,12 @@ export function refreshDialogs() {
 
 const fact = (k, v) => h("div.fact", [h("span.fact-k", k), h("span.fact-v", v)]);
 
-// An ability, passive or talent the exporter flagged as changed since the game files the values come from: a quiet note
-// placed before the numbers it qualifies (DESIGN.md, "Data notice"); `data_notice` is a notice code, "notice.<code>".
-const dataNote = (e) => e.data_notice ? h("p.dnote", [icon("info"), h("span", [h("span.sr", t("card.note") + " "),
-  t("notice." + e.data_notice, { date: dumpDay(), patch: DB.patch })])]) : null;
-
 const pctInt = (n) => pct(n / 100, 0);
 
-function abilityBlock(c, a) {
+// an ability, passive or talent the last game patch changed carries a quiet tag beside its name (patch.js)
+const changed = (c, part, i) => (entryChanged(c, part, i) ? entryTag(c) : null);
+
+function abilityBlock(c, a, i) {
   const tags = [h("span.tag", [t("card.cooldown") + " ", h("b", String(a.cooldown))])];
   if (a.mana_cost) tags.push(h("span.tag", [t("card.mana") + " ", h("b", String(a.mana_cost))]));
   if (a.uses_limit != null) tags.push(h("span.tag", [t("card.limited") + " ", h("b", t("card.uses", { n: a.uses_limit }))]));
@@ -110,8 +122,7 @@ function abilityBlock(c, a) {
   ];
   if (a.echo_chance) stats.push(h("span.tag", [t("card.echo") + " ", h("b", pctInt(a.echo_chance))]));
   return h("div.ab", [
-    h("div.ab-h", [h("i.ab-orb.sp-el-" + (a.element || c.element)), h("h4", { lang: getLang() }, L(a, "name")), h("span.tags", tags)]),
-    dataNote(a),
+    h("div.ab-h", [h("i.ab-orb.sp-el-" + (a.element || c.element)), h("h4", { lang: getLang() }, L(a, "name")), h("span.tags", tags), changed(c, "abilities", i)]),
     h("p.ab-d", { lang: getLang() }, L(a, "description")),
     h("div.tags", stats),
     h("p.ab-t", [t("card.targets") + " ", t("target." + a.target)]),
@@ -126,6 +137,13 @@ function abilityBlock(c, a) {
  * a skeleton while the file loads, an inline error with a Reload button if it cannot be loaded.
  */
 let howOpen = false;           // the method disclosure stays as the visitor left it, across cards and languages
+
+/** The section heading; a card the last patch changed carries its patch tag there (the lists predate the patch). */
+function cmHead(c) {
+  const h3 = h("h3#cm-h3", t("cm.h"));
+  const tag = patchTag(c);
+  return tag ? h("div.cm-head", [h3, tag]) : h3;
+}
 
 function counterLists(c, sec) {
   const d = DB.cardCounters, mine = (d.cards && d.cards[c.id]) || {};
@@ -150,7 +168,7 @@ function counterLists(c, sec) {
   disclosure(btn, how, { open: howOpen, onToggle: (v) => { howOpen = v; } });
   const prelim = t("cm.prelim", { ai: t("cm.ai." + d.counters.ai) });
   sec.replaceChildren(
-    h("h3#cm-h3", t("cm.h")),
+    cmHead(c),
     h("div.cm-g", list("card.strongWith", mine.with, t("cm.ai." + d.synergy.ai))),
     // both counter lists carry the tag, so neither reads as a fact on its own (coordinator, 2026-10-14)
     h("div.cm-g", [...list("card.strongAgainst", mine.vs, prelim), ...list("card.weakAgainst", mine.weak, prelim)]),
@@ -163,13 +181,13 @@ function counterSection(c) {
   const sec = h("section.dlg-sec.cm", { "aria-labelledby": "cm-h3" });
   if (DB.cardCounters) { counterLists(c, sec); return sec; }
   sec.setAttribute("aria-busy", "true");
-  sec.replaceChildren(h("h3#cm-h3", t("cm.h")), h("div.skel.cm-skel", { "aria-hidden": "true" }, [h("i"), h("i"), h("i")]));
+  sec.replaceChildren(cmHead(c), h("div.skel.cm-skel", { "aria-hidden": "true" }, [h("i"), h("i"), h("i")]));
   loadCardCounters().then(() => {
     if (currentKey === c.key && sec.isConnected) counterLists(c, sec);
   }).catch((err) => {
     console.error(err);
     if (currentKey !== c.key || !sec.isConnected) return;
-    sec.replaceChildren(h("h3#cm-h3", t("cm.h")), h("div.cm-err", { role: "alert" }, [
+    sec.replaceChildren(cmHead(c), h("div.cm-err", { role: "alert" }, [
       h("p", t("cm.err")),
       h("button.btn", { type: "button", onclick: () => location.reload() }, t("err.reload")),
     ]));
@@ -190,29 +208,34 @@ function renderCardDialog() {
   const resist = ELEMENTS.filter((id) => c.resistances && c.resistances[id] != null).map((id) =>
     h("li.res", { title: t("card.resistance", { element: elName(id) }) }, [h("span.sr", t("card.resistance", { element: elName(id) }) + " "), h("i.sp-el-" + id), h("b", String(c.resistances[id]))]));
 
-  const abilities = c.abilities.length ? c.abilities.map((a) => abilityBlock(c, a)) : [h("p.muted", t("card.noAbility"))];
-  const passives = c.passives.map((p) => h("div.ab", [
-    h("div.ab-h", [h("h4", { lang }, L(p, "name")), h("span.tag.soft", t("card.passive"))]),
-    dataNote(p),
+  const abilities = c.abilities.length ? c.abilities.map((a, i) => abilityBlock(c, a, i)) : [h("p.muted", t("card.noAbility"))];
+  const passives = c.passives.map((p, i) => h("div.ab", [
+    h("div.ab-h", [h("h4", { lang }, L(p, "name")), h("span.tag.soft", t("card.passive")), changed(c, "passives", i)]),
     h("p.ab-d", { lang }, L(p, "description")),
   ]));
-  const talents = c.talents.map((tl) => h("div.ab", [
-    h("div.ab-h", [h("i.ab-talent"), h("h4", { lang }, L(tl, "name"))]),
-    dataNote(tl),
+  // the suggested talent (the one the site's simulations give the card) carries a quiet tag; absent data, no tag
+  const sugg = suggestedTalent(c);
+  const talents = c.talents.map((tl, i) => h("div.ab", [
+    h("div.ab-h", [h("i.ab-talent"), h("h4", { lang }, L(tl, "name")),
+      sugg && sugg.i === i ? h("span.tag.sugg", { title: t("card.suggestedTip") }, t("card.suggested")) : null,
+      changed(c, "talents", i)]),
     h("p.ab-d", { lang }, L(tl, "description")),
   ]));
   const where = h("p.dlg-where.muted");
+  const what = patchDetail(c);
 
   const body = h("div.dlg", [
     h("div.dlg-card", [
       h("div.gcwrap", gameCard(c, { size: "full", interactive: false, eager: true })),
       ownBtn,
       h("p.dlg-hint", t("card.feeds")),
+      h("a.btn.dlg-find", { href: "#builder", "data-goto": "builder", "data-pick": c.key }, [icon("search"), t("card.findDecks")]),
     ]),
     h("div.dlg-txt", [
       h("div.dlg-title", [
         h("h2#dlg-name", { lang }, cardName(c)),
         otherName(c) !== cardName(c) ? h("p.muted", { lang: lang === "fr" ? "en" : "fr", translate: "no" }, otherName(c)) : null,
+        patchTag(c) ? h("div.pline", [patchTag(c), what ? h("span", what) : null]) : null,
       ]),
       h("div.facts", [
         fact(t("card.element"), [h("i.fact-ico.sp-el-" + c.element), elName(c.element)]),
@@ -224,7 +247,8 @@ function renderCardDialog() {
       h("section.dlg-sec", [h("h3", t("card.abilities")), ...abilities]),
       passives.length ? h("section.dlg-sec", [h("h3", t("card.passives")), ...passives]) : null,
       talents.length ? h("section.dlg-sec", [h("h3", t("card.talents")), h("p.muted", t("card.talentsNote")), ...talents]) : null,
-      where,
+      // the tier-list line and the lists below were measured before the patch: said once, above them
+      h("div.dlg-rk", [oldNumbersNote(c), where]),
       counterSection(c),
     ]),
   ]);

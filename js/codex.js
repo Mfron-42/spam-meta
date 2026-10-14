@@ -3,7 +3,7 @@
 
 import { h, icon, norm, fmtInt } from "./util.js";
 import { searchField, terms as searchTerms, hasAll } from "./search.js";
-import { DB, dumpDay } from "./data.js";
+import { DB } from "./data.js";
 import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js";
 import { keepLine, paintNoStore, inAppNotice } from "./keep.js";
 import { gameCard, ownToggle, setOwnedView, cardName, ELEMENTS, RARITIES, elName, raName, unsize } from "./cards.js";
@@ -203,8 +203,6 @@ function build() {
     h("button.btn.primary", { type: "button", onclick: reset }, t("cx.reset")),
   ]);
 
-  // where the card values come from, while some of them predate the current patch (cards.json `data_notice`)
-  const notice = DB.dataNotice ? t("notice." + DB.dataNotice, { date: dumpDay(), patch: DB.patch }) : null;
   root.replaceChildren(...[
     h("div.vhead", [
       h("h1", t("cx.h1")),
@@ -214,7 +212,6 @@ function build() {
     cbar,
     h("div.tb-top", [search, sortField, ui.fbtn]), filters, bar,
     grid, ui.empty,
-    notice ? h("p.note.cx-foot", [icon("info"), h("span", notice)]) : null,
   ].filter(Boolean));
   apply(true);
   syncOwned([]);

@@ -82,7 +82,7 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .empty-ico { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: var(--socket); box-shadow: var(--sunken); color: var(--accent); }
 .empty-act { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 8px; }
 .grid + .empty { margin-top: 8px; }
-.cx-foot { display: flex; align-items: flex-start; gap: 8px; max-width: none; margin-top: 48px; text-wrap: pretty; }
+.empty-alt { margin-top: 8px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font: 600 14px/1.4 var(--text); }
 
 /* ---------------------------------------------------------------- Tier list */
 .guide-wrap { display: grid; gap: 8px; margin: 24px 0 8px; justify-items: start; }
@@ -177,6 +177,59 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .meter i.on { background: var(--ink-2); box-shadow: none; }
 .more { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 16px; }
 
+/* the two modes of the My decks tab (decklist.js): a segmented control of two links, the current one raised */
+.modes { justify-self: start; margin-bottom: 8px; }
+.modes a { position: relative; display: inline-flex; align-items: center; justify-content: center; height: 36px; padding: 0 16px; border-radius: 20px;
+  color: var(--ink-2); font: 400 18px/1 var(--display); text-decoration: none; white-space: nowrap; cursor: pointer;
+  transition: background var(--t-state) var(--curve), color var(--t-state) var(--curve); }
+.modes a::after { content: ""; position: absolute; inset: -4px -2px; }
+.modes a:hover { background: rgba(255, 255, 255, .08); color: var(--ink); }
+.modes a:active { background: rgba(0, 0, 0, .35); }
+.modes a[aria-current="page"] { background: var(--accent); color: var(--accent-ink); box-shadow: var(--raised); }
+.modes a[aria-current="page"]:hover { filter: brightness(1.06); }
+
+/* ---------------------------------------------------------------- Deck finder */
+.fd-pick { display: grid; gap: 12px; }
+.fd-field { max-width: 420px; }
+.field.off { opacity: .5; cursor: default; }
+.field.off:hover { box-shadow: var(--sunken), inset 0 0 0 1px var(--edge); }
+/* the line under the field: matches, "often with" or popular cards, as add chips; it keeps one row while it changes */
+.fd-sug { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 36px; max-width: none; color: var(--ink-2); }
+.fd-sug-l { color: var(--muted); font: 600 14px/1.4 var(--text); }
+.fd-add { padding: 0 12px 0 8px; }
+.fd-add .cc-art { width: 18px; height: 24px; border-radius: 4px; object-fit: cover; }
+.fd-add .ico { color: var(--muted); }
+.fd-add:hover .ico { color: var(--ink); }
+/* four pick slots, always drawn: a pick is a sunken cell with the card (opens it) and a remove button; an empty one adds */
+.fd-slots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 4px; }
+.fd-slot { display: flex; align-items: center; min-width: 0; height: 44px; border-radius: 8px; background: var(--socket); box-shadow: var(--sunken), inset 0 0 0 1px var(--line); }
+.fd-slot.on { box-shadow: var(--sunken), inset 0 0 0 1px var(--edge); }
+.fd-card { display: flex; flex: 1 1 auto; align-items: center; gap: 8px; min-width: 0; height: 100%; padding: 0 4px 0 8px; border: 0; border-radius: 8px 0 0 8px; background: transparent; color: var(--ink);
+  font: 700 16px/1.2 var(--text); text-align: start; cursor: pointer; transition: background var(--t-state) var(--curve); }
+.fd-card:hover { background: rgba(255, 255, 255, .08); }
+.fd-art { flex: none; width: 24px; height: 34px; border-radius: 4px; object-fit: cover; }
+.fd-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fd-x { position: relative; display: inline-grid; place-items: center; flex: none; width: 32px; height: 32px; margin-right: 8px; border: 0; border-radius: 50%; background: transparent; color: var(--ink-2); cursor: pointer;
+  transition: background var(--t-state) var(--curve), color var(--t-state) var(--curve); }
+.fd-x::after { content: ""; position: absolute; inset: -6px; }
+.fd-x:hover { background: rgba(255, 255, 255, .1); color: var(--ink); }
+.fd-x:active { background: rgba(0, 0, 0, .35); }
+.fd-empty { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 100%; border: 0; border-radius: 8px; background: transparent; color: var(--muted);
+  font: 600 14px/1 var(--text); cursor: pointer; transition: background var(--t-state) var(--curve), color var(--t-state) var(--curve); }
+.fd-empty:hover { background: rgba(255, 255, 255, .08); color: var(--ink-2); box-shadow: var(--ring); }
+.fd-slot.idle { justify-content: center; color: var(--muted); opacity: .5; }
+.fd-res { margin-top: 48px; }
+.fd-res:empty { display: none; }
+.fd-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.fd-head h2 { scroll-margin-top: calc(var(--chrome-h) + 24px); }
+.fd-head h2:focus { outline: none; }
+.fd-head h2:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+.fd-head + .guide-wrap { margin: 8px 0 16px; }
+.fd-none { color: var(--ink-2); font-size: 18px; line-height: 1.5; margin-bottom: 24px; }
+.fd-res > .fd-none:last-child { margin-bottom: 0; }
+/* the card dialog's link to the Deck finder, under the owned toggle */
+.dlg-find { width: 100%; }
+
 /* ---------------------------------------------------------------- card dialog */
 .dlg { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 32px; padding: 32px; }
 .dlg-card { display: grid; gap: 12px; align-content: start; }
@@ -205,9 +258,35 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 /* data notice: where a value comes from, before the numbers it qualifies; a caption line, no box, never an error colour (DESIGN.md) */
 .dnote { display: flex; align-items: flex-start; gap: 8px; max-width: none; color: var(--muted); font: 600 14px/1.4 var(--text); text-wrap: pretty; }
 /* the glyph box is one text line tall, so the glyph centres on the first line however the sentence wraps */
-.dnote .ico, .cx-foot .ico { height: 1lh; }
-.dnote > span, .cx-foot > span { min-width: 0; }
+.dnote .ico { height: 1lh; }
+.dnote > span { min-width: 0; }
 .dlg-where { font-size: 14px; }
+.dlg-rk { display: grid; gap: 4px; }
+.dlg-rk:empty { display: none; }
+.pline { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-top: 8px; color: var(--muted); font: 600 14px/1.4 var(--text); }
+.pline > span:not(.tag) { min-width: 0; text-wrap: pretty; }
+.cm-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+.cm-head h3 { font-size: 22px; }
+/* the suggested talent's tag: a quiet outline one step brighter than .tag.soft, never cyan (it is not an action) */
+.tag.sugg { background: none; box-shadow: inset 0 0 0 1px var(--edge); color: var(--ink-2); cursor: help; }
+
+/* ---------------------------------------------------------------- patch marks (patch.js, DESIGN.md "Patch mark") */
+/* the one glyph: a diamond, filled when the card's values changed in the last patch, hollow for talents or texts only */
+.pglyph { display: inline-block; flex: none; width: 8px; height: 8px; margin: 0 2px; transform: rotate(45deg); background: var(--ink-2); }
+.pglyph.hollow { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ink-2); }
+.tag.ptag { gap: 8px; }
+/* on a card of a deck: a 28px socket overhanging the card's bottom-left corner, off the art's sprites (orb, gold, gem) */
+.slot { position: relative; }
+.pmark { position: absolute; left: -8px; bottom: -8px; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 4px;
+  background: var(--socket); box-shadow: inset 0 0 0 1px var(--edge), 0 0 0 2px var(--night); pointer-events: auto; cursor: help; }
+.pmark .pglyph { width: 10px; height: 10px; margin: 0; }
+.slot.miss .pmark { opacity: .45; }
+/* the patch notice of the ranking views: one flat row, the shape of the browser notice, hugging its sentence */
+.pnotice { display: flex; align-items: flex-start; gap: 12px; justify-self: start; max-width: 100%; margin-top: 8px; padding: 10px 16px; border-radius: 12px;
+  background: var(--panel); border: 1px solid var(--line); color: var(--ink); text-wrap: pretty; }
+.pnotice .ico { height: 1lh; color: var(--muted); }
+.pnotice > span { min-width: 0; }
+.pnotice-key { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); white-space: nowrap; }
 /* "With and against": up to 5 card chips per list, each with its signed win-rate points; a quiet tag beside each list heading */
 .cm-g { display: grid; gap: 8px; justify-items: start; }
 .cm-g + .cm-g { padding-top: 12px; border-top: 1px solid var(--line); }
@@ -302,4 +381,17 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
   .tb-bulk .btn { flex: 1 1 auto; }
   .deck-head .obadge { margin-left: 0; }
   .deck > .disc { margin-left: -8px; }
+  .modes { display: flex; width: 100%; }
+  .modes a { flex: 1 1 0; padding: 0 8px; font-size: 16px; }
+  .fd-slots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fd-field { max-width: none; }
+  /* a phone: the label on its own line, the four cards two by two, long names cut */
+  .fd-sug { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto 36px 36px; align-content: start; }   /* the rows stay while typing */
+  .fd-sug.full { grid-template-rows: auto; min-height: 0; }      /* four picks: nothing to suggest, nothing reserved */
+  .fd-sug > span { grid-column: 1 / -1; }
+  .fd-add { min-width: 0; }
+  .fd-add .chip-l { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .fd-add .ico { margin-left: auto; }
+  /* a pick's name wraps to two lines instead of being cut */
+  .fd-name { font-size: 14px; line-height: 1.15; white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
 }

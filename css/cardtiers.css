@@ -34,7 +34,7 @@
 .ct-find { margin-top: 16px; }
 .ct-clear { margin-left: auto; }
 .ct-notes { display: grid; margin-top: 12px; }
-.ct-notes > p { grid-area: 1 / 1; max-width: 68ch; color: var(--muted); font: 600 14px/1.4 var(--text); transition: opacity var(--t-fade) var(--curve); }
+.ct-notes > p { grid-area: 1 / 1; max-width: 104ch; color: var(--muted); font: 600 14px/1.4 var(--text); transition: opacity var(--t-fade) var(--curve); }
 .ct-notes > p[aria-hidden="true"] { opacity: 0; }
 .ct-v-details .ct-list-only { display: none; }
 .ct-legend { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
@@ -87,6 +87,13 @@
 /* the within-noise rings are off by default; the "Within noise too" toggle in Find and filter shows them */
 .ct-ic.diff.noise .ct-ic-dot { opacity: 0; }
 .ct-rings .ct-ic.diff.noise .ct-ic-dot { opacity: 1; }
+/* the patch mark (patch.js): a socket on the icon's top-right corner, the one free corner of the mini card */
+.ct-ic-pm { position: absolute; right: -6px; top: -6px; display: grid; place-items: center; width: 18px; height: 18px; border-radius: 4px; background: var(--socket);
+  box-shadow: inset 0 0 0 1px var(--edge), 0 0 0 2px var(--night); pointer-events: none; }
+.ct-ic-pm .pglyph { width: 7px; height: 7px; margin: 0; }
+.ct-ic-pm .pglyph.hollow { box-shadow: inset 0 0 0 1.5px var(--ink-2); }
+.ct-legend i.pglyph { width: 8px; height: 8px; margin: 0 3px; border-radius: 0; }
+.ct-legend i.pglyph.hollow { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ink-2); }
 .ct-ring-only { display: none; }
 .ct-rings .ct-ring-only { display: inline; }
 .chip i.ct-ring-ic { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 2px currentColor; }
@@ -114,6 +121,13 @@
 .ct-pop-v b { color: var(--ink); font-weight: 700; }
 .ct-pop-p { margin-top: 8px; }
 .ct-pop-p td.on { color: var(--ink-2); }
+.ct-pop-h .tag.ptag { margin-top: 4px; }
+.ct-pop-pc { margin-top: 12px; color: var(--ink-2); font: 600 14px/1.4 var(--text); text-wrap: pretty; }
+.ct-pop .pold { margin-top: 8px; }
+.ct-pop-sugg { display: grid; gap: 4px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.ct-pop-sugg-h { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font: 400 16px/1.15 var(--display); }
+.ct-pop-sugg p { color: var(--ink-2); font: 600 14px/1.4 var(--text); white-space: pre-line; }
+.ct-nm-pc { display: flex; align-items: center; gap: 6px; margin-top: 2px; color: var(--muted); }
 .ct-pop-act { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
 .ct-pop-open { width: 100%; height: 36px; font-size: 16px; }
 .ct-tchip { display: inline-grid; place-items: center; min-width: 28px; height: 24px; padding: 0 4px; border-radius: 4px; background: var(--tc); color: var(--accent-ink); font: 400 16px/1 var(--display); }

@@ -12,9 +12,10 @@ import { h, $, $$, icon, fmtInt, pct, pct1, sgn, reducedMotion } from "./util.js
 import { searchField, announcer, terms, hasAll, nameHay } from "./search.js";
 import { DB, loadCardTiers, loadTier, loadDecks } from "./data.js";
 import { on, getLang } from "./store.js";
-import { cardName, otherName, chip, ELEMENTS, RARITIES, elName, raName } from "./cards.js";
+import { cardName, otherName, chip, L, ELEMENTS, RARITIES, elName, raName } from "./cards.js";
 import { disclosure, filterChip, setChip } from "./ui.js";
 import { t, tx, ord } from "./i18n.js";
+import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, patchNotice, suggestedTalent } from "./patch.js";
 
 const AXK = { c: "ct.axC", r: "ct.axR" };
 const ax = (a) => t(AXK[a]);
@@ -94,7 +95,7 @@ function build() {
   ui.tbody = h("tbody");
   root.classList.toggle("ct-rings", S.rings);
   root.replaceChildren(
-    h("div.vhead.ct-head", [h("h1", t("ct.h1")), h("p.lede", t("ct.lede"))]),
+    h("div.vhead.ct-head", [h("h1", t("ct.h1")), h("p.lede", t("ct.lede")), patchNotice()]),
     caveat(),
     toolbar(),
     filtersRegion(),
@@ -195,6 +196,9 @@ function legend(o) {
   return [
     ...tx("ct.dot", { dot: h("span.ct-legend", h("i", { "aria-hidden": "true" })), other: t(o === "r" ? "ct.otherR" : "ct.otherC") }),
     h("span.ct-ring-only", tx("ct.ring", { ring: h("span.ct-legend", h("i.ring", { "aria-hidden": "true" })) })),
+    // the patch mark (patch.js): filled when the card's values changed in the last patch, hollow for talents or texts only
+    ...(DB.cards.some(changeOf) ? tx("pc.legend", { patch: DB.patch, d: h("span.ct-legend", h("i.pglyph", { "aria-hidden": "true" })),
+      h: h("span.ct-legend", h("i.pglyph.hollow", { "aria-hidden": "true" })) }) : []),
     t("ct.hint"),
   ];
 }
@@ -231,6 +235,7 @@ function icons() {
       h("img", { class: "ct-ic-art", loading: "lazy", decoding: "async", alt: "", width: 112, height: 160, src: thumb(x.c) }),
       h("i.ct-ic-orb.sp-el-" + x.c.element, { "aria-hidden": "true" }),
       h("i.ct-ic-dot", { "aria-hidden": "true" }),
+      changeOf(x.c) ? h("span.ct-ic-pm", glyph(x.c)) : null,      // the patch mark; its words are in the icon's label
     ]);
   }
   ui.order = {};
@@ -246,7 +251,8 @@ function label(x, a) {
   const tierWord = (k) => (x.ax[k] ? t("ct.tierN", { tier: x.ax[k].tier }) : t("ct.nmLow"));
   const o = other(a);
   return t("ct.icLabel", { name: cardName(x.c), a: tierWord(a), ax: ax(a).toLocaleLowerCase(getLang()), b: tierWord(o), ox: ax(o).toLocaleLowerCase(getLang()) })
-    + (x.ag === "noise" ? t("ct.icNoise") : "") + (x.dim ? t("ct.icDim") : "");
+    + (x.ag === "noise" ? t("ct.icNoise") : "") + (changeOf(x.c) ? t("ui.sep") + t("pc." + changeOf(x.c).class, { patch: DB.patch }) : "")
+    + (x.dim ? t("ct.icDim") : "");
 }
 
 function place(a) {
@@ -480,8 +486,12 @@ function popContent(x, full) {
         h("div.ct-pop-name", { lang: getLang(), translate: "no" }, cardName(c)),
         otherName(c) !== cardName(c) ? h("div.ct-pop-sub", { translate: "no" }, otherName(c)) : null,
         h("div.ct-pop-sub", `${raName(c.rarity)}, ${elName(c.element)}`),
+        patchTag(c),
       ]),
     ]),
+    // pinned: what the patch changed, and that the numbers below predate it
+    full && patchDetail(c) ? h("p.ct-pop-pc", patchDetail(c)) : null,     // showPop drops the empty slots
+    full ? oldNumbersNote(c) : null,
     h("table.ct-pop-t", [
       h("thead", h("tr", [h("th", { scope: "col" }, h("span.sr", t("ct.measureCol"))),
         h("th", { scope: "col", class: S.axis === "c" ? "on" : null }, t("ct.axCs")), h("th", { scope: "col", class: S.axis === "r" ? "on" : null }, t("ct.axRs"))])),
@@ -490,7 +500,19 @@ function popContent(x, full) {
     h("p.ct-pop-v", verdict(x)),
     full ? h("table.ct-pop-t.ct-pop-p", [h("caption.sr", t("ct.presence")),
       h("tbody", pres.map(([k, v]) => h("tr", [h("th", { scope: "row" }, t(k)), h("td.on", v)])))]) : h("p.ct-pop-more", t("ct.popMore")),
+    full ? suggestedBlock(c) : null,
   ];
+}
+
+/** The suggested talent (the one the site's simulations give the card): its name and in-game text; absent data, nothing. */
+function suggestedBlock(c) {
+  const s = suggestedTalent(c);
+  if (!s) return null;
+  return h("div.ct-pop-sugg", [
+    h("div.ct-pop-sugg-h", [h("i.ab-talent", { "aria-hidden": "true" }), h("span", { lang: getLang() }, L(s.tl, "name")),
+      h("span.tag.sugg", { title: t("card.suggestedTip") }, t("card.suggested"))]),
+    h("p", { lang: getLang() }, L(s.tl, "description")),
+  ]);
 }
 
 function showPop(b, pin) {
@@ -506,7 +528,7 @@ function showPop(b, pin) {
     kids.push(h("div.ct-pop-act", h("button.btn.ct-pop-open", { type: "button", "data-card": x.c.key, onclick: () => { const k = cur; hidePop(true); refocus(k); } }, [t("ct.showCard"), icon("arrow")])));
     kids.push(h("button.close.ct-pop-x", { type: "button", "aria-label": t("ct.closeNums"), title: t("ui.close"), onclick: () => { const k = cur; hidePop(true); refocus(k); } }, icon("close", 16)));
   }
-  pop.replaceChildren(...kids);
+  pop.replaceChildren(...kids.filter(Boolean));
   pop.classList.toggle("pinned", pinned);
   // a pinned card is a small non-modal dialog; a hover or focus preview repeats the icon's label, so it is hidden from readers
   if (pinned) { pop.removeAttribute("aria-hidden"); pop.setAttribute("role", "dialog"); pop.setAttribute("aria-label", cardName(x.c)); }
@@ -678,7 +700,8 @@ function rowCells(x) {
     h("td.ct-c-rank", h("span.ct-rk", String(rk))),
     h("td.ct-c-card", h("button.ct-cardc", { type: "button", "data-card": c.key, title: t("card.show", { name: cardName(c) }) }, [
       h("img", { class: "ct-th", loading: "lazy", decoding: "async", alt: "", width: 36, height: 51, src: thumb(c) }),
-      h("span", [h("span.ct-nm", { translate: "no" }, [h("span.ct-rkm", `#${rk} `), cardName(c)]), h("span.ct-nm-sub", `${raName(c.rarity)}, ${elName(c.element)}`)]),
+      h("span", [h("span.ct-nm", { translate: "no" }, [h("span.ct-rkm", `#${rk} `), cardName(c)]), h("span.ct-nm-sub", `${raName(c.rarity)}, ${elName(c.element)}`),
+        changeOf(c) ? h("span.ct-nm-pc", [glyph(c), t("pc." + changeOf(c).class, { patch: DB.patch })]) : null]),
     ])),
     axCell(x, "c"), axCell(x, "r"),
     h("td.ct-c-ag", { "data-label": t("ct.thAg") }, x.ag ? h("span.ct-ag." + x.ag, t(AGK[x.ag])) : h("span.ct-cap", t("ct.noComp"))),

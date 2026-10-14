@@ -1,7 +1,5 @@
 // Loads the generated JSON once and builds the lookups every view needs.
 
-import { fmtDate } from "./util.js";
-
 const cache = new Map();
 
 async function getJSON(path) {
@@ -20,20 +18,14 @@ export const DB = { cards: [], byId: new Map(), byKey: new Map(), meta: null, ti
 export async function loadCore() {
   const [cards, meta] = await Promise.all([getJSON("data/cards.json"), getJSON("data/meta.json")]);
   DB.meta = meta;
+  // the patch of the card data; the rankings (meta.json `patch`) can be one patch behind it (patch.js, the patch notice)
   DB.patch = cards.patch;
-  // set while some card values still come from an older game dump (docs/DATA.md, "Card data notices"): a notice code the
-  // Codex prints as "notice.<code>", with the date of that dump
-  DB.dataNotice = cards.data_notice || null;
-  DB.dumpDate = cards.game_files_dumped || null;
   DB.cards = cards.cards;
   DB.byId = new Map(cards.cards.map((c) => [c.id, c]));
   DB.byKey = new Map(cards.cards.map((c) => [c.key, c]));
   DB.cards.forEach((c, i) => { c.order = i; });
   return DB;
 }
-
-/** The day of the game files the card values come from, "10 Oct" / "10 oct.", kept on one line. */
-export const dumpDay = () => (DB.dumpDate ? fmtDate(DB.dumpDate, "short", false).replace(/ /g, " ") : "");
 
 /** A deck is a set of 4 cards (board order is ignored): its sorted card ids join tierlist.json and decks.json. */
 export const deckKey = (ids) => [...ids].sort().join("|");

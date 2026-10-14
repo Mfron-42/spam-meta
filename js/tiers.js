@@ -17,6 +17,8 @@ import { gameCard, cardBack, secretCard, chip, strip, cardName } from "./cards.j
 import { disclosure, segmented, scrollToEl } from "./ui.js";
 import { t, tx, millions } from "./i18n.js";
 import { searchField, announcer, terms, hasAll, nameHay } from "./search.js";
+import { patchNotice, patchMark } from "./patch.js";
+import { paintOwned } from "./decklist.js";
 
 let root, tier, decks = [], stubs = [], sections = [], jumpChips = new Map(), banner, detailBtns = [], readyBtn, readyOnly = false, spotted = false;
 let field, findStatus, findVoice;
@@ -49,7 +51,7 @@ function render() {
     h("div.vhead", [
       h("h1", t("tl.h1")),
       h("p.lede", t("tl.lede", { patch: tier.patch, games: games ? millions(games) : "—" })),
-      recomputeNote(),
+      patchNotice({ legend: true }),
     ]),
     banner,
     findRow(),
@@ -90,14 +92,6 @@ function paintFind(ts, hits, shown) {
   findStatus.replaceChildren(...say);
   // the screen reader hears the sentence without the Clear button
   findVoice.say([...findStatus.childNodes].filter((n) => n !== clear).map((n) => n.textContent).join(""));
-}
-
-// The lab is recomputing the ranking with a stronger AI (2026-10-14): one quiet line, no figures beyond the ranks that move.
-function recomputeNote() {
-  const from = tier.ordering && tier.ordering.first_rank_after_finals;
-  const to = Math.max(...tier.decks.map((d) => d.rank));
-  if (!from || to < from) return null;
-  return h("p.dnote", [icon("info"), h("span", t("tl.recompute", { from, to }))]);
 }
 
 // ---------------------------------------------------------------- reading guide
@@ -212,7 +206,8 @@ function deckPanel(d) {
   disclosure(btn, region, { open: openDetails.has(String(d.rank)), onToggle: (v) => { if (v && !built) { built = true; inner.append(...details(d)); } } });
   detailBtns.push(btn);
 
-  const slots = cs.map((c) => h("div.slot", gameCard(c, { size: spotlight ? "full" : "list", eager: spotlight })));
+  // a card the last patch changed carries the small patch mark on its slot, never on its face (patch.js)
+  const slots = cs.map((c) => h("div.slot", [gameCard(c, { size: spotlight ? "full" : "list", eager: spotlight }), patchMark(c)]));
   const cardsEl = h("div.deck-cards" + (spotlight ? ".full" : ""), slots);
 
   const el = h("article.deck.panel" + (spotlight ? ".spot" : ""), { id: "deck-" + d.rank, "aria-label": t("tl.rankAria", { rank: d.rank, cards: cs.map(cardName).join(", ") }) }, [
@@ -318,18 +313,7 @@ function countersBlock(d) {
 
 // ---------------------------------------------------------------- owned state
 function updateBadges() {
-  const any = ownedCount() > 0;
-  for (const x of decks) {
-    const own = x.cs.filter((c) => isOwned(c.key));
-    const miss = x.cs.filter((c) => !isOwned(c.key));
-    x.ready = own.length === 4;
-    x.badge.hidden = !any;
-    x.badge.className = "obadge" + (own.length === 4 ? " full" : "");
-    if (!any) continue;
-    if (own.length === 4) x.badge.replaceChildren(icon("check"), h("span", t("tl.allOwned")));
-    else if (miss.length <= 2) x.badge.replaceChildren(h("span", t("tl.youOwn", { n: own.length })), h("span.muted", ` · ${t("tl.missing")}`), ...miss.map(chip));
-    else x.badge.replaceChildren(h("span", t("tl.youOwn", { n: own.length })));
-  }
+  for (const x of decks) x.ready = paintOwned(x.badge, x.cs) === 4;
 }
 
 /**
