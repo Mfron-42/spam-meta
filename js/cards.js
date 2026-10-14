@@ -1,0 +1,154 @@
+// Everything that draws a card: the game card (full and list size), the mini card, the card chip, the owned toggle.
+// Cards are built like the game client builds them, from its own sprites (CSS classes sp-*), so the page carries no
+// per-card sprite <img>; only the art is an <img>, and it is lazy.
+
+import { h, icon, reEscape } from "./util.js";
+import { DB } from "./data.js";
+import { getLang, isOwned, setOwned } from "./store.js";
+
+export const ELEMENTS = [
+  ["fire", "Fire"], ["water", "Water"], ["earth", "Earth"], ["nature", "Nature"], ["light", "Light"], ["shadow", "Shadow"], ["divine", "Ether"],
+];
+export const ELEMENT_NAME = Object.fromEntries(ELEMENTS);
+export const RARITIES = [["common", "Common"], ["rare", "Rare"], ["epic", "Epic"], ["legendary", "Legendary"], ["divine", "Divine"]];
+export const RARITY_NAME = Object.fromEntries(RARITIES);
+
+const ART = (key) => `assets/cards/art/${key}.webp`;
+const THUMB = (size, key) => `assets/thumbs/${size}/${key}.webp`;
+
+// ---- language
+export const L = (obj, field) => obj[`${field}_${getLang()}`] ?? obj[`${field}_en`] ?? "";
+export const cardName = (c) => L(c, "name");
+export const otherName = (c) => (getLang() === "fr" ? c.name_en : c.name_fr);
+
+// ---- --u: 1% of the card width, kept by one ResizeObserver (container query units are far too slow on hundreds of labels)
+const ro = new ResizeObserver((entries) => {
+  for (const e of entries) {
+    const w = e.contentRect.width;
+    if (w) e.target.style.setProperty("--u", `${w / 100}px`);
+  }
+});
+export const sized = (el) => { ro.observe(el); return el; };
+export function unsize(root) {
+  if (root.classList && root.classList.contains("gc")) ro.unobserve(root);
+  root.querySelectorAll && root.querySelectorAll(".gc").forEach((g) => ro.unobserve(g));
+}
+
+const fit = (name, a = 13, b = 18) => (name.length > b ? ".xlong" : name.length > a ? ".long" : "");
+
+function artImg(src, cls, eager) {
+  // loading must be set before src, or the browser starts fetching at once and lazy loading is lost
+  return h("img", { class: cls, loading: eager ? "eager" : "lazy", decoding: "async", fetchpriority: eager ? "high" : "auto", alt: "", width: 420, height: 601, src });
+}
+
+/**
+ * The game card. size "full": ability bars, passives, HP n/n. size "list": name on the banner above the HP bar.
+ * interactive cards are buttons that open the card dialog (data-card), others are plain boxes.
+ */
+export function gameCard(c, { size = "full", interactive = true, eager = false } = {}) {
+  const lang = getLang();
+  const name = cardName(c);
+  const compact = size === "list";
+  const wing = c.rarity === "divine" ? "legendary" : c.rarity;
+  const rows = [];
+  if (!compact) {
+    for (const a of c.abilities) {
+      const n = L(a, "name");
+      rows.push(h("span.gc-ab" + fit(n), [
+        h("i.sp-el-" + (a.element || c.element)), h("span.gc-abn", n), h("span.gc-cd", String(a.cooldown)),
+      ]));
+    }
+    for (const p of c.passives) {
+      const n = L(p, "name");
+      rows.push(h("span.gc-pa" + fit(n, 12, 16), [h("i.sp-pl-" + wing + "-l"), h("span.gc-abn", n), h("i.sp-pl-" + wing + "-r")]));
+    }
+  }
+  const art = artImg(compact ? THUMB("m", c.key) : ART(c.key), "gc-art", eager);
+  const face = h("span.gc-face", [
+    art,
+    h("i.gc-front.sp-front-" + c.element),
+    h("span.gc-name" + (name.length > 15 ? ".long" : ""), { lang, translate: "no" }, name),
+    compact ? null : h("span.gc-abs", { lang }, rows),
+    h("span.gc-hp", compact ? String(c.hp) : `${c.hp}/${c.hp}`),
+  ]);
+  const kids = [
+    face,
+    h("i.gc-orb.sp-el-" + c.element),
+    h("span.gc-gold", h("span", String(c.gold_income))),
+    h("i.gc-gem.sp-gem-" + c.rarity),
+  ];
+  const cls = "gc" + (compact ? " cp" : "");
+  if (!interactive) return sized(h("div", { class: cls }, kids));
+  const label = `${name}, ${ELEMENT_NAME[c.element]}, ${RARITY_NAME[c.rarity]}, ${c.hp} HP. Show the card details`;
+  return sized(h("button", { class: cls, type: "button", "data-card": c.key, "aria-label": label }, kids));
+}
+
+/** A face-down card (only its rarity is known): the withheld deck is drawn with four of them. */
+export function cardBack(rarity) {
+  const name = RARITY_NAME[rarity] || "Hidden";
+  const known = RARITY_NAME[rarity] ? rarity : "common";
+  return sized(h("div", { class: "gc cp back r-" + known, role: "img", "aria-label": `Hidden card, ${name}` }, [
+    h("span.gc-face", [h("span.gc-q", "?"), h("span.gc-r", name)]),
+    h("i.gc-gem.sp-gem-" + (RARITY_NAME[rarity] ? rarity : "common")),
+  ]));
+}
+
+/** Art and orb only: for the rows of a matchup strip. */
+export function miniCard(c) {
+  return h("button.mc", { type: "button", "data-card": c.key, title: cardName(c), "aria-label": `${cardName(c)}. Show the card details` }, [
+    h("img", { class: "mc-art", loading: "lazy", decoding: "async", alt: "", width: 112, height: 160, src: THUMB("s", c.key) }),
+    h("i.mc-orb.sp-el-" + c.element),
+  ]);
+}
+
+/** A card name as a small chip that opens the card dialog. */
+export function chip(c) {
+  return h("button.cc", { type: "button", "data-card": c.key, title: `${cardName(c)}: show the card details` }, [
+    h("img", { class: "cc-art", loading: "lazy", decoding: "async", alt: "", width: 18, height: 24, src: THUMB("s", c.key) }),
+    h("span", { lang: getLang(), translate: "no" }, cardName(c)),
+  ]);
+}
+
+/** Four mini cards of a deck, used for counters. */
+export function strip(cards) {
+  return h("span.strip", cards.map(miniCard));
+}
+
+// ---- running text where full card names become chips
+let nameRx = null, nameMap = null;
+function buildNameRx() {
+  const entries = [];
+  for (const c of DB.cards) { entries.push([c.name_fr, c]); if (c.name_en !== c.name_fr) entries.push([c.name_en, c]); }
+  entries.sort((a, b) => b[0].length - a[0].length);
+  nameMap = new Map(entries);
+  nameRx = new RegExp("(?<![\\p{L}\\p{N}])(" + entries.map((e) => reEscape(e[0])).join("|") + ")(?![\\p{L}\\p{N}])", "gu");
+}
+export function chipify(text) {
+  if (!nameRx) buildNameRx();
+  const out = [];
+  let last = 0;
+  nameRx.lastIndex = 0;
+  for (let m; (m = nameRx.exec(text)); ) {
+    out.push(text.slice(last, m.index), chip(nameMap.get(m[1])));
+    last = m.index + m[0].length;
+  }
+  out.push(text.slice(last));
+  return out;
+}
+
+// ---- owned toggle
+/** The one-click toggle on a card corner. Sync with setOwnedView. */
+export function ownToggle(c) {
+  const b = h("button.own", { type: "button", "data-own": c.key }, [icon("plus", 18), icon("check", 18)]);
+  setOwnedView(b, c, isOwned(c.key));
+  b.addEventListener("click", (e) => {
+    e.stopPropagation();
+    setOwned(c.key, !isOwned(c.key));
+  });
+  return b;
+}
+export function setOwnedView(b, c, on) {
+  b.setAttribute("aria-pressed", String(on));
+  b.setAttribute("aria-label", `Mark ${cardName(c)} as owned`);
+  b.title = on ? `You own ${cardName(c)}. Click to remove it` : `Mark ${cardName(c)} as owned`;
+}

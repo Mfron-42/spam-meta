@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SPAM Meta: best decks and card codex</title>
+<meta name="description" content="Fan-made guide to the card game SPAM: the strongest decks ranked from simulated matches, every card, and the best decks you can build from your own collection.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#15122c">
+<link rel="canonical" href="https://mfron-42.github.io/spam-meta/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SPAM Meta">
+<meta property="og:title" content="SPAM Meta: best decks and card codex">
+<meta property="og:description" content="The strongest SPAM decks, ranked from simulated matches, plus every card and the best decks you can build from your own collection. Unofficial fan site.">
+<meta property="og:url" content="https://mfron-42.github.io/spam-meta/">
+<meta property="og:image" content="https://mfron-42.github.io/spam-meta/assets/og.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Four cards of a top-ranked SPAM deck next to the words SPAM Meta">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SPAM Meta: best decks and card codex">
+<meta name="twitter:description" content="The strongest SPAM decks, every card, and the best decks you can build from your own collection.">
+<meta name="twitter:image" content="https://mfron-42.github.io/spam-meta/assets/og.jpg">
+
+<link rel="preload" href="fonts/lilita-one-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/nunito-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="data/cards.json" as="fetch" crossorigin>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/cards.css">
+<link rel="stylesheet" href="css/views.css">
+<link rel="modulepreload" href="js/main.js">
+</head>
+<body>
+<a class="skip" href="#main">Skip to the content</a>
+
+<header class="chrome" id="chrome">
+  <div class="wrap chrome-in">
+    <div class="chrome-top">
+      <a class="brand" href="#tiers" aria-label="SPAM Meta, home">
+        <img class="brand-mark" src="favicon.svg" alt="" width="32" height="32">
+        <span class="brand-name" translate="no">SPAM Meta</span>
+      </a>
+      <div class="tools" id="tools">
+        <div class="seg names" id="names-seg" role="group" aria-label="Language of the card names and texts">
+          <button type="button" data-v="fr" aria-pressed="false" title="Card names and texts in French">FR</button>
+          <button type="button" data-v="en" aria-pressed="false" title="Card names and texts in English">EN</button>
+        </div>
+        <button class="own-pill" id="own-pill" type="button" data-goto="codex" title="Cards you own. Open the Codex to change them">
+          <svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M3.5 8.5l3 3 6-7"/></svg>
+          <span id="own-pill-n">0</span><span class="own-pill-t"> / 127</span>
+        </button>
+        <button class="icon-btn" id="about-btn" type="button" title="About this site and how it was made" aria-label="About this site and how it was made">
+          <svg class="ico" viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="M8 7.2v4.3M8 4.6v.1M8 14.5a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13z"/></svg>
+        </button>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <a class="tab" role="tab" id="tab-tiers" href="#tiers" aria-selected="true" aria-controls="view-tiers" data-tab="tiers">Tier list</a>
+      <a class="tab" role="tab" id="tab-codex" href="#codex" aria-selected="false" aria-controls="view-codex" data-tab="codex" tabindex="-1">Codex</a>
+      <a class="tab" role="tab" id="tab-decks" href="#decks" aria-selected="false" aria-controls="view-decks" data-tab="decks" tabindex="-1">My decks<span class="tab-n" id="tab-decks-n" hidden></span></a>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="wrap" tabindex="-1">
+  <section class="view" id="view-tiers" role="tabpanel" aria-labelledby="tab-tiers" tabindex="-1">
+    <div class="vhead"><h1>The best decks in SPAM</h1><p class="lede">Loading the rankings…</p></div>
+    <div class="panel skel" aria-hidden="true"><i></i><i></i><i></i></div>
+  </section>
+  <section class="view" id="view-codex" role="tabpanel" aria-labelledby="tab-codex" tabindex="-1" hidden></section>
+  <section class="view" id="view-decks" role="tabpanel" aria-labelledby="tab-decks" tabindex="-1" hidden></section>
+</main>
+
+<footer class="foot" id="foot">
+  <div class="wrap foot-in">
+    <p class="foot-ai"><b>This site is AI-generated.</b> <span id="foot-method"></span></p>
+    <p class="foot-games" id="foot-games"></p>
+    <p class="foot-meta"><span id="foot-patch"></span> <button class="link" id="foot-about" type="button">How the rankings were made</button></p>
+    <p class="foot-help">Bug or question? Discord: <span class="handle" id="foot-handle">noob9795</span>
+      <button class="copy" id="foot-copy" type="button" aria-label="Copy the Discord name"><span class="copy-ico" aria-hidden="true"></span><span class="copy-l">Copy</span></button>
+      <span class="copy-note" id="foot-copy-note" role="status" aria-live="polite"></span></p>
+    <p class="foot-count">Anonymous visit counter (GoatCounter): page views only, no cookies, nothing you mark or own is sent.</p>
+    <p class="foot-legal" id="foot-legal"></p>
+  </div>
+</footer>
+
+<dialog class="sheet card-dlg" id="dlg-card" aria-labelledby="dlg-name">
+  <button class="close" type="button" data-close aria-label="Close the card" title="Close">
+    <svg class="ico" viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+  </button>
+  <div class="dlg-scroll" tabindex="-1" autofocus></div>
+</dialog>
+
+<dialog class="sheet about-dlg" id="dlg-about" aria-labelledby="about-title">
+  <button class="close" type="button" data-close aria-label="Close" title="Close">
+    <svg class="ico" viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+  </button>
+  <div class="dlg-scroll" id="about-body" tabindex="-1" autofocus></div>
+</dialog>
+
+<dialog class="sheet code-dlg" id="dlg-code" aria-labelledby="code-title">
+  <button class="close" type="button" data-close aria-label="Close" title="Close">
+    <svg class="ico" viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+  </button>
+  <div class="dlg-scroll">
+    <div class="codebox">
+      <h2 id="code-title">Export or import your collection</h2>
+      <p>Your collection is saved in this browser only. To move it to another device or share it, copy the code below and paste it there.</p>
+      <p class="note" id="code-store" hidden>This browser cannot save your collection, so it lasts until you close the page. Copy the code to keep it.</p>
+      <section>
+        <h3>Your code</h3>
+        <div class="code-row">
+          <textarea id="code-out" class="code" name="collection-code" readonly rows="1" spellcheck="false" aria-label="Your collection code"></textarea>
+          <button class="btn primary" id="code-copy" type="button">Copy</button>
+        </div>
+        <p class="note" id="code-count"></p>
+      </section>
+      <section>
+        <h3>Import a code</h3>
+        <textarea id="code-in" class="code" rows="1" spellcheck="false" autocomplete="off" name="code" placeholder="Paste a code, for example SPAM1-0100-007G…" aria-label="Paste a collection code" aria-describedby="code-msg"></textarea>
+        <p class="msg" id="code-msg" role="status"></p>
+        <div class="code-act">
+          <button class="btn" id="code-replace" type="button" disabled>Replace your collection</button>
+          <button class="btn primary" id="code-add" type="button" disabled>Add to your collection</button>
+        </div>
+      </section>
+    </div>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<noscript><div class="wrap noscript"><p>SPAM Meta needs JavaScript to draw the cards and the rankings. Please turn it on for this page.</p></div></noscript>
+
+<script type="module" src="js/main.js"></script>
+<script data-goatcounter="https://mfron2.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

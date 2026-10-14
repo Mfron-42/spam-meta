@@ -1,0 +1,4 @@
+Lilita One (c) The Lilita One Project Authors (Juan Montoreano) and Nunito (c) The Nunito Project Authors (Vernon Adams,
+Cyreal, Jacques Le Bailly) are licensed under the SIL Open Font License, Version 1.1: https://openfontlicense.org
+The two files here are the Latin subsets as served by Google Fonts, copied unchanged and self-hosted so that loading the
+fonts makes no third-party request.

@@ -1,0 +1,129 @@
+/* The game card, built like the client builds it from its own sprites. All sizes use --u, 1% of the card width, kept by one
+   ResizeObserver (js/cards.js). Card labels are outlined with stacked hard text-shadows, never a text stroke. */
+
+/* ---------------------------------------------------------------- game card */
+.gc { --u: 2.5px;
+  --ol: calc(var(--u) * .6) 0 0 var(--card-outline), calc(var(--u) * -.6) 0 0 var(--card-outline), 0 calc(var(--u) * -.6) 0 var(--card-outline), calc(var(--u) * .6) calc(var(--u) * .6) 0 var(--card-outline), calc(var(--u) * -.6) calc(var(--u) * .6) 0 var(--card-outline), calc(var(--u) * .6) calc(var(--u) * -.6) 0 var(--card-outline), calc(var(--u) * -.6) calc(var(--u) * -.6) 0 var(--card-outline), 0 calc(var(--u) * 1.3) 0 var(--card-outline);
+  --ol-sm: calc(var(--u) * .4) 0 0 var(--card-outline), calc(var(--u) * -.4) 0 0 var(--card-outline), 0 calc(var(--u) * -.4) 0 var(--card-outline), calc(var(--u) * .4) calc(var(--u) * .4) 0 var(--card-outline), calc(var(--u) * -.4) calc(var(--u) * .4) 0 var(--card-outline), calc(var(--u) * .4) calc(var(--u) * -.4) 0 var(--card-outline), calc(var(--u) * -.4) calc(var(--u) * -.4) 0 var(--card-outline), 0 calc(var(--u) * .8) 0 var(--card-outline);
+  position: relative; display: block; width: 100%; aspect-ratio: 1432 / 2048; padding: 0; border: 0; background: none; color: #fff; font: inherit; text-align: center; cursor: pointer; }
+div.gc { cursor: default; }
+.gc-face { position: absolute; inset: 0; overflow: hidden; border-radius: calc(var(--u) * 7); border: calc(var(--u) * 1.4) solid var(--card-edge); background: var(--card-edge); box-shadow: var(--shadow);
+  transition: box-shadow var(--t-state) var(--curve); }
+.gc-face.noart { background: linear-gradient(180deg, var(--panel-hi), var(--socket)); }
+button.gc:hover .gc-face { box-shadow: var(--shadow), 0 0 0 2px var(--accent); }
+button.gc:focus-visible { outline: none; }
+button.gc:focus-visible .gc-face { box-shadow: var(--shadow), 0 0 0 2px var(--night), 0 0 0 4px var(--accent); }
+.gc-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+.gc-art.broken { visibility: hidden; }
+.gc-front { position: absolute; left: 0; bottom: 0; width: 100%; aspect-ratio: 500 / 437; background-size: 100% 100%; background-repeat: no-repeat; }
+.gc-name { position: absolute; top: calc(var(--u) * 4.5); left: calc(var(--u) * 17); right: calc(var(--u) * 17); font: 400 calc(var(--u) * 7) / 1.05 var(--display); text-transform: uppercase; text-shadow: var(--ol); }
+.gc-name.long { font-size: calc(var(--u) * 5.8); }
+.gc-abs { position: absolute; left: calc(var(--u) * 5); right: calc(var(--u) * 5); bottom: calc(var(--u) * 20); display: grid; gap: calc(var(--u) * 2); }
+.gc-ab, .gc-pa { position: relative; height: calc(var(--u) * 11.5); display: grid; align-items: center; font: 400 calc(var(--u) * 5.6) / 1 var(--display); text-transform: uppercase; text-shadow: var(--ol-sm); }
+.gc-ab { grid-template-columns: calc(var(--u) * 9) minmax(0, 1fr) calc(var(--u) * 9); gap: calc(var(--u) * 1.5); padding: 0 calc(var(--u) * 2.5); }
+.gc-ab::before { content: ""; position: absolute; inset: 0; background: url("../assets/cards/kit/card_ability_active.webp") center / 100% 100% no-repeat; opacity: .3; }
+.gc-ab > * { position: relative; }
+.gc-ab > i { width: calc(var(--u) * 9); height: calc(var(--u) * 9); background-size: contain; background-repeat: no-repeat; background-position: center; }
+.gc-abn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gc-cd { width: calc(var(--u) * 9); height: calc(var(--u) * 9); display: grid; place-items: center; background: url("../assets/cards/kit/card_cooldown.webp") center / contain no-repeat; }
+.gc-pa { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: calc(var(--u) * 1.5); }
+.gc-pa > i { height: calc(var(--u) * 7); background-size: 100% 100%; background-repeat: no-repeat; }
+.gc-pa .gc-abn { max-width: calc(var(--u) * 52); }
+.gc-ab.long, .gc-pa.long { font-size: calc(var(--u) * 4.7); }
+.gc-ab.xlong, .gc-pa.xlong { font-size: calc(var(--u) * 4); }
+.gc-hp { position: absolute; left: calc(var(--u) * 9); right: calc(var(--u) * 9); bottom: calc(var(--u) * 9.5); height: calc(var(--u) * 7.5); border-radius: calc(var(--u) * 4); background: var(--hp);
+  box-shadow: inset 0 calc(var(--u) * -.9) 0 rgba(0, 0, 0, .18), 0 0 0 calc(var(--u) * .6) rgba(13, 10, 26, .55); display: grid; place-items: center; font: 400 calc(var(--u) * 5.4) / 1 var(--display); text-shadow: var(--ol-sm); }
+.gc-orb { position: absolute; left: calc(var(--u) * -4); top: calc(var(--u) * -4); width: calc(var(--u) * 22); height: calc(var(--u) * 22); background-size: contain; background-repeat: no-repeat; background-position: center; }
+.gc-gold { position: absolute; right: calc(var(--u) * -2.5); top: calc(var(--u) * -2.5); width: calc(var(--u) * 16); height: calc(var(--u) * 18); display: grid; place-items: center;
+  font: 400 calc(var(--u) * 7.5) / 1 var(--display); color: #4a3200; background: #2a1d00; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.gc-gold::before { content: ""; position: absolute; inset: calc(var(--u) * 1.4); background: linear-gradient(180deg, #ffe27a, var(--gold)); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.gc-gold > span { position: relative; }
+.gc-gem { position: absolute; left: 50%; bottom: calc(var(--u) * -5); width: calc(var(--u) * 22); aspect-ratio: 160 / 100; transform: translateX(-50%); background-size: contain; background-repeat: no-repeat; background-position: center; }
+.gc-gem.sp-gem-common { width: calc(var(--u) * 15); bottom: calc(var(--u) * -4); }
+
+/* list size: ability bars dropped, name on the banner above the HP bar, one outline only (the name) */
+.gc.cp { --ol-cp: calc(var(--u) * .6) 0 0 var(--card-outline), calc(var(--u) * -.6) 0 0 var(--card-outline), 0 calc(var(--u) * -.6) 0 var(--card-outline), 0 calc(var(--u) * .6) 0 var(--card-outline), 0 calc(var(--u) * 1.3) 0 var(--card-outline); }
+.gc.cp .gc-name { top: auto; bottom: calc(var(--u) * 19); left: calc(var(--u) * 4); right: calc(var(--u) * 4); font-size: max(12px, calc(var(--u) * 10)); line-height: 1.02; text-shadow: var(--ol-cp); }
+.gc.cp .gc-name.long { font-size: max(11px, calc(var(--u) * 8.4)); }
+.gc.cp .gc-hp { left: calc(var(--u) * 12); right: calc(var(--u) * 12); bottom: calc(var(--u) * 7); height: calc(var(--u) * 9); font-size: max(10px, calc(var(--u) * 7)); text-shadow: var(--ol-cp); }
+.gc.cp .gc-orb { width: calc(var(--u) * 24); height: calc(var(--u) * 24); }
+
+/* ---------------------------------------------------------------- mini card and card chip */
+.mc { position: relative; display: block; flex: none; width: 48px; aspect-ratio: 1432 / 2048; padding: 0; border: 2px solid var(--card-edge); border-radius: 6px; background: var(--card-edge); cursor: pointer;
+  transition: box-shadow var(--t-state) var(--curve); }
+.mc-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 4px; display: block; }
+.mc-art.broken, .cc-art.broken { visibility: hidden; }
+.mc.noart { background: linear-gradient(180deg, var(--panel-hi), var(--socket)); }
+.mc-orb { position: absolute; left: -7px; top: -7px; width: 20px; height: 20px; background-size: contain; background-repeat: no-repeat; background-position: center; }
+.mc:hover { box-shadow: var(--ring); }
+.mc:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--night), 0 0 0 4px var(--accent); }
+.strip { display: inline-flex; gap: 8px; padding: 7px 0 0 7px; flex: none; }
+
+.cc { display: inline-flex; align-items: center; gap: 8px; height: 28px; max-width: 100%; margin: 2px 0; padding: 0 8px 0 4px; border: 0; border-radius: 4px; vertical-align: middle; text-align: left;
+  background: var(--socket); box-shadow: var(--sunken); color: var(--ink); font: 600 14px/1 var(--text); cursor: pointer;
+  transition: background var(--t-state) var(--curve), box-shadow var(--t-state) var(--curve); }
+.cc > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cc-art { flex: none; width: 18px; height: 24px; border-radius: 3px; object-fit: cover; object-position: top; background: var(--card-edge); display: block; }
+.cc:hover { background: var(--panel); box-shadow: var(--sunken), var(--ring); }
+.cc:active { background: var(--night); }
+.cc:focus-visible { outline: none; box-shadow: var(--sunken), 0 0 0 2px var(--accent); }
+.cc { position: relative; }
+.cc::after { content: ""; position: absolute; inset: -8px -2px; }
+.gc-q { position: absolute; inset: 0; display: grid; place-items: center; padding-bottom: calc(var(--u) * 10); font: 400 calc(var(--u) * 34) / 1 var(--display); color: var(--muted); }
+.gc.back { cursor: default; }
+.gc.back { --rc: var(--r-common); }
+.gc.back.r-rare { --rc: var(--r-rare); } .gc.back.r-epic { --rc: var(--r-epic); } .gc.back.r-legendary { --rc: var(--r-legendary); } .gc.back.r-divine { --rc: var(--r-divine); }
+.gc.back .gc-face { background: linear-gradient(180deg, var(--panel-hi), var(--socket)); border-color: var(--rc); background: linear-gradient(180deg, color-mix(in srgb, var(--rc) 26%, var(--panel-hi)), var(--socket) 78%); }
+.gc-r { position: absolute; left: 0; right: 0; bottom: calc(var(--u) * 17); text-align: center; font: 400 max(12px, calc(var(--u) * 9)) / 1 var(--display); letter-spacing: .02em; color: var(--rc); }
+.panel .cc, .stat .cc { background: var(--socket); }
+
+/* ---------------------------------------------------------------- Codex cell and the Owned toggle */
+.cell { position: relative; padding: 6px 6px 8px; min-width: 0; }
+.cell .cap { margin-top: 12px; }
+.grid.has-owned .cell[data-owned="0"] .gc { opacity: .75; transition: opacity var(--t-state) var(--curve); }
+.grid.has-owned .cell[data-owned="0"] .gc:hover, .grid.has-owned .cell[data-owned="0"] .gc:focus-visible { opacity: 1; }
+.gc { transition: opacity var(--t-state) var(--curve); }
+
+.cw { position: relative; }
+.own { position: absolute; right: -9px; bottom: -9px; z-index: 3; display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border-radius: 50%;
+  border: 2px solid var(--ink-2); background: rgba(16, 13, 36, .94); color: var(--ink); cursor: pointer; box-shadow: 0 2px 6px rgba(0, 0, 0, .5);
+  transition: background var(--t-state) var(--curve), border-color var(--t-state) var(--curve), color var(--t-state) var(--curve); }
+.own::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; }
+.own .ico { grid-area: 1 / 1; width: 18px; height: 18px; stroke-width: 2.2; transition: opacity var(--t-state) var(--curve), transform var(--t-state) var(--curve); }
+.own[aria-pressed="false"] .ico:nth-child(2) { opacity: 0; transform: scale(.5); }
+.own[aria-pressed="true"] .ico:nth-child(1) { opacity: 0; transform: scale(.5); }
+.own:hover { border-color: var(--accent); color: var(--accent); }
+.own:active { transform: translateY(1px); background: #000; }
+.own[aria-pressed="true"] { background: var(--accent); border-color: var(--night); color: var(--accent-ink); }
+.own[aria-pressed="true"]:hover { filter: brightness(1.08); color: var(--accent-ink); }
+.own:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* ---------------------------------------------------------------- client sprites (kit) */
+.sp-el-fire { background-image: url("../assets/cards/kit/element_fire.webp"); }
+.sp-el-water { background-image: url("../assets/cards/kit/element_water.webp"); }
+.sp-el-earth { background-image: url("../assets/cards/kit/element_earth.webp"); }
+.sp-el-nature { background-image: url("../assets/cards/kit/element_nature.webp"); }
+.sp-el-light { background-image: url("../assets/cards/kit/element_light.webp"); }
+.sp-el-shadow { background-image: url("../assets/cards/kit/element_shadow.webp"); }
+.sp-el-divine { background-image: url("../assets/cards/kit/element_divine.webp"); }
+.sp-front-fire { background-image: url("../assets/cards/kit/card_front_fire.webp"); }
+.sp-front-water { background-image: url("../assets/cards/kit/card_front_water.webp"); }
+.sp-front-earth { background-image: url("../assets/cards/kit/card_front_earth.webp"); }
+.sp-front-nature { background-image: url("../assets/cards/kit/card_front_nature.webp"); }
+.sp-front-light { background-image: url("../assets/cards/kit/card_front_light.webp"); }
+.sp-front-shadow { background-image: url("../assets/cards/kit/card_front_shadow.webp"); }
+.sp-front-divine { background-image: url("../assets/cards/kit/card_front_divine.webp"); }
+.sp-gem-common { background-image: url("../assets/cards/kit/card_rarity_common.webp"); }
+.sp-gem-rare { background-image: url("../assets/cards/kit/card_rarity_rare.webp"); }
+.sp-gem-epic { background-image: url("../assets/cards/kit/card_rarity_epic.webp"); }
+.sp-gem-legendary { background-image: url("../assets/cards/kit/card_rarity_legendary.webp"); }
+.sp-gem-divine { background-image: url("../assets/cards/kit/card_rarity_divine.webp"); }
+.sp-pl-common-l { background-image: url("../assets/cards/kit/card_ability_passive_line_common_left.webp"); }
+.sp-pl-common-r { background-image: url("../assets/cards/kit/card_ability_passive_line_common_right.webp"); }
+.sp-pl-rare-l { background-image: url("../assets/cards/kit/card_ability_passive_line_rare_left.webp"); }
+.sp-pl-rare-r { background-image: url("../assets/cards/kit/card_ability_passive_line_rare_right.webp"); }
+.sp-pl-epic-l { background-image: url("../assets/cards/kit/card_ability_passive_line_epic_left.webp"); }
+.sp-pl-epic-r { background-image: url("../assets/cards/kit/card_ability_passive_line_epic_right.webp"); }
+.sp-pl-legendary-l { background-image: url("../assets/cards/kit/card_ability_passive_line_legendary_left.webp"); }
+.sp-pl-legendary-r { background-image: url("../assets/cards/kit/card_ability_passive_line_legendary_right.webp"); }
+.ab-talent { background-image: url("../assets/cards/kit/card_talent_icon.webp"); }
