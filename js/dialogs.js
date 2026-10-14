@@ -1,14 +1,14 @@
 // Dialogs (card, About, collection code) and the toast. Native <dialog>: the browser traps focus, makes the page behind
 // inert and closes on Escape; we add the 280 ms enter, the back-button close and the backdrop click.
 
-import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=abc018be6f";
-import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=abc018be6f";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=abc018be6f";
-import { gameCard, chip, L, cardName, otherName, ELEMENTS, elName, raName, unsize } from "./cards.js?v=abc018be6f";
-import { encode, decode } from "./code.js?v=abc018be6f";
-import { copyText, disclosure } from "./ui.js?v=abc018be6f";
-import { t, tx, millions } from "./i18n.js?v=abc018be6f";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent } from "./patch.js?v=abc018be6f";
+import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=7e4699d742";
+import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=7e4699d742";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=7e4699d742";
+import { gameCard, chip, L, cardName, otherName, ELEMENTS, elName, raName, unsize } from "./cards.js?v=7e4699d742";
+import { encode, decode } from "./code.js?v=7e4699d742";
+import { copyText, disclosure } from "./ui.js?v=7e4699d742";
+import { t, tx, millions } from "./i18n.js?v=7e4699d742";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent } from "./patch.js?v=7e4699d742";
 
 let openDlg = null, pushed = false;
 

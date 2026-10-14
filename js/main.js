@@ -1,12 +1,12 @@
 // Entry point: loads the core data, wires the header, the tabs and the delegated clicks, and mounts the five views.
 
-import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=abc018be6f";
-import { t, applyStatic, millions } from "./i18n.js?v=abc018be6f";
-import { copyText } from "./ui.js?v=abc018be6f";
-import { DB, loadCore } from "./data.js?v=abc018be6f";
-import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=abc018be6f";
-import { versioned, withQuery } from "./version.js?v=abc018be6f";
-import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=abc018be6f";
+import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=7e4699d742";
+import { t, applyStatic, millions } from "./i18n.js?v=7e4699d742";
+import { copyText } from "./ui.js?v=7e4699d742";
+import { DB, loadCore } from "./data.js?v=7e4699d742";
+import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=7e4699d742";
+import { versioned, withQuery } from "./version.js?v=7e4699d742";
+import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=7e4699d742";
 
 // Five tabs, one view each; the Deck finder (#builder) sits next to My decks.
 const TABS = ["tiers", "card-tiers", "codex", "decks", "builder"];
@@ -205,7 +205,7 @@ let lastCount = 0;
 function updateTabCount(n) {
   lastCount = n;
   const el = $("#tab-decks-n");
-  el.hidden = !(ownedCount() > 0 && n > 0);
+  el.classList.toggle("off", !(ownedCount() > 0 && n > 0));   // out of the flow (base.css): showing it moves no tab
   el.textContent = fmtInt(n);
   el.title = t("tab.decksCount", { n });
 }

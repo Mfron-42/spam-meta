@@ -81,12 +81,16 @@ main.wrap { padding-block: 32px 64px; }
 .tab[aria-selected="true"]:hover { background: var(--accent); filter: brightness(1.06); }
 .tab-n { display: inline-grid; place-items: center; min-width: 24px; height: 22px; padding: 0 6px; border-radius: 11px; background: var(--socket); box-shadow: var(--sunken);
   color: var(--ink-2); font: 600 14px/1 var(--text); }
+/* the My decks count sits on the pill's top-right corner, out of the flow: it never widens the tab, so no tab moves when it
+   appears or gains a digit; it grows leftward above the label (2px night halo, as the corner marks) and fades in and out */
+.tab > .tab-n { position: absolute; top: -8px; right: -4px; min-width: 20px; height: 20px; border-radius: 20px; box-shadow: 0 0 0 2px var(--night), var(--sunken); white-space: nowrap; font-variant-numeric: tabular-nums;
+  transition: opacity var(--t-fade) var(--curve), visibility 0s; }
+.tab > .tab-n.off { opacity: 0; visibility: hidden; transition: opacity var(--t-fade) var(--curve), visibility 0s linear var(--t-fade); }
 /* a tab label with a long form and a short form for phones ("Card tier list" / "Cards"); the page heading keeps the full title */
 .tab-short { display: none; }
 .tab-ico { color: var(--muted); transition: color var(--t-state) var(--curve); }
 .tab:hover .tab-ico { color: var(--ink); }
 .tab[aria-selected="true"] .tab-ico { color: var(--accent-ink); }
-.tab[aria-selected="true"] .tab-n { background: rgba(13, 10, 26, .2); box-shadow: none; color: var(--accent-ink); }
 
 /* segmented control: sunken track, raised active segment */
 .seg { display: inline-flex; padding: 2px; gap: 2px; border-radius: 20px; background: var(--socket); box-shadow: var(--sunken); }
@@ -110,16 +114,17 @@ main.wrap { padding-block: 32px 64px; }
 .icon-btn:hover { background: rgba(255, 255, 255, .1); color: var(--ink); }
 .icon-btn:active { background: rgba(0, 0, 0, .35); }
 
-/* Five tabs. One row from 1200px (brand, tabs, tools); below, two rows: the brand row scrolls away and the tab row stays
-   stuck under the top edge. Under 760px the tabs use their short labels; under 600px they share the row at 16px. If they
-   still do not fit (a large text setting), the row scrolls sideways, the edge hiding a tab fades and the current tab is kept
-   in view (main.js). */
+/* Five tabs. One row from 1200px (brand, tabs, tools); below, two rows: the brand row (52px) scrolls away and the tab row
+   (56px: 8px above the pills for the count on My decks, 4px below for the focus ring) stays stuck under the top edge. Under
+   760px the tabs use their short labels; under 600px they share the row at 16px, under 420px at 14px, and under 390px the
+   finder tab keeps only its magnifier. If they still do not fit (a large text setting), the row scrolls sideways, the edge
+   hiding a tab fades and the current tab is kept in view (main.js). */
 @media (max-width: 1199px) {
-  :root { --chrome-h: 52px; }
-  .chrome { top: -56px; }
+  :root { --chrome-h: 56px; }
+  .chrome { top: -52px; }
   .chrome-in { display: block; }
-  .chrome-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 56px; }
-  .tabs { height: 52px; align-items: center; margin-inline: -4px; padding-inline: 4px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .chrome-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 52px; }
+  .tabs { height: 56px; align-items: center; margin-inline: -4px; padding: 8px 4px 4px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; overscroll-behavior-x: contain; }
   .tabs::-webkit-scrollbar { display: none; }
   .tabs.more-r { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent); }
   .tabs.more-l { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent); }
@@ -140,11 +145,17 @@ main.wrap { padding-block: 32px 64px; }
   .seg button { min-width: 34px; padding: 0 8px; }
   .icon-btn { width: 40px; }
 }
+@media (max-width: 419px) {
+  .tab { font-size: 14px; }
+}
 @media (max-width: 389px) {
   .brand-name { display: none; }
   .tools { gap: 4px; }
-  /* the five tabs share what is left of the row: no fixed padding, the spare width spreads evenly (flex-grow) */
+  /* the five tabs share what is left of the row: no fixed padding, the spare width spreads evenly (flex-grow); the finder
+     tab shows its magnifier alone (its title and accessible name still say "Find a deck"), so every label keeps 10px or more */
   .tab { padding: 0; }
+  #tab-builder .tab-ico { display: block; }
+  #tab-builder .tab-short { display: none; }
 }
 
 /* ---------------------------------------------------------------- buttons */
