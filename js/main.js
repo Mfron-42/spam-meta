@@ -1,4 +1,4 @@
-// Entry point: loads the core data, wires the header, the tabs and the delegated clicks, and mounts the three views.
+// Entry point: loads the core data, wires the header, the tabs and the delegated clicks, and mounts the four views.
 
 import { h, $, $$, icon, fmtInt } from "./util.js";
 import { copyText } from "./ui.js";
@@ -6,13 +6,14 @@ import { DB, loadCore } from "./data.js";
 import { on, ownedCount, prune, getLang, setLang } from "./store.js";
 import { initDialogs, openCard, openAbout, refreshCardDialog, syncDialogOwned } from "./dialogs.js";
 
-const TABS = ["tiers", "codex", "decks"];
-const TITLES = { tiers: "Tier list", codex: "Codex", decks: "My decks" };
+const TABS = ["tiers", "card-tiers", "codex", "decks"];
+const TITLES = { tiers: "Deck tier list", "card-tiers": "Card tier list", codex: "Codex", decks: "My decks" };
 const BASE_TITLE = "SPAM Meta: best decks and card codex";
 const mounted = {};
 const scrolls = {};          // where each tab was scrolled to, so coming back does not lose the place
 let freshNav = false;        // a button that sends you to a tab starts it at the top
-const LOADERS = { tiers: () => import("./tiers.js"), codex: () => import("./codex.js"), decks: () => import("./mydecks.js") };
+const MODULES = { tiers: "./tiers.js", "card-tiers": "./cardtiers.js", codex: "./codex.js", decks: "./mydecks.js" };
+const RETRY_MS = 1200;       // a view module that fails to load gets one more try after this pause
 let current = null;
 
 // ---- images that fail to load must never leave a hole
@@ -37,7 +38,7 @@ document.addEventListener("click", (e) => {
 });
 
 // ---- tabs
-// #tiers, #codex, #decks, or #<tab>/<card key> which also opens that card
+// #tiers, #card-tiers, #codex, #decks, or #<tab>/<card key> which also opens that card
 function parseHash() {
   const [t, key] = location.hash.replace(/^#/, "").split("/");
   return { tab: TABS.includes(t) ? t : "tiers", key: key && DB.byKey.has(key) ? key : null };
@@ -79,25 +80,53 @@ function show(tab, force) {
 async function ensure(tab) {
   if (mounted[tab] || !DB.cards.length) return mounted[tab];
   const view = $("#view-" + tab);
+  if (!view.childElementCount) view.replaceChildren(skeleton());
+  view.setAttribute("aria-busy", "true");
   mounted[tab] = (async () => {
+    let mod;
     try {
-      const mod = await LOADERS[tab]();
+      mod = await loadView(tab);
+    } catch (err) {
+      console.error(err);
+      mounted[tab] = null;          // showing the tab again tries once more; the Reload button starts afresh
+      view.replaceChildren(errorPanel(`The ${TITLES[tab]} could not be loaded`,
+        "Part of the page did not arrive, even after a second try. Reload the page to try again.", "Reload", () => location.reload()));
+      view.removeAttribute("aria-busy");
+      return;
+    }
+    try {
       await mod.mount(view);
       if (tab === "decks") mod.onCount(updateTabCount);
     } catch (err) {
       console.error(err);
       mounted[tab] = null;
-      view.replaceChildren(errorPanel(() => ensure(tab), "The data could not be loaded."));
+      view.replaceChildren(errorPanel("Something went wrong", "The data could not be loaded. Check your connection and try again.",
+        "Try again", () => ensure(tab)));
     }
+    view.removeAttribute("aria-busy");
   })();
   return mounted[tab];
 }
 
-function errorPanel(retry, text) {
+// A view's module, retried once after a short pause when the request fails (a server refusing connections under a burst
+// of image requests, a dropped connection). The retry adds a query so the browser does not hand back the failed fetch.
+async function loadView(tab) {
+  try {
+    return await import(MODULES[tab]);
+  } catch (err) {
+    console.warn(`${MODULES[tab]} did not load; trying once more`, err);
+    await new Promise((r) => setTimeout(r, RETRY_MS));
+    return import(`${MODULES[tab]}?retry=${Date.now()}`);
+  }
+}
+
+const skeleton = () => h("div.panel.skel", { "aria-hidden": "true" }, [h("i"), h("i"), h("i")]);
+
+function errorPanel(title, text, label, action) {
   return h("div.panel.error", { role: "alert" }, [
-    h("h2", "Something went wrong"),
-    h("p", `${text} Check your connection and try again.`),
-    h("button.btn.primary", { type: "button", onclick: () => retry() }, "Try again"),
+    h("h2", title),
+    h("p", text),
+    h("button.btn.primary", { type: "button", onclick: () => action() }, label),
   ]);
 }
 
@@ -179,7 +208,7 @@ async function boot() {
     await loadCore();
   } catch (err) {
     console.error(err);
-    $("#view-tiers").replaceChildren(errorPanel(() => location.reload(), "The card data could not be loaded."));
+    $("#view-tiers").replaceChildren(errorPanel("Something went wrong", "The card data could not be loaded. Check your connection and try again.", "Reload", () => location.reload()));
     return;
   }
   prune(new Set(DB.cards.map((c) => c.key)));

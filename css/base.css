@@ -12,6 +12,8 @@
   --gold: #ffcf3a; --hp: #7bdc4b; --win: #5fcf72; --loss: #ff6b6b;
   --card-edge: #0d0a1a; --card-outline: #1a1530;
   --r-common: #a6a2ad; --r-rare: #5b9cff; --r-epic: #b77df5; --r-legendary: #ffc756; --r-divine: #f2efe8;
+  /* card tier scale (Card tier list only): apricot to dusk, calm, night ink passes 4.5:1 on every step */
+  --tier-sp: #f0ca9b; --tier-s: #e9b698; --tier-a: #dea49c; --tier-b: #cb95a0; --tier-c: #b48aa3; --tier-d: #9a80a2; --tier-e: #80779b;
   --display: "Lilita One", "Nunito", system-ui, sans-serif;
   --text: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
   --curve: cubic-bezier(.4, 0, .2, 1);
@@ -79,6 +81,8 @@ main.wrap { padding-block: 32px 64px; }
 .tab[aria-selected="true"]:hover { background: var(--accent); filter: brightness(1.06); }
 .tab-n { display: inline-grid; place-items: center; min-width: 24px; height: 22px; padding: 0 6px; border-radius: 11px; background: var(--socket); box-shadow: var(--sunken);
   color: var(--ink-2); font: 600 14px/1 var(--text); }
+/* a tab label with a long form and a short form for phones ("Card tier list" / "Card tiers") */
+.tab-short { display: none; }
 .tab[aria-selected="true"] .tab-n { background: rgba(13, 10, 26, .2); box-shadow: none; color: var(--accent-ink); }
 
 /* segmented control: sunken track, raised active segment */
@@ -103,7 +107,7 @@ main.wrap { padding-block: 32px 64px; }
 .icon-btn:hover { background: rgba(255, 255, 255, .1); color: var(--ink); }
 .icon-btn:active { background: rgba(0, 0, 0, .35); }
 
-@media (max-width: 959px) {
+@media (max-width: 1079px) {
   :root { --chrome-h: 52px; }
   /* two rows: the brand row scrolls away, the tab row stays stuck under the top edge */
   .chrome { top: -56px; }
@@ -112,8 +116,14 @@ main.wrap { padding-block: 32px 64px; }
   .tabs { display: flex; height: 52px; align-items: center; padding-bottom: 0; }
   .tab { flex: 1 1 0; padding: 0 8px; }
 }
-@media (min-width: 600px) and (max-width: 959px) {
+@media (min-width: 600px) and (max-width: 1079px) {
   .tab { flex: 0 0 auto; padding: 0 24px; }
+}
+@media (max-width: 599px) {
+  .tab-long { display: none; }
+  .tab-short { display: inline; }
+  .tabs { gap: 4px; }
+  .tab { padding: 0 4px; font-size: 16px; }
 }
 @media (max-width: 479px) {
   .own-pill-t, .tab-n { display: none; }

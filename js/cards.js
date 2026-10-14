@@ -93,6 +93,11 @@ export function cardBack(rarity) {
   ]));
 }
 
+/** A blank grey card for a secret deck: no rarity, no mark, nothing about the card. Not interactive. */
+export function secretCard() {
+  return sized(h("div", { class: "gc cp back blank", role: "img", "aria-label": "Secret card" }, [h("span.gc-face")]));
+}
+
 /** Art and orb only: for the rows of a matchup strip. */
 export function miniCard(c) {
   return h("button.mc", { type: "button", "data-card": c.key, title: cardName(c), "aria-label": `${cardName(c)}. Show the card details` }, [

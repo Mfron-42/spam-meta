@@ -12,7 +12,7 @@ async function getJSON(path) {
   return cache.get(path);
 }
 
-export const DB = { cards: [], byId: new Map(), byKey: new Map(), meta: null, tier: null, decks: null };
+export const DB = { cards: [], byId: new Map(), byKey: new Map(), meta: null, tier: null, decks: null, cardTiers: null };
 
 /** cards.json and meta.json: needed by every view. */
 export async function loadCore() {
@@ -51,6 +51,16 @@ export async function loadTier() {
     DB.tierBySet = new Map(t.decks.filter((d) => !d.withheld && Array.isArray(d.cards)).map((d) => [deckKey(d.cards), d]));
   }
   return DB.tier;
+}
+
+/** The card tier list (tools/export_cardtiers.py): each record gets its card object; an unknown id is dropped. */
+export async function loadCardTiers() {
+  if (!DB.cardTiers) {
+    const t = await getJSON("data/cardtiers.json");
+    t.cards = t.cards.map((r) => ({ ...r, card: DB.byId.get(r.id) })).filter((r) => r.card);
+    DB.cardTiers = t;
+  }
+  return DB.cardTiers;
 }
 
 /** The 4,868 measured decks, with card indices resolved to card objects. */

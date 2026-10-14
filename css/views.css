@@ -97,6 +97,8 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .deck.spot .tip { font-size: 18px; }
 .deck > .disc { justify-self: start; margin-left: -16px; }
 .deck.withheld .deck-cards { opacity: .9; }
+.deck.secret .deck-cards { opacity: .9; }
+.vhead .dnote { margin-top: 4px; }
 
 .obadge { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-height: 36px; padding: 4px 14px; border-radius: 20px; background: var(--socket); box-shadow: var(--sunken);
   color: var(--ink-2); font: 600 14px/1.3 var(--text); }
@@ -105,7 +107,6 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 
 .dgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 40px; border-top: 1px solid var(--line); margin-top: 8px; }
 .dgrid > .dsec { padding: 20px 0 8px; }
-.dgrid > .dsec.wide { grid-column: 1 / -1; border-top: 1px solid var(--line); margin-top: 12px; }
 .dsec { display: grid; gap: 12px; align-content: start; }
 .dsec h4 { color: var(--ink); }
 .counters { display: grid; gap: 12px; }
@@ -123,8 +124,6 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .shop-n { font: 700 16px/1.3 var(--text); }
 .shop-d { color: var(--ink-2); font-size: 14px; line-height: 1.45; }
 .shop-s { color: var(--muted); font-size: 14px; line-height: 1.4; }
-.tals { display: grid; gap: 8px; }
-.tal { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
 
 /* ---------------------------------------------------------------- My decks */
 .mdsec { display: grid; gap: 16px; margin-top: 48px; }

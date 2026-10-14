@@ -1,13 +1,15 @@
 // Tier list tab: the best decks grouped by tier, each drawn as its four game cards with its measurements, matchups,
-// strategy tip, shop picks, talents (only when the data has them) and how many of its cards the visitor owns.
+// strategy tip, shop picks and how many of its cards the visitor owns.
 // A deck withheld by the maintainer arrives as a stub (`withheld`, no cards) and is drawn as four face-down cards with its
 // numbers and the pay-to-win note; it is never counted as a deck the visitor can build and the "Ready to play" filter hides
-// it. Decks keep the lab's ranks, so a rank the data does not list is simply absent.
+// it. A secret deck (`secret: true`, only its rank and tier) is drawn as four blank grey cards and the word "Secret", nothing
+// else. Ranks 1-10 are the finals; the decks after them are ranked by their win rate against the top 10 (`tier.ordering`).
+// Every deck keeps its rank in that full order, so a rank the data does not list is simply absent.
 
 import { h, icon, fmtInt, pm, plural } from "./util.js";
 import { DB, loadTier, WITHHELD_SHORT } from "./data.js";
-import { on, isOwned, ownedCount, getLang } from "./store.js";
-import { gameCard, cardBack, chip, strip, chipify, cardName } from "./cards.js";
+import { on, isOwned, ownedCount } from "./store.js";
+import { gameCard, cardBack, secretCard, chip, strip, chipify, cardName } from "./cards.js";
 import { disclosure, segmented, scrollToEl } from "./ui.js";
 
 const pct1 = (p) => (p * 100).toFixed(1) + "%";          // one decimal everywhere in the cells, so 73.0% lines up with 67.5%
@@ -50,6 +52,7 @@ function render() {
     h("div.vhead", [
       h("h1", "The best decks in SPAM"),
       h("p.lede", `The strongest decks of patch ${tier.patch}, ranked${gamesText} (strong AI, no talents).${downText}`),
+      recomputeNote(),
     ]),
     banner,
     jumpNav(guide.btn),
@@ -62,6 +65,14 @@ function render() {
   applyReady();
 }
 
+// The lab is recomputing the ranking with a stronger AI (2026-10-14): one quiet line, no figures beyond the ranks that move.
+function recomputeNote() {
+  const from = tier.ordering && tier.ordering.first_rank_after_finals;
+  const to = Math.max(...tier.decks.map((d) => d.rank));
+  if (!from || to < from) return null;
+  return h("p.dnote", [icon("info"), h("span", `The ranking is being recomputed with a stronger AI; ranks ${from} to ${to} will change.`)]);
+}
+
 // ---------------------------------------------------------------- reading guide
 function howToRead() {
   const btn = h("button.btn.ghost.disc", { type: "button", "aria-controls": "tl-guide" }, [icon("info"), "How to read this page", icon("chevron")]);
@@ -69,12 +80,24 @@ function howToRead() {
   const region = h("div#tl-guide", h("div.collapse-in", h("div.guide", [
     h("p", rules.summary),
     h("p", "In practice, decks inside one tier are close and are not ranked apart with confidence. A new tier starts only when the gap to the tier leader is too big to be luck."),
-    h("p", [h("b", "The same two numbers for every deck. "), "Each deck shows its win rate against the top 10 decks (the finalists) and against the good decks (the 47 other decks of the round-robin). They are measured the same way for all decks, so you can compare them from one tier to another. The rank itself comes from the finals for ranks 1 to 10 and from the round-robin for the rest; the number that sets the rank is tagged. For ranks 11 and below, the top-10 number rests on fewer games, so its interval is wider."]),
-    h("ul", rules.caveats.filter((t) => !/^Ranks 1-10/.test(t)).map((t) => h("li", t))),
+    h("p", [h("b", "The same two numbers for every deck. "), "Each deck shows its win rate against the top 10 decks (the finalists) and against the good decks (the 47 other decks of the round-robin). They are measured the same way for all decks, so you can compare them from one tier to another."]),
+    orderText(),
+    // "Ranks 1-10 ..." is about the native win rates, which the page does not show; "Ranks 11-30 are ordered ..." is said above
+    h("ul", rules.caveats.filter((t) => !/^Ranks \d+-\d+ /.test(t)).map((t) => h("li", t))),
   ])));
   disclosure(btn, region, { open: false });
   return { btn, region };
 }
+
+/** How the ranks are ordered, in plain words, from `tier.ordering` (the exporter's rule and its numbers). */
+function orderText() {
+  const o = tier.ordering;
+  if (!o || o.key !== "vs_top") return null;
+  const from = o.first_rank_after_finals;
+  return h("p", [h("b", "How decks are ranked. "), `Ranks 1 to ${from - 1} are the finals order. From rank ${from} on, decks are ranked by their results against the top 10: ${fmtInt(o.vs_top_games)} games each, about ±${Math.round(o.vs_top_ci95_mean * 100)} points, so neighbours a few points apart are not ranked apart with confidence. Their results against the other good decks are the second number, which also breaks near-ties (decks within ${tieGames(o)} of each other against the top 10). The tag marks the number that sets the rank.`]);
+}
+
+const tieGames = (o) => `${o.near_tie_games} game${o.near_tie_games === 1 ? "" : "s"}`;
 
 function jumpNav(guideBtn) {
   readyBtn = h("button.chip.ready", { type: "button", "aria-pressed": "false", hidden: true, onclick: () => { readyOnly = !readyOnly; applyReady(); } }, [h("span.chip-l", "Ready to play"), h("span.n")]);
@@ -109,7 +132,7 @@ function tierSection(t) {
   if (t.tier === "S") why = "The strongest deck of the patch.";
   else {
     const prev = tier.tiers[tier.tiers.indexOf(t) - 1];
-    why = `Clearly below tier ${prev.tier}: the leader of tier ${prev.tier} scores ${(sep.difference * 100).toFixed(1)} points more than this tier’s leader against the same opponents (99.9% sure it is not luck).`;
+    why = `Clearly below tier ${prev.tier}: the leader of tier ${prev.tier} scores ${(sep.difference * 100).toFixed(1)} points more than this tier’s leader against the same ${sep.scale === "round_robin" ? "round-robin " : ""}opponents (99.9% sure it is not luck).`;
   }
   const ranks = t.rank_from === t.rank_to ? `Rank ${t.rank_from}` : `Ranks ${t.rank_from} to ${t.rank_to}`;
   const what = t.tier === "S" ? `${ranks}, ${plural(t.size, "deck")}. ${why}` : `${ranks}, ${plural(t.size, "deck")}.`;
@@ -137,13 +160,17 @@ function stat(label, tip, m, caption, defining) {
 
 function stats(d) {
   const opp = (d.round_robin && d.round_robin.opponents) || +((/the (\d+) other/.exec(d.measured_against_text) || [])[1]) || 47;
+  // the finals set ranks 1-10 (that is the vs top 10 number); after them the rank follows vs top 10 too (tier.ordering)
+  const byTop = d.finalist || (tier.ordering && tier.ordering.key === "vs_top");
+  const tieNote = !d.finalist && byTop && tier.ordering ? ` It also orders decks that are within ${tieGames(tier.ordering)} of each other against the top 10.` : "";
   return h("div.stats", [
-    stat("vs top 10", "How often this deck beats the 10 best decks of the patch, the finalists. A deck is never counted against itself.", d.vs_top, d.finalist ? "against the 9 other finalists" : "against the 10 finalists", d.finalist),
-    stat("vs good decks", `How often this deck beats the ${opp} other good decks of the round-robin. A deck is never counted against itself.`, d.vs_good, `against ${opp} other round-robin decks`, !d.finalist),
+    stat("vs top 10", "How often this deck beats the 10 best decks of the patch, the finalists. A deck is never counted against itself.", d.vs_top, d.finalist ? "against the 9 other finalists" : "against the 10 finalists", byTop),
+    stat("vs good decks", `How often this deck beats the ${opp} other good decks of the round-robin. A deck is never counted against itself.${tieNote}`, d.vs_good, `against ${opp} other round-robin decks`, !byTop),
   ]);
 }
 
 function deckPanel(d) {
+  if (d.secret) return secretPanel(d);
   if (d.withheld) return withheldPanel(d);
   const cs = cardsOf(d);
   const spotlight = !spotted;           // the first deck that can be shown gets full cards
@@ -195,12 +222,24 @@ function withheldPanel(d) {
   return el;
 }
 
-// ---------------------------------------------------------------- details: counters, shop picks, talents
+/** A secret deck: its rank, four blank grey cards and the word "Secret". The data holds nothing else about it. */
+function secretPanel(d) {
+  const el = h("article.deck.panel.secret", { id: "deck-" + d.rank, "aria-label": `Rank ${d.rank}: secret deck` }, [
+    h("div.deck-head", [h("h3.rk", `#${d.rank}`), h("span.tag.soft", "Secret")]),
+    h("div.deck-body", [
+      h("div.deck-cards", { "aria-hidden": "true" }, [0, 1, 2, 3].map(() => h("div.slot", secretCard()))),   // the panel's label says it
+      h("div.deck-facts", h("p.muted", "Its cards and numbers are not published.")),
+    ]),
+  ]);
+  stubs.push(el);
+  return el;
+}
+
+// ---------------------------------------------------------------- details: counters, shop picks
 function details(d) {
   const out = [h("section.dsec", [h("h4", "Hardest matchups"), countersBlock(d)])];
   if (d.playbook && d.playbook.upgrades && d.playbook.upgrades.length) out.push(h("section.dsec", [h("h4", "Most bought shop upgrades"), shopBlock(d)]));
   else if (!d.finalist) out.push(h("section.dsec", [h("h4", "Strategy and shop picks"), h("p.muted", "These come from replays of the finals, so only the finalists have them. This deck was measured in the round-robin only.")]));
-  if (d.best_talents) out.push(h("section.dsec.wide", [h("h4", "Best talents"), talentsBlock(d)]));
   return [h("div.dgrid", out)];
 }
 
@@ -270,21 +309,6 @@ function shopBlock(d) {
   ]);
 }
 
-function talentsBlock(d) {
-  const bt = d.best_talents;
-  if (bt.status === "no_talent_improves") return h("p", "None of the talents improved this deck in testing.");
-  const lang = getLang();
-  const pick = bt.by_card.map((p) => {
-    const c = DB.byId.get(p.card);
-    const t = p.talent;
-    return h("li.tal", [c ? chip(c) : null, t ? h("span", { lang }, ["→ ", h("b", lang === "fr" ? t.name_fr : t.name_en)]) : h("span.muted", "no talent")]);
-  });
-  return h("div.shopblk", [
-    h("ul.tals", pick),
-    h("p", `With these talents the deck wins ${pct1(bt.win_rate_with_talents)} against ${pct1(bt.win_rate_talent_free)} without: ${bt.gain >= 0 ? "+" : "−"}${(Math.abs(bt.gain) * 100).toFixed(1)} points (${pm(bt.ci95)}). ${bt.significant ? "The gain is larger than the noise." : "The gain is within the noise."}`),
-  ]);
-}
-
 // ---------------------------------------------------------------- owned state
 function updateBadges() {
   const any = ownedCount() > 0;
@@ -313,9 +337,9 @@ function applyReady() {
   readyBtn.disabled = !ready.length && !readyOnly;
   readyBtn.title = ready.length ? "Show only the decks you can already play" : "You do not own all 4 cards of any deck shown yet";
   for (const x of decks) x.el.hidden = readyOnly && !x.ready;
-  for (const el of stubs) el.hidden = readyOnly;          // a withheld deck can never be owned
+  for (const el of stubs) el.hidden = readyOnly;          // a withheld or secret deck can never be owned
   for (const s of sections) {
-    // withheld stubs are not in `decks`, so a section holding only stubs hides under the filter
+    // withheld and secret stubs are not in `decks`, so a section holding only stubs hides under the filter
     const shown = s.list.some((d) => { const x = decks.find((k) => k.d === d); return !readyOnly || (x && x.ready); });
     s.el.hidden = !shown;
     // a hidden tier keeps its jump chip in place, disabled, and says why (nothing jumps, nothing points at an empty box)

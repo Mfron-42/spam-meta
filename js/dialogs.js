@@ -209,13 +209,13 @@ function buildAbout() {
     ]),
     h("section", [
       h("h3", "How to read a win rate"),
-      h("p", "A win rate only means something next to what it was measured against. The Tier list shows two numbers for every deck, measured the same way for all of them: against the 10 best decks and against the good decks of the round-robin. My decks also lists decks that were only tested lightly (halving and quick screen, with fewer games). Those rates cannot be compared with each other or with the Tier list numbers, which is why each deck says how it was tested."),
+      h("p", "A win rate only means something next to what it was measured against. The Tier list shows two numbers for every deck, measured the same way for all of them: against the 10 best decks and against the good decks of the round-robin. Ranks 1 to 10 follow the finals; the decks after them are ranked by their results against the 10 best decks, with the other number shown beside it. My decks also lists decks that were only tested lightly (halving and quick screen, with fewer games). Those rates cannot be compared with each other or with the Tier list numbers, which is why each deck says how it was tested."),
     ]),
     h("section", [
       h("h3", "Limits"),
       h("ul", mm.limits.map((t) => h("li", t))),
       faceDown ? h("p", faceDown) : null,
-      h("p", "Rankings are talent-free: talents are a final add-on, and their results are added once they are measured."),
+      h("p", "In the game each card can draft one talent; the decks here were played without, so a deck with talents can play differently from what is measured."),
     ]),
     h("section", [
       h("h3", "Data"),

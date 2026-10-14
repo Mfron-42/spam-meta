@@ -74,6 +74,9 @@ button.gc:focus-visible .gc-face { box-shadow: var(--shadow), 0 0 0 2px var(--ni
 .gc.back { --rc: var(--r-common); }
 .gc.back.r-rare { --rc: var(--r-rare); } .gc.back.r-epic { --rc: var(--r-epic); } .gc.back.r-legendary { --rc: var(--r-legendary); } .gc.back.r-divine { --rc: var(--r-divine); }
 .gc.back .gc-face { background: linear-gradient(180deg, var(--panel-hi), var(--socket)); border-color: var(--rc); background: linear-gradient(180deg, color-mix(in srgb, var(--rc) 26%, var(--panel-hi)), var(--socket) 78%); }
+/* a secret deck's card: blank grey, no rarity colour, faint diagonal lines that read as struck out (DESIGN.md, Card back) */
+.gc.back.blank .gc-face { border-color: var(--line); background:
+  repeating-linear-gradient(135deg, rgba(255, 255, 255, .035) 0 2px, transparent 2px 12px), linear-gradient(180deg, var(--panel-hi), var(--socket) 78%); }
 .gc-r { position: absolute; left: 0; right: 0; bottom: calc(var(--u) * 17); text-align: center; font: 400 max(12px, calc(var(--u) * 9)) / 1 var(--display); letter-spacing: .02em; color: var(--rc); }
 .panel .cc, .stat .cc { background: var(--socket); }
 

@@ -33,6 +33,7 @@
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/cards.css">
 <link rel="stylesheet" href="css/views.css">
+<link rel="stylesheet" href="css/cardtiers.css">
 <link rel="modulepreload" href="js/main.js">
 </head>
 <body>
@@ -60,7 +61,8 @@
       </div>
     </div>
     <nav class="tabs" role="tablist" aria-label="Sections">
-      <a class="tab" role="tab" id="tab-tiers" href="#tiers" aria-selected="true" aria-controls="view-tiers" data-tab="tiers">Tier list</a>
+      <a class="tab" role="tab" id="tab-tiers" href="#tiers" aria-selected="true" aria-controls="view-tiers" data-tab="tiers"><span>Deck tier<span class="tab-long"> list</span><span class="tab-short">s</span></span></a>
+      <a class="tab" role="tab" id="tab-card-tiers" href="#card-tiers" aria-selected="false" aria-controls="view-card-tiers" data-tab="card-tiers" tabindex="-1"><span>Card tier<span class="tab-long"> list</span><span class="tab-short">s</span></span></a>
       <a class="tab" role="tab" id="tab-codex" href="#codex" aria-selected="false" aria-controls="view-codex" data-tab="codex" tabindex="-1">Codex</a>
       <a class="tab" role="tab" id="tab-decks" href="#decks" aria-selected="false" aria-controls="view-decks" data-tab="decks" tabindex="-1">My decks<span class="tab-n" id="tab-decks-n" hidden></span></a>
     </nav>
@@ -72,6 +74,7 @@
     <div class="vhead"><h1>The best decks in SPAM</h1><p class="lede">Loading the rankings…</p></div>
     <div class="panel skel" aria-hidden="true"><i></i><i></i><i></i></div>
   </section>
+  <section class="view" id="view-card-tiers" role="tabpanel" aria-labelledby="tab-card-tiers" tabindex="-1" hidden></section>
   <section class="view" id="view-codex" role="tabpanel" aria-labelledby="tab-codex" tabindex="-1" hidden></section>
   <section class="view" id="view-decks" role="tabpanel" aria-labelledby="tab-decks" tabindex="-1" hidden></section>
 </main>
