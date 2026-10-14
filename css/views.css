@@ -89,6 +89,7 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .stats { display: grid; gap: 12px; }
 .tip { color: var(--ink-2); font-size: 16px; line-height: 1.55; max-width: 84ch; }
 .tip b { color: var(--ink); }
+.tip-src { display: block; margin-top: 4px; color: var(--muted); font: 600 14px/1.4 var(--text); }
 .deck.spot { padding: 24px 24px 16px; }
 .deck.spot .deck-body { grid-template-columns: minmax(0, 1fr); }
 .deck.spot .deck-cards { gap: 24px; padding: 12px 12px 16px; }

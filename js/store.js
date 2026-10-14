@@ -1,4 +1,4 @@
-// The visitor's state: owned cards and card-name language. Persisted in localStorage only; every access is wrapped in
+// The visitor's state: owned cards and the page language (the whole UI and the card names and texts). Persisted in localStorage only; every access is wrapped in
 // try/catch and the site keeps working in memory when storage is missing (private window, blocked site data).
 
 const K_OWNED = "spam-meta:owned:v1";
@@ -71,7 +71,8 @@ window.addEventListener("storage", (e) => {
   } catch (err) { /* ignore a malformed value */ }
 });
 
-// ---- card-name language
+// ---- page language: what the visitor chose, else the browser's first language (fr* -> French, anything else -> English).
+// Kept under the key the card-name toggle has always used, so a choice made before the full translation still applies.
 function guessLang() {
   const first = (navigator.languages && navigator.languages[0]) || navigator.language || "en";
   return /^fr\b/i.test(first) ? "fr" : "en";
@@ -84,7 +85,11 @@ export function setLang(next) {
   if (next !== "fr" && next !== "en") return;
   lang = next;
   write(K_NAMES, next);
-  document.documentElement.dataset.names = next;
+  paintLang();
   emit("lang", next);
 }
-document.documentElement.dataset.names = lang;
+function paintLang() {
+  document.documentElement.lang = lang;
+  document.documentElement.dataset.names = lang;
+}
+paintLang();

@@ -1,5 +1,7 @@
 // Loads the generated JSON once and builds the lookups every view needs.
 
+import { fmtDate } from "./util.js";
+
 const cache = new Map();
 
 async function getJSON(path) {
@@ -19,8 +21,10 @@ export async function loadCore() {
   const [cards, meta] = await Promise.all([getJSON("data/cards.json"), getJSON("data/meta.json")]);
   DB.meta = meta;
   DB.patch = cards.patch;
-  // set while some card values still come from an older game dump (docs/DATA.md, "Card data notices"); the Codex prints it
+  // set while some card values still come from an older game dump (docs/DATA.md, "Card data notices"): a notice code the
+  // Codex prints as "notice.<code>", with the date of that dump
   DB.dataNotice = cards.data_notice || null;
+  DB.dumpDate = cards.game_files_dumped || null;
   DB.cards = cards.cards;
   DB.byId = new Map(cards.cards.map((c) => [c.id, c]));
   DB.byKey = new Map(cards.cards.map((c) => [c.key, c]));
@@ -28,17 +32,8 @@ export async function loadCore() {
   return DB;
 }
 
-// Why a withheld deck is drawn face down (its `withheld_reason` is "legendary_paywall"). Plain wording, no figure: every
-// number on the page comes from the data. tools/review_local.py quotes WITHHELD_SHORT by name.
-export const WITHHELD_SHORT = "Its strength comes from legendary cards that are hard to obtain, so showing it would push players to pay to win. It stays hidden until a balance patch. Its win rates are real and are counted in the ranking.";
-
-/** The About paragraph on the face-down decks, from meta.json totals.decks_withheld; null when no deck is face down. */
-export function withheldLong(totals) {
-  const n = (totals && totals.decks_withheld) || 0;
-  if (!n) return null;
-  const one = n === 1;
-  return `${one ? "One deck" : `${n} decks`} of the Tier list ${one ? "is" : "are"} drawn face down: ${one ? "its" : "their"} win rates are shown, not ${one ? "its" : "their"} cards. ${one ? "Its" : "Their"} strength comes from legendary cards that are hard to obtain, so showing ${one ? "it" : "them"} would push players to pay to win; ${one ? "it stays" : "they stay"} hidden until a balance patch. ${one ? "Its" : "Their"} win rates are counted in every ranking and in the fields the other decks were measured against.`;
-}
+/** The day of the game files the card values come from, "10 Oct" / "10 oct.", kept on one line. */
+export const dumpDay = () => (DB.dumpDate ? fmtDate(DB.dumpDate, "short", false).replace(/ /g, " ") : "");
 
 /** A deck is a set of 4 cards (board order is ignored): its sorted card ids join tierlist.json and decks.json. */
 export const deckKey = (ids) => [...ids].sort().join("|");

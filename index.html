@@ -37,41 +37,41 @@
 <link rel="modulepreload" href="js/main.js">
 </head>
 <body>
-<a class="skip" href="#main">Skip to the content</a>
+<a class="skip" href="#main" data-i18n="head.skip">Skip to the content</a>
 
 <header class="chrome" id="chrome">
   <div class="wrap chrome-in">
     <div class="chrome-top">
-      <a class="brand" href="#tiers" aria-label="SPAM Meta, home">
+      <a class="brand" href="#tiers" aria-label="SPAM Meta, home" data-i18n-aria="head.home">
         <img class="brand-mark" src="favicon.svg" alt="" width="32" height="32">
         <span class="brand-name" translate="no">SPAM Meta</span>
       </a>
       <div class="tools" id="tools">
-        <div class="seg names" id="names-seg" role="group" aria-label="Language of the card names and texts">
-          <button type="button" data-v="fr" aria-pressed="false" title="Card names and texts in French">FR</button>
-          <button type="button" data-v="en" aria-pressed="false" title="Card names and texts in English">EN</button>
+        <div class="seg names" id="names-seg" role="group" aria-label="Language" data-i18n-aria="head.lang">
+          <button type="button" data-v="fr" aria-pressed="false" lang="fr" title="Français">FR</button>
+          <button type="button" data-v="en" aria-pressed="false" lang="en" title="English">EN</button>
         </div>
-        <button class="own-pill" id="own-pill" type="button" data-goto="codex" title="Cards you own. Open the Codex to change them">
+        <button class="own-pill" id="own-pill" type="button" data-goto="codex" title="Your cards. Edit them in the Codex" data-i18n-title="head.ownTitle">
           <svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M3.5 8.5l3 3 6-7"/></svg>
           <span id="own-pill-n">0</span><span class="own-pill-t"> / 127</span>
         </button>
-        <button class="icon-btn" id="about-btn" type="button" title="About this site and how it was made" aria-label="About this site and how it was made">
+        <button class="icon-btn" id="about-btn" type="button" title="About this site" aria-label="About this site" data-i18n-title="head.about" data-i18n-aria="head.about">
           <svg class="ico" viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="M8 7.2v4.3M8 4.6v.1M8 14.5a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13z"/></svg>
         </button>
       </div>
     </div>
-    <nav class="tabs" role="tablist" aria-label="Sections">
-      <a class="tab" role="tab" id="tab-tiers" href="#tiers" aria-selected="true" aria-controls="view-tiers" data-tab="tiers"><span>Deck tier<span class="tab-long"> list</span><span class="tab-short">s</span></span></a>
-      <a class="tab" role="tab" id="tab-card-tiers" href="#card-tiers" aria-selected="false" aria-controls="view-card-tiers" data-tab="card-tiers" tabindex="-1"><span>Card tier<span class="tab-long"> list</span><span class="tab-short">s</span></span></a>
-      <a class="tab" role="tab" id="tab-codex" href="#codex" aria-selected="false" aria-controls="view-codex" data-tab="codex" tabindex="-1">Codex</a>
-      <a class="tab" role="tab" id="tab-decks" href="#decks" aria-selected="false" aria-controls="view-decks" data-tab="decks" tabindex="-1">My decks<span class="tab-n" id="tab-decks-n" hidden></span></a>
+    <nav class="tabs" role="tablist" aria-label="Sections" data-i18n-aria="head.sections">
+      <a class="tab" role="tab" id="tab-tiers" href="#tiers" aria-selected="true" aria-controls="view-tiers" data-tab="tiers"><span class="tab-long" data-i18n="tab.tiers">Deck tier list</span><span class="tab-short" data-i18n="tab.tiersShort">Deck tiers</span></a>
+      <a class="tab" role="tab" id="tab-card-tiers" href="#card-tiers" aria-selected="false" aria-controls="view-card-tiers" data-tab="card-tiers" tabindex="-1"><span class="tab-long" data-i18n="tab.cardTiers">Card tier list</span><span class="tab-short" data-i18n="tab.cardTiersShort">Card tiers</span></a>
+      <a class="tab" role="tab" id="tab-codex" href="#codex" aria-selected="false" aria-controls="view-codex" data-tab="codex" tabindex="-1"><span data-i18n="tab.codex">Codex</span></a>
+      <a class="tab" role="tab" id="tab-decks" href="#decks" aria-selected="false" aria-controls="view-decks" data-tab="decks" tabindex="-1"><span data-i18n="tab.decks">My decks</span><span class="tab-n" id="tab-decks-n" hidden></span></a>
     </nav>
   </div>
 </header>
 
 <main id="main" class="wrap" tabindex="-1">
   <section class="view" id="view-tiers" role="tabpanel" aria-labelledby="tab-tiers" tabindex="-1">
-    <div class="vhead"><h1>The best decks in SPAM</h1><p class="lede">Loading the rankings…</p></div>
+    <div class="vhead"><h1 data-i18n="tl.h1">The best decks in SPAM</h1><p class="lede" data-i18n="app.loading">Loading…</p></div>
     <div class="panel skel" aria-hidden="true"><i></i><i></i><i></i></div>
   </section>
   <section class="view" id="view-card-tiers" role="tabpanel" aria-labelledby="tab-card-tiers" tabindex="-1" hidden></section>
@@ -81,55 +81,55 @@
 
 <footer class="foot" id="foot">
   <div class="wrap foot-in">
-    <p class="foot-ai"><b>This site is AI-generated.</b> <span id="foot-method"></span></p>
+    <p class="foot-ai"><b data-i18n="foot.ai">This site is AI-generated.</b> <span id="foot-method"></span></p>
     <p class="foot-games" id="foot-games"></p>
-    <p class="foot-meta"><span id="foot-patch"></span> <button class="link" id="foot-about" type="button">How the rankings were made</button></p>
-    <p class="foot-help">Bug or question? Discord: <span class="handle" id="foot-handle">noob9795</span>
-      <button class="copy" id="foot-copy" type="button" aria-label="Copy the Discord name"><span class="copy-ico" aria-hidden="true"></span><span class="copy-l">Copy</span></button>
+    <p class="foot-meta"><span id="foot-patch"></span> <button class="link" id="foot-about" type="button" data-i18n="foot.how">How it is computed</button></p>
+    <p class="foot-help"><span data-i18n="foot.help">Bug or question? Discord:</span> <span class="handle" id="foot-handle" translate="no">noob9795</span>
+      <button class="copy" id="foot-copy" type="button" aria-label="Copy the Discord name" data-i18n-aria="foot.copyAria"><span class="copy-ico" aria-hidden="true"></span><span class="copy-l">Copy</span></button>
       <span class="copy-note" id="foot-copy-note" role="status" aria-live="polite"></span></p>
-    <p class="foot-count">Anonymous visit counter (GoatCounter): page views only, no cookies, nothing you mark or own is sent.</p>
-    <p class="foot-legal" id="foot-legal"></p>
+    <p class="foot-count" data-i18n="foot.count">Anonymous visit counter (GoatCounter): page views only, no cookies, your cards are never sent.</p>
+    <p class="foot-legal" data-i18n="foot.legal">Unofficial fan site, not affiliated with Ticroco Entreprise. Card names, texts and art © Ticroco Entreprise.</p>
   </div>
 </footer>
 
 <dialog class="sheet card-dlg" id="dlg-card" aria-labelledby="dlg-name">
-  <button class="close" type="button" data-close aria-label="Close the card" title="Close">
+  <button class="close" type="button" data-close aria-label="Close the card" title="Close" data-i18n-aria="card.close" data-i18n-title="ui.close">
     <svg class="ico" viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="M4 4l8 8M12 4l-8 8"/></svg>
   </button>
   <div class="dlg-scroll" tabindex="-1" autofocus></div>
 </dialog>
 
 <dialog class="sheet about-dlg" id="dlg-about" aria-labelledby="about-title">
-  <button class="close" type="button" data-close aria-label="Close" title="Close">
+  <button class="close" type="button" data-close aria-label="Close" title="Close" data-i18n-aria="ui.close" data-i18n-title="ui.close">
     <svg class="ico" viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="M4 4l8 8M12 4l-8 8"/></svg>
   </button>
   <div class="dlg-scroll" id="about-body" tabindex="-1" autofocus></div>
 </dialog>
 
 <dialog class="sheet code-dlg" id="dlg-code" aria-labelledby="code-title">
-  <button class="close" type="button" data-close aria-label="Close" title="Close">
+  <button class="close" type="button" data-close aria-label="Close" title="Close" data-i18n-aria="ui.close" data-i18n-title="ui.close">
     <svg class="ico" viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="M4 4l8 8M12 4l-8 8"/></svg>
   </button>
   <div class="dlg-scroll">
     <div class="codebox">
-      <h2 id="code-title">Export or import your collection</h2>
-      <p>Your collection is saved in this browser only. To move it to another device or share it, copy the code below and paste it there.</p>
-      <p class="note" id="code-store" hidden>This browser cannot save your collection, so it lasts until you close the page. Copy the code to keep it.</p>
+      <h2 id="code-title" data-i18n="code.h">Export or import your collection</h2>
+      <p data-i18n="code.p">Your cards are saved in this browser only. Copy this code to move or share them.</p>
+      <p class="note" id="code-store" hidden data-i18n="code.noStore">This browser cannot save your cards: copy the code to keep them.</p>
       <section>
-        <h3>Your code</h3>
+        <h3 data-i18n="code.yours">Your code</h3>
         <div class="code-row">
-          <textarea id="code-out" class="code" name="collection-code" readonly rows="1" spellcheck="false" aria-label="Your collection code"></textarea>
-          <button class="btn primary" id="code-copy" type="button">Copy</button>
+          <textarea id="code-out" class="code" name="collection-code" readonly rows="1" spellcheck="false" aria-label="Your collection code" data-i18n-aria="code.yoursAria"></textarea>
+          <button class="btn primary" id="code-copy" type="button" data-i18n="ui.copy">Copy</button>
         </div>
         <p class="note" id="code-count"></p>
       </section>
       <section>
-        <h3>Import a code</h3>
-        <textarea id="code-in" class="code" rows="1" spellcheck="false" autocomplete="off" name="code" placeholder="Paste a code, for example SPAM1-0100-007G…" aria-label="Paste a collection code" aria-describedby="code-msg"></textarea>
+        <h3 data-i18n="code.importH">Import a code</h3>
+        <textarea id="code-in" class="code" rows="1" spellcheck="false" autocomplete="off" name="code" placeholder="Paste a code, for example SPAM1-0100-007G…" aria-label="Paste a collection code" data-i18n-ph="code.ph" data-i18n-aria="code.inAria" aria-describedby="code-msg"></textarea>
         <p class="msg" id="code-msg" role="status"></p>
         <div class="code-act">
-          <button class="btn" id="code-replace" type="button" disabled>Replace your collection</button>
-          <button class="btn primary" id="code-add" type="button" disabled>Add to your collection</button>
+          <button class="btn" id="code-replace" type="button" disabled data-i18n="code.replace">Replace my collection</button>
+          <button class="btn primary" id="code-add" type="button" disabled data-i18n="code.add">Add to my collection</button>
         </div>
       </section>
     </div>
@@ -138,7 +138,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<noscript><div class="wrap noscript"><p>SPAM Meta needs JavaScript to draw the cards and the rankings. Please turn it on for this page.</p></div></noscript>
+<noscript><div class="wrap noscript"><p lang="fr">SPAM Meta a besoin de JavaScript pour afficher les cartes et les classements.</p><p>SPAM Meta needs JavaScript to draw the cards and the rankings.</p></div></noscript>
 
 <script type="module" src="js/main.js"></script>
 <script data-goatcounter="https://mfron2.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>

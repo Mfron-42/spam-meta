@@ -1,21 +1,21 @@
-// Tier list tab: the best decks grouped by tier, each drawn as its four game cards with its measurements, matchups,
+// Deck tier list tab: the best decks grouped by tier, each drawn as its four game cards with its measurements, matchups,
 // strategy tip, shop picks and how many of its cards the visitor owns.
 // A deck withheld by the maintainer arrives as a stub (`withheld`, no cards) and is drawn as four face-down cards with its
 // numbers and the pay-to-win note; it is never counted as a deck the visitor can build and the "Ready to play" filter hides
 // it. A secret deck (`secret: true`, only its rank and tier) is drawn as four blank grey cards and the word "Secret", nothing
 // else. Ranks 1-10 are the finals; the decks after them are ranked by their win rate against the top 10 (`tier.ordering`).
 // Every deck keeps its rank in that full order, so a rank the data does not list is simply absent.
+// A language change redraws the page and keeps what the visitor opened (the reading guide, deck details, the filter).
 
-import { h, icon, fmtInt, pm, plural } from "./util.js";
-import { DB, loadTier, WITHHELD_SHORT } from "./data.js";
-import { on, isOwned, ownedCount } from "./store.js";
-import { gameCard, cardBack, secretCard, chip, strip, chipify, cardName } from "./cards.js";
+import { h, icon, pm, pct, pct1, dec } from "./util.js";
+import { DB, loadTier } from "./data.js";
+import { on, isOwned, ownedCount, getLang } from "./store.js";
+import { gameCard, cardBack, secretCard, chip, strip, cardName, L } from "./cards.js";
 import { disclosure, segmented, scrollToEl } from "./ui.js";
-
-const pct1 = (p) => (p * 100).toFixed(1) + "%";          // one decimal everywhere in the cells, so 73.0% lines up with 67.5%
-const pct0 = (p) => Math.round(p * 100) + "%";
+import { t, tx, millions } from "./i18n.js";
 
 let root, tier, decks = [], stubs = [], sections = [], jumpChips = new Map(), banner, detailBtns = [], readyBtn, readyOnly = false, spotted = false;
+let openDetails = new Set(), guideOpen = false;      // kept across a redraw (language change)
 
 export async function mount(el) {
   root = el;
@@ -27,38 +27,87 @@ export async function mount(el) {
 
 const cardsOf = (d) => (d.withheld || !Array.isArray(d.cards) ? [] : d.cards.map((id) => DB.byId.get(id)));
 
-/** A finalist's strategy tip (from the replay of the finals), card names as chips; null for every other deck. My decks reuses it. */
+// ---------------------------------------------------------------- strategy tip (finalists only)
+/**
+ * A finalist's strategy tip, built from the replay of the finals (`playbook.tip`, structured: buys or spread, holds or
+ * fires, pace); card names are chips, ability names follow the language, upgrade names are French as in the game. null for
+ * every other deck. My decks reuses it.
+ */
 export function tipBlock(d) {
-  if (!d || d.withheld || !d.playbook || !d.playbook.tip) return null;
-  return h("p.tip", { lang: "en" }, [h("b", "How it wins. "), ...chipify(d.playbook.tip)]);
+  const tip = d && !d.withheld && d.playbook && d.playbook.tip;
+  if (!tip) return null;
+  const card = (id) => { const c = DB.byId.get(id); return c ? chip(c) : h("span"); };
+  const up = (name) => h("i", { lang: "fr", translate: "no" }, name);
+  const ability = (x) => { const c = DB.byId.get(x.card), a = c && c.abilities[x.ability]; return h("span", { lang: getLang() }, a ? L(a, "name") : "?"); };
+  const parts = [];
+  if (tip.buys && tip.buys.length) {
+    const list = [];
+    tip.buys.forEach((b, i) => {
+      if (i) list.push(t("tl.tipAnd"));
+      list.push(...tx("tl.tipBuy", { upgrade: up(b.upgrade), card: card(b.card), round: b.round, pct: pct(b.share, 0) }));
+    });
+    parts.push(tx("tl.tipBuys", { list: h("span", list) }));
+  } else if (tip.spread) {
+    const s = tip.spread;
+    parts.push(tx("tl.tipSpread", { n: dec(s.per_game, 1), upgrade: up(s.upgrade), card: card(s.card), pct: pct(s.share, 0) }));
+  }
+  // the card is the caster (the ability is its own); a short qualifier says what the ability hits when the data tells
+  if (tip.holds) {
+    const n = Math.max(1, Math.round(tip.holds.rounds));
+    parts.push(tx("tl.tipHolds", { card: card(tip.holds.card), ability: ability(tip.holds), n, scope: scope(tip.holds) }));
+  } else if (tip.fires) parts.push(tx("tl.tipFires", { card: card(tip.fires.card), ability: ability(tip.fires), n: dec(tip.fires.per_game, 1), round: tip.fires.round, scope: scope(tip.fires) }));
+  if (tip.pace) parts.push(tx("tl.tipPace", { n: dec(tip.pace.rounds, 1), pct: pct(tip.pace.board_gone_r6, 0) }));
+  if (!parts.length) return null;
+  const body = [];
+  parts.forEach((p, i) => { if (i) body.push(t("ui.sep")); body.push(...p); });
+  if (typeof body[0] === "string") body[0] = body[0].charAt(0).toLocaleUpperCase(getLang()) + body[0].slice(1);
+  // the finals replays were played by the legacy test AI: the tip reports its habits, not proven best play
+  return h("p.tip", [h("b", t("tl.tipLead")), " ", ...body, ".", h("span.tip-src", t("tl.tipNote"))]);
 }
 
+/**
+ * What an ability of a tip hits, from cards.json: its `target` code, and for a whole-board ability the English text that
+ * says which side ("to all enemy cards", "to all allied cards", "[Random]"). "" when the target needs no word (the card
+ * itself, its own side, a target the player picks).
+ */
+function scope(x) {
+  const c = DB.byId.get(x.card), a = c && c.abilities[x.ability];
+  if (!a) return "";
+  const text = a.description_en || "";
+  let k = null;
+  if (a.target === "PlayerOpponent") k = "enemySide";
+  else if (a.target === "AllCardsBoard") {
+    if (/\ball enemy cards\b/i.test(text)) k = "enemies";
+    else if (/\ball allied cards\b/i.test(text)) k = "allies";
+    else if (/\[random\]|\brandom\b/i.test(text)) k = "random";
+  }
+  return k ? t("tl.scope." + k) : "";
+}
+
+// ---------------------------------------------------------------- page
 function render() {
+  // what the visitor had open survives the redraw
+  if (detailBtns.length) openDetails = new Set(detailBtns.filter((b) => b.getAttribute("aria-expanded") === "true").map((b) => b.dataset.rank));
   decks = [];
   stubs = [];
   sections = [];
   detailBtns = [];
   spotted = false;
-  readyOnly = false;
-  const gamesText = DB.meta && DB.meta.totals && DB.meta.totals.patch_games ? ` from about ${(DB.meta.totals.patch_games / 1e6).toFixed(2)} million simulated matches` : "";
-  // names the face-down ranks (a withheld deck keeps its rank and its numbers); a no-break space keeps "Rank" with its number
-  const down = tier.decks.filter((d) => d.withheld).map((d) => d.rank);
-  const one = down.length === 1;
-  const rankList = one ? String(down[0]) : `${down.slice(0, -1).join(", ")} and ${down[down.length - 1]}`;
-  const downText = down.length ? ` ${one ? "Rank" : "Ranks"} ${rankList} ${one ? "is" : "are"} drawn face down: ${one ? "its" : "their"} numbers are shown, not ${one ? "its" : "their"} cards.` : "";
+  if (!ownedCount()) readyOnly = false;
   banner = h("div.callout.panel");
   const guide = howToRead();
+  const games = DB.meta && DB.meta.totals && DB.meta.totals.patch_games;
   const nodes = [
     h("div.vhead", [
-      h("h1", "The best decks in SPAM"),
-      h("p.lede", `The strongest decks of patch ${tier.patch}, ranked${gamesText} (strong AI, no talents).${downText}`),
+      h("h1", t("tl.h1")),
+      h("p.lede", t("tl.lede", { patch: tier.patch, games: games ? millions(games) : "—" })),
       recomputeNote(),
     ]),
     banner,
     jumpNav(guide.btn),
     guide.region,
   ];
-  for (const t of tier.tiers) nodes.push(tierSection(t));
+  for (const tr of tier.tiers) nodes.push(tierSection(tr));
   root.replaceChildren(...nodes);
   updateBanner();
   updateBadges();
@@ -70,78 +119,79 @@ function recomputeNote() {
   const from = tier.ordering && tier.ordering.first_rank_after_finals;
   const to = Math.max(...tier.decks.map((d) => d.rank));
   if (!from || to < from) return null;
-  return h("p.dnote", [icon("info"), h("span", `The ranking is being recomputed with a stronger AI; ranks ${from} to ${to} will change.`)]);
+  return h("p.dnote", [icon("info"), h("span", t("tl.recompute", { from, to }))]);
 }
 
 // ---------------------------------------------------------------- reading guide
 function howToRead() {
-  const btn = h("button.btn.ghost.disc", { type: "button", "aria-controls": "tl-guide" }, [icon("info"), "How to read this page", icon("chevron")]);
-  const rules = tier.tier_rules;
-  const region = h("div#tl-guide", h("div.collapse-in", h("div.guide", [
-    h("p", rules.summary),
-    h("p", "In practice, decks inside one tier are close and are not ranked apart with confidence. A new tier starts only when the gap to the tier leader is too big to be luck."),
-    h("p", [h("b", "The same two numbers for every deck. "), "Each deck shows its win rate against the top 10 decks (the finalists) and against the good decks (the 47 other decks of the round-robin). They are measured the same way for all decks, so you can compare them from one tier to another."]),
-    orderText(),
-    // "Ranks 1-10 ..." is about the native win rates, which the page does not show; "Ranks 11-30 are ordered ..." is said above
-    h("ul", rules.caveats.filter((t) => !/^Ranks \d+-\d+ /.test(t)).map((t) => h("li", t))),
-  ])));
-  disclosure(btn, region, { open: false });
+  const btn = h("button.btn.ghost.disc", { type: "button", "aria-controls": "tl-guide" }, [icon("info"), t("tl.guide"), icon("chevron")]);
+  const o = tier.ordering, rules = tier.tier_rules;
+  const opp = opponents();
+  const kids = [
+    h("p", tx("tl.gTiers", { conf: pct(rules.confidence, 1) })),
+    h("p", tx("tl.gNumbers", { opp })),
+  ];
+  if (o && o.key === "vs_top") {
+    const from = o.first_rank_after_finals;
+    kids.push(h("p", tx("tl.gOrder", { last: from - 1, from, games: o.vs_top_games, pm: Math.round(o.vs_top_ci95_mean * 100) })));
+    const rr = rules.games_per_pair && rules.games_per_pair.round_robin;
+    if (rr) kids.push(h("p", tx("tl.gCheck", { from, rg: rr })));
+  }
+  const region = h("div#tl-guide", h("div.collapse-in", h("div.guide", kids)));
+  disclosure(btn, region, { open: guideOpen, onToggle: (v) => { guideOpen = v; } });
   return { btn, region };
 }
 
-/** How the ranks are ordered, in plain words, from `tier.ordering` (the exporter's rule and its numbers). */
-function orderText() {
-  const o = tier.ordering;
-  if (!o || o.key !== "vs_top") return null;
-  const from = o.first_rank_after_finals;
-  return h("p", [h("b", "How decks are ranked. "), `Ranks 1 to ${from - 1} are the finals order. From rank ${from} on, decks are ranked by their results against the top 10: ${fmtInt(o.vs_top_games)} games each, about ±${Math.round(o.vs_top_ci95_mean * 100)} points, so neighbours a few points apart are not ranked apart with confidence. Their results against the other good decks are the second number, which also breaks near-ties (decks within ${tieGames(o)} of each other against the top 10). The tag marks the number that sets the rank.`]);
+/** The other good decks a deck meets in the round-robin (47 of the 48: a deck never plays itself). */
+function opponents() {
+  const d = tier.decks.find((x) => x.round_robin && x.round_robin.opponents);
+  return d ? d.round_robin.opponents : 47;
 }
 
-const tieGames = (o) => `${o.near_tie_games} game${o.near_tie_games === 1 ? "" : "s"}`;
-
 function jumpNav(guideBtn) {
-  readyBtn = h("button.chip.ready", { type: "button", "aria-pressed": "false", hidden: true, onclick: () => { readyOnly = !readyOnly; applyReady(); } }, [h("span.chip-l", "Ready to play"), h("span.n")]);
+  readyBtn = h("button.chip.ready", { type: "button", "aria-pressed": "false", hidden: true, onclick: () => { readyOnly = !readyOnly; applyReady(); } }, [h("span.chip-l", t("tl.ready")), h("span.n")]);
   jumpChips = new Map();
-  return h("nav.jump", { "aria-label": "Jump to a tier" }, [
-    ...tier.tiers.map((t) => {
-      const a = h("a.chip.jump-chip", { href: "#tier-" + t.tier, title: `Tier ${t.tier}, ${plural(t.size, "deck")}`, onclick: (e) => {
+  const expand = h("button.btn.ghost.expand", { type: "button", onclick: toggleAll }, t(openDetails.size ? "tl.closeAll" : "tl.openAll"));
+  return h("nav.jump", { "aria-label": t("tl.jump") }, [
+    ...tier.tiers.map((tr) => {
+      const title = t("tl.jumpTitle", { tier: tr.tier, n: tr.size });
+      const a = h("a.chip.jump-chip", { href: "#tier-" + tr.tier, title, onclick: (e) => {
         e.preventDefault();
         if (a.getAttribute("aria-disabled") === "true") return;       // its tier is hidden by the "Ready to play" filter
-        scrollToEl(document.getElementById("tier-" + t.tier));
-      } }, [h("span.chip-l", t.tier), h("span.n", String(t.size))]);
-      jumpChips.set(t.tier, { a, title: a.title });
+        scrollToEl(document.getElementById("tier-" + tr.tier));
+      } }, [h("span.chip-l", tr.tier), h("span.n", String(tr.size))]);
+      jumpChips.set(tr.tier, { a, title });
       return a;
     }),
     readyBtn,
     h("span.jump-gap"),
     guideBtn,
-    h("button.btn.ghost.expand", { type: "button", onclick: toggleAll }, "Show all matchups and shop picks"),
+    expand,
   ]);
 }
 
 function toggleAll(e) {
   const closed = detailBtns.some((b) => b.getAttribute("aria-expanded") !== "true");
   detailBtns.forEach((b) => { if ((b.getAttribute("aria-expanded") !== "true") === closed) b.click(); });
-  e.currentTarget.textContent = closed ? "Hide all matchups and shop picks" : "Show all matchups and shop picks";
+  e.currentTarget.textContent = t(closed ? "tl.closeAll" : "tl.openAll");
 }
 
 // ---------------------------------------------------------------- tiers
-function tierSection(t) {
-  const sep = t.separated_from_previous_leader;
+function tierSection(tr) {
+  const sep = tr.separated_from_previous_leader;
+  const ranks = t(tr.rank_from === tr.rank_to ? "tl.rank1" : "tl.ranks", { from: tr.rank_from, to: tr.rank_to });
   let why;
-  if (t.tier === "S") why = "The strongest deck of the patch.";
+  if (!sep) why = t("tl.sTop");
   else {
-    const prev = tier.tiers[tier.tiers.indexOf(t) - 1];
-    why = `Clearly below tier ${prev.tier}: the leader of tier ${prev.tier} scores ${(sep.difference * 100).toFixed(1)} points more than this tier’s leader against the same ${sep.scale === "round_robin" ? "round-robin " : ""}opponents (99.9% sure it is not luck).`;
+    const prev = tier.tiers[tier.tiers.indexOf(tr) - 1];
+    why = t(sep.scale === "round_robin" ? "tl.gapRR" : "tl.gapFinals", { gap: dec(sep.difference * 100, 1), prev: prev.tier });
   }
-  const ranks = t.rank_from === t.rank_to ? `Rank ${t.rank_from}` : `Ranks ${t.rank_from} to ${t.rank_to}`;
-  const what = t.tier === "S" ? `${ranks}, ${plural(t.size, "deck")}. ${why}` : `${ranks}, ${plural(t.size, "deck")}.`;
-  const list = tier.decks.filter((d) => d.tier === t.tier);
+  const list = tier.decks.filter((d) => d.tier === tr.tier);
   const panels = list.map((d) => deckPanel(d));
-  const el = h("section.tier", { id: "tier-" + t.tier, "aria-labelledby": "tier-h-" + t.tier }, [
+  const el = h("section.tier", { id: "tier-" + tr.tier, "aria-labelledby": "tier-h-" + tr.tier }, [
     h("header.tier-head", [
-      h("div.tier-k", { "aria-hidden": "true" }, t.tier),
-      h("div.tier-what", [h("h2", { id: "tier-h-" + t.tier }, `Tier ${t.tier}`), h("p.muted", what), t.tier === "S" ? null : h("p.muted", why)]),
+      h("div.tier-k", { "aria-hidden": "true" }, tr.tier),
+      h("div.tier-what", [h("h2", { id: "tier-h-" + tr.tier }, t("tl.tier", { tier: tr.tier })), h("p.muted", `${ranks} ${why}`)]),
     ]),
     h("div.decks", panels),
   ]);
@@ -152,20 +202,19 @@ function tierSection(t) {
 // ---------------------------------------------------------------- one deck
 function stat(label, tip, m, caption, defining) {
   return h("div.stat", [
-    h("span.stat-k", [h("span.stat-l", { title: tip }, label), defining ? h("span.tag.soft", { title: "This is the number that decides the deck’s rank" }, "Sets the rank") : null]),
-    h("div.stat-line", [h("b.stat-v", pct1(m.win_rate)), h("span.stat-pm", { title: "95% interval, in percentage points" }, pm(m.ci95))]),
-    h("span.stat-s", `${fmtInt(m.games)} games ${caption}`),
+    h("span.stat-k", [h("span.stat-l", { title: tip }, label), defining ? h("span.tag.soft", { title: t("tl.setsRankTip") }, t("tl.setsRank")) : null]),
+    h("div.stat-line", [h("b.stat-v", pct1(m.win_rate)), h("span.stat-pm", { title: t("tl.pmTip") }, pm(m.ci95))]),
+    h("span.stat-s", caption),
   ]);
 }
 
 function stats(d) {
-  const opp = (d.round_robin && d.round_robin.opponents) || +((/the (\d+) other/.exec(d.measured_against_text) || [])[1]) || 47;
+  const opp = (d.round_robin && d.round_robin.opponents) || opponents();
   // the finals set ranks 1-10 (that is the vs top 10 number); after them the rank follows vs top 10 too (tier.ordering)
   const byTop = d.finalist || (tier.ordering && tier.ordering.key === "vs_top");
-  const tieNote = !d.finalist && byTop && tier.ordering ? ` It also orders decks that are within ${tieGames(tier.ordering)} of each other against the top 10.` : "";
   return h("div.stats", [
-    stat("vs top 10", "How often this deck beats the 10 best decks of the patch, the finalists. A deck is never counted against itself.", d.vs_top, d.finalist ? "against the 9 other finalists" : "against the 10 finalists", byTop),
-    stat("vs good decks", `How often this deck beats the ${opp} other good decks of the round-robin. A deck is never counted against itself.${tieNote}`, d.vs_good, `against ${opp} other round-robin decks`, !byTop),
+    stat(t("tl.vsTop"), t("tl.vsTopTip"), d.vs_top, t(d.finalist ? "tl.capFinalist" : "tl.capFinalists", { games: d.vs_top.games }), byTop),
+    stat(t("tl.vsGood"), t("tl.vsGoodTip", { opp }), d.vs_good, t("tl.capRR", { games: d.vs_good.games, opp }), !byTop),
   ]);
 }
 
@@ -180,18 +229,18 @@ function deckPanel(d) {
   const region = h("div", { id: "dk-d-" + d.rank });
   const inner = h("div.collapse-in");
   region.append(inner);
-  const btn = h("button.btn.ghost.disc", { type: "button", "aria-controls": "dk-d-" + d.rank }, ["Matchups and shop picks", icon("chevron")]);
+  const btn = h("button.btn.ghost.disc", { type: "button", "aria-controls": "dk-d-" + d.rank, "data-rank": String(d.rank) }, [t("tl.details"), icon("chevron")]);
   let built = false;
-  disclosure(btn, region, { open: false, onToggle: (v) => { if (v && !built) { built = true; inner.append(...details(d)); } } });
+  disclosure(btn, region, { open: openDetails.has(String(d.rank)), onToggle: (v) => { if (v && !built) { built = true; inner.append(...details(d)); } } });
   detailBtns.push(btn);
 
   const cardsEl = h("div.deck-cards" + (spotlight ? ".full" : ""), cs.map((c) =>
     h("div.slot", gameCard(c, { size: spotlight ? "full" : "list", eager: spotlight }))));
 
-  const el = h("article.deck.panel" + (spotlight ? ".spot" : ""), { id: "deck-" + d.rank, "aria-label": `Rank ${d.rank}: ${cs.map(cardName).join(", ")}` }, [
+  const el = h("article.deck.panel" + (spotlight ? ".spot" : ""), { id: "deck-" + d.rank, "aria-label": t("tl.rankAria", { rank: d.rank, cards: cs.map(cardName).join(", ") }) }, [
     h("div.deck-head", [
       h("h3.rk", `#${d.rank}`),
-      d.finalist ? h("span.tag", "Finalist") : null,
+      d.finalist ? h("span.tag", t("tl.finalist")) : null,
       badge,
     ]),
     h("div.deck-body", [
@@ -206,17 +255,17 @@ function deckPanel(d) {
 
 /** A withheld deck: four face-down cards (only their rarity is known), its numbers, and why the cards are not shown. */
 function withheldPanel(d) {
-  const el = h("article.deck.panel.withheld", { id: "deck-" + d.rank, "aria-label": `Rank ${d.rank}: four cards, not shown yet` }, [
+  const el = h("article.deck.panel.withheld", { id: "deck-" + d.rank, "aria-label": t("tl.downAria", { rank: d.rank }) }, [
     h("div.deck-head", [
       h("h3.rk", `#${d.rank}`),
-      d.finalist ? h("span.tag", "Finalist") : null,
-      h("span.tag.soft", "Cards not shown yet"),
+      d.finalist ? h("span.tag", t("tl.finalist")) : null,
+      h("span.tag.soft", t("tl.downTag")),
     ]),
     h("div.deck-body", [
       h("div.deck-cards", (d.rarities || []).map((r) => h("div.slot", cardBack(r)))),
       h("div.deck-facts", stats(d)),
     ]),
-    h("p.tip", [h("b", "Why the cards are hidden. "), WITHHELD_SHORT]),
+    h("p.tip", tx("tl.withheldWhy")),
   ]);
   stubs.push(el);
   return el;
@@ -224,11 +273,11 @@ function withheldPanel(d) {
 
 /** A secret deck: its rank, four blank grey cards and the word "Secret". The data holds nothing else about it. */
 function secretPanel(d) {
-  const el = h("article.deck.panel.secret", { id: "deck-" + d.rank, "aria-label": `Rank ${d.rank}: secret deck` }, [
-    h("div.deck-head", [h("h3.rk", `#${d.rank}`), h("span.tag.soft", "Secret")]),
+  const el = h("article.deck.panel.secret", { id: "deck-" + d.rank, "aria-label": t("tl.secretAria", { rank: d.rank }) }, [
+    h("div.deck-head", [h("h3.rk", `#${d.rank}`), h("span.tag.soft", t("tl.secret"))]),
     h("div.deck-body", [
       h("div.deck-cards", { "aria-hidden": "true" }, [0, 1, 2, 3].map(() => h("div.slot", secretCard()))),   // the panel's label says it
-      h("div.deck-facts", h("p.muted", "Its cards and numbers are not published.")),
+      h("div.deck-facts", h("p.muted", t("tl.secretLine"))),
     ]),
   ]);
   stubs.push(el);
@@ -237,9 +286,9 @@ function secretPanel(d) {
 
 // ---------------------------------------------------------------- details: counters, shop picks
 function details(d) {
-  const out = [h("section.dsec", [h("h4", "Hardest matchups"), countersBlock(d)])];
-  if (d.playbook && d.playbook.upgrades && d.playbook.upgrades.length) out.push(h("section.dsec", [h("h4", "Most bought shop upgrades"), shopBlock(d)]));
-  else if (!d.finalist) out.push(h("section.dsec", [h("h4", "Strategy and shop picks"), h("p.muted", "These come from replays of the finals, so only the finalists have them. This deck was measured in the round-robin only.")]));
+  const out = [h("section.dsec", [h("h4", t("tl.hard")), countersBlock(d)])];
+  if (d.playbook && d.playbook.upgrades && d.playbook.upgrades.length) out.push(h("section.dsec", [h("h4", t("tl.shopH")), shopBlock(d)]));
+  else if (!d.finalist) out.push(h("section.dsec", [h("h4", t("tl.shopNoneH")), h("p.muted", t("tl.shopNone"))]));
   return [h("div.dgrid", out)];
 }
 
@@ -248,12 +297,12 @@ const sameSet = (a, b) => a.length === b.length && a.every((x) => b.includes(x))
 function counterRow(c, worst) {
   const cards = c.cards.map((id) => DB.byId.get(id)).filter(Boolean);
   const tags = [];
-  if (c.tier_rank) tags.push(h("span.tag", `#${c.tier_rank} in the tier list`));
-  if (c.significant === false) tags.push(h("span.tag.soft", { title: "At this number of games the gap could be luck" }, "Not significant"));
+  if (c.tier_rank) tags.push(h("span.tag", t("tl.counterRank", { rank: c.tier_rank })));
+  if (c.significant === false) tags.push(h("span.tag.soft", { title: t("tl.luckTip") }, t("tl.luck")));
   return h("li.crow", [
     strip(cards),
     h("div.crow-t", [
-      h("p.crow-l", [worst ? h("b", "Worst matchup. ") : null, `This deck wins ${pct1(c.score)} of ${fmtInt(c.games)} games against it.`]),
+      h("p.crow-l", [...(worst ? [...tx("tl.worst"), " "] : []), t("tl.wins", { pct: pct1(c.score), games: c.games })]),
       tags.length ? h("div.tags", tags) : null,
     ]),
   ]);
@@ -264,6 +313,10 @@ function countersBlock(d) {
   const hasFinals = d.finalist && Array.isArray(d.counters_finals);
   const mode = { v: hasFinals && d.counters_finals.length ? "finals" : "round_robin" };
   const body = h("div.counters-body");
+  const perPair = (finals) => {
+    const g = tier.tier_rules.games_per_pair || {};
+    return finals ? g.finals : g.round_robin;
+  };
   const paint = () => {
     const finals = mode.v === "finals";
     const list = (finals ? d.counters_finals : d.counters_round_robin) || [];
@@ -271,18 +324,16 @@ function countersBlock(d) {
     const w = d.worst_matchup;
     const sameScale = w && w.scale === (finals ? "finals" : "round_robin");
     if (!list.length) {
-      rows.push(h("p.muted", finals ? "No other deck listed on this site beats it in the finals." : "No deck listed on this site beats it in the round-robin."));
+      rows.push(h("p.muted", t(finals ? "tl.noBeatFinals" : "tl.noBeatRR")));
       if (sameScale) rows.push(h("ul.crows", counterRow({ cards: w.cards, score: w.score, games: w.games, significant: null, tier_rank: w.tier_rank }, true)));
     } else {
       rows.push(h("ul.crows", list.map((c, i) => counterRow(c, i === 0 && sameScale && sameSet(c.cards, w.cards)))));
     }
-    rows.push(h("p.note", finals
-      ? "Finals field: 200 games per pair. The worst of many noisy numbers is biased low, so it looks worse than the deck really is."
-      : "Round-robin field: 32 games per pair. The worst of many noisy numbers is biased low, so most of these gaps are not significant."));
+    rows.push(h("p.note", t(finals ? "tl.noteFinals" : "tl.noteRR", { games: perPair(finals) })));
     body.replaceChildren(...rows);
   };
   if (hasFinals) {
-    const seg = segmented([["finals", "Finals field"], ["round_robin", "Round-robin field"]], mode.v, (v) => { mode.v = v; paint(); }, "Matchup field");
+    const seg = segmented([["finals", t("tl.fieldFinals")], ["round_robin", t("tl.fieldRR")]], mode.v, (v) => { mode.v = v; paint(); }, t("tl.field"));
     wrap.append(seg.el);
   }
   paint();
@@ -296,16 +347,12 @@ function shopBlock(d) {
     h("ul.shop", pb.upgrades.map((u) => {
       const card = DB.byId.get(u.card);
       return h("li.shop-row", [
-        h("div.shop-main", [
-          h("b.shop-n", { lang: "fr", translate: "no" }, u.upgrade),
-          h("span.muted", " on "),
-          card ? chip(card) : null,
-        ]),
+        h("div.shop-main", tx("tl.upOn", { upgrade: h("b.shop-n", { lang: "fr", translate: "no" }, u.upgrade), card: card ? chip(card) : h("span") })),
         h("p.shop-d", { lang: "fr" }, u.effect),
-        h("p.shop-s", `Bought in ${pct0(u.share_of_games)} of games (${plural(u.games_bought, "game")} of ${pb.replay.games}), median round ${u.median_round}.`),
+        h("p.shop-s", t("tl.upStat", { pct: pct(u.share_of_games, 0), round: u.median_round })),
       ]);
     })),
-    h("p.note", `Taken from a replay of ${pb.replay.games} finals games; upgrade names and effects are in French, as in the game. These counts show what the AI buys, not what causes wins.`),
+    h("p.note", t("tl.shopNote", { games: pb.replay.games })),
   ]);
 }
 
@@ -319,9 +366,9 @@ function updateBadges() {
     x.badge.hidden = !any;
     x.badge.className = "obadge" + (own.length === 4 ? " full" : "");
     if (!any) continue;
-    if (own.length === 4) x.badge.replaceChildren(icon("check"), h("span", "You own all 4 cards. Ready to play."));
-    else if (miss.length <= 2) x.badge.replaceChildren(h("span", `You own ${own.length}/4`), h("span.muted", " · missing"), ...miss.map(chip));
-    else x.badge.replaceChildren(h("span", `You own ${own.length}/4`));
+    if (own.length === 4) x.badge.replaceChildren(icon("check"), h("span", t("tl.allOwned")));
+    else if (miss.length <= 2) x.badge.replaceChildren(h("span", t("tl.youOwn", { n: own.length })), h("span.muted", ` · ${t("tl.missing")}`), ...miss.map(chip));
+    else x.badge.replaceChildren(h("span", t("tl.youOwn", { n: own.length })));
   }
 }
 
@@ -335,7 +382,7 @@ function applyReady() {
   readyBtn.setAttribute("aria-pressed", String(readyOnly));
   readyBtn.querySelector(".n").textContent = String(ready.length);
   readyBtn.disabled = !ready.length && !readyOnly;
-  readyBtn.title = ready.length ? "Show only the decks you can already play" : "You do not own all 4 cards of any deck shown yet";
+  readyBtn.title = t(ready.length ? "tl.readyOn" : "tl.readyOff");
   for (const x of decks) x.el.hidden = readyOnly && !x.ready;
   for (const el of stubs) el.hidden = readyOnly;          // a withheld or secret deck can never be owned
   for (const s of sections) {
@@ -343,10 +390,11 @@ function applyReady() {
     const shown = s.list.some((d) => { const x = decks.find((k) => k.d === d); return !readyOnly || (x && x.ready); });
     s.el.hidden = !shown;
     // a hidden tier keeps its jump chip in place, disabled, and says why (nothing jumps, nothing points at an empty box)
-    const chip = jumpChips.get(s.el.id.replace(/^tier-/, ""));
-    if (chip) {
-      if (shown) { chip.a.removeAttribute("aria-disabled"); chip.a.removeAttribute("tabindex"); chip.a.title = chip.title; }
-      else { chip.a.setAttribute("aria-disabled", "true"); chip.a.tabIndex = -1; chip.a.title = `No deck you can play in tier ${s.el.id.replace(/^tier-/, "")}`; }
+    const name = s.el.id.replace(/^tier-/, "");
+    const chipRef = jumpChips.get(name);
+    if (chipRef) {
+      if (shown) { chipRef.a.removeAttribute("aria-disabled"); chipRef.a.removeAttribute("tabindex"); chipRef.a.title = chipRef.title; }
+      else { chipRef.a.setAttribute("aria-disabled", "true"); chipRef.a.tabIndex = -1; chipRef.a.title = t("tl.jumpOff", { tier: name }); }
     }
   }
 }
@@ -357,8 +405,8 @@ function updateBanner() {
   const go = (label, tab) => h("a.btn.primary", { href: "#" + tab, "data-goto": tab }, [label, icon("arrow")]);
   if (!n) {
     banner.replaceChildren(
-      h("div.callout-t", [h("h2", "Which of these can you play?"), h("p", "Mark the cards you own in the Codex and every deck below shows how close you are.")]),
-      go("Mark your cards in the Codex", "codex"),
+      h("div.callout-t", [h("h2", t("tl.callH")), h("p", t("tl.callP"))]),
+      go(t("tl.callGo"), "codex"),
     );
     return;
   }
@@ -368,7 +416,8 @@ function updateBanner() {
     if (m === 0) ready++; else if (m === 1) near++;
   }
   banner.replaceChildren(
-    h("div.callout-t", [h("h2", `You own ${plural(n, "card")}`), h("p", `${ready} of the ${decks.length} decks shown here with their cards ${ready === 1 ? "is" : "are"} ready to play and ${near} ${near === 1 ? "is" : "are"} one card away. My decks searches all ${fmtInt(DB.meta.totals.decks_listed || DB.meta.totals.decks_measured)} decks that are listed.`)]),
-    go("See the decks you can build", "decks"),
+    h("div.callout-t", [h("h2", t("tl.ownH", { n })), h("p", t("tl.ownP", { total: decks.length, ready, near }))]),
+    go(t("tl.ownGo"), "decks"),
   );
 }
+

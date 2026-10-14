@@ -1,4 +1,6 @@
-// Small DOM and formatting helpers shared by every module. No dependencies.
+// Small DOM and formatting helpers shared by every module. Numbers follow the page language (store.js).
+
+import { getLang } from "./store.js";
 
 /** Create an element: h("div.cls#id", {attr: v, onclick}, child, [children], "text"). Text is always set as text. */
 export function h(tag, props, ...kids) {
@@ -38,17 +40,36 @@ export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 /** Lowercase, accent-free copy used for search. */
 export const norm = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
-export const fmtInt = (n) => new Intl.NumberFormat("en-US").format(Math.round(n));
-
-/** 0.7345 -> "73.5%", 0.73 -> "73%": one decimal only when it is not a round number. */
-export function pct(p, digits = 1) {
-  const v = (p * 100).toFixed(digits);
-  return (digits ? v.replace(/\.0+$/, "") : v) + "%";
+// ---- numbers, formatted for the page language: 1,148,832 / 73.5% / ±2.0 in English, 1 148 832 / 73,5 % / ±2,0 in French
+const LOCALE = { en: "en-GB", fr: "fr-FR" };
+const formats = new Map();
+function nf(opts) {
+  const id = getLang() + JSON.stringify(opts);
+  if (!formats.has(id)) formats.set(id, new Intl.NumberFormat(LOCALE[getLang()], opts));
+  return formats.get(id);
 }
-/** Half-width of a 95% interval as "±2.0": percentage points. */
-export const pm = (ci) => "±" + (ci * 100).toFixed(1);
+export const locale = () => LOCALE[getLang()];
 
-export const plural = (n, one, many = one + "s") => `${fmtInt(n)} ${n === 1 ? one : many}`;
+export const fmtInt = (n) => nf({ maximumFractionDigits: 0 }).format(Math.round(n));
+
+/** x with exactly `digits` decimals: dec(14.83, 1) -> "14.8" / "14,8". */
+export const dec = (x, digits = 1) => nf({ minimumFractionDigits: digits, maximumFractionDigits: digits }).format(x);
+
+/** 0.7345 -> "73.5%", 0.73 -> "73%": up to `digits` decimals, none when the value is round. */
+export const pct = (p, digits = 1) => nf({ style: "percent", maximumFractionDigits: digits }).format(p);
+
+/** 0.73 -> "73.0%": always one decimal, so figures line up in the stat cells. */
+export const pct1 = (p) => nf({ style: "percent", minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(p);
+
+/** Half-width of a 95% interval as "±2.0": percentage points. */
+export const pm = (ci) => "±" + dec(ci * 100, 1);
+
+/** A signed score with two decimals: "+0.99", "−0.45". */
+export const sgn = (x) => (x > 0 ? "+" : x < 0 ? "−" : "") + dec(Math.abs(x), 2);
+
+/** A date "YYYY-MM-DD" as "14 October 2026" / "14 octobre 2026" (month "long" or "short"). */
+export const fmtDate = (iso, month = "long", year = true) => new Date(iso + "T00:00:00Z")
+  .toLocaleDateString(locale(), { day: "numeric", month, year: year ? "numeric" : undefined, timeZone: "UTC" });
 
 export function debounce(fn, ms) {
   let t;

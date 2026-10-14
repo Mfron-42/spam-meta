@@ -10,7 +10,7 @@ The rankings come from 1,148,832 simulated matches played by search AIs in an of
 
 Bug or question? Discord: noob9795
 
-Anonymous visit counter (GoatCounter): page views only, no cookies, nothing you mark or own is sent.
+Anonymous visit counter (GoatCounter): page views only, no cookies, your cards are never sent.
 
 This repository only holds the built site. It is published automatically and is not edited by hand.
 

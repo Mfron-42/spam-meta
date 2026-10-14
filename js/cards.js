@@ -5,13 +5,13 @@
 import { h, icon, reEscape } from "./util.js";
 import { DB } from "./data.js";
 import { getLang, isOwned, setOwned } from "./store.js";
+import { t } from "./i18n.js";
 
-export const ELEMENTS = [
-  ["fire", "Fire"], ["water", "Water"], ["earth", "Earth"], ["nature", "Nature"], ["light", "Light"], ["shadow", "Shadow"], ["divine", "Ether"],
-];
-export const ELEMENT_NAME = Object.fromEntries(ELEMENTS);
-export const RARITIES = [["common", "Common"], ["rare", "Rare"], ["epic", "Epic"], ["legendary", "Legendary"], ["divine", "Divine"]];
-export const RARITY_NAME = Object.fromEntries(RARITIES);
+// element and rarity ids in game order; their names are UI strings ("el.fire", "ra.common")
+export const ELEMENTS = ["fire", "water", "earth", "nature", "light", "shadow", "divine"];
+export const RARITIES = ["common", "rare", "epic", "legendary", "divine"];
+export const elName = (id) => t("el." + id);
+export const raName = (id) => t("ra." + id);
 
 const ART = (key) => `assets/cards/art/${key}.webp`;
 const THUMB = (size, key) => `assets/thumbs/${size}/${key}.webp`;
@@ -79,28 +79,28 @@ export function gameCard(c, { size = "full", interactive = true, eager = false }
   ];
   const cls = "gc" + (compact ? " cp" : "");
   if (!interactive) return sized(h("div", { class: cls }, kids));
-  const label = `${name}, ${ELEMENT_NAME[c.element]}, ${RARITY_NAME[c.rarity]}, ${c.hp} HP. Show the card details`;
+  const label = t("card.label", { name, element: elName(c.element), rarity: raName(c.rarity), hp: c.hp });
   return sized(h("button", { class: cls, type: "button", "data-card": c.key, "aria-label": label }, kids));
 }
 
 /** A face-down card (only its rarity is known): the withheld deck is drawn with four of them. */
 export function cardBack(rarity) {
-  const name = RARITY_NAME[rarity] || "Hidden";
-  const known = RARITY_NAME[rarity] ? rarity : "common";
-  return sized(h("div", { class: "gc cp back r-" + known, role: "img", "aria-label": `Hidden card, ${name}` }, [
+  const known = RARITIES.includes(rarity) ? rarity : "common";
+  const name = raName(known);
+  return sized(h("div", { class: "gc cp back r-" + known, role: "img", "aria-label": t("card.hidden", { rarity: name }) }, [
     h("span.gc-face", [h("span.gc-q", "?"), h("span.gc-r", name)]),
-    h("i.gc-gem.sp-gem-" + (RARITY_NAME[rarity] ? rarity : "common")),
+    h("i.gc-gem.sp-gem-" + known),
   ]));
 }
 
 /** A blank grey card for a secret deck: no rarity, no mark, nothing about the card. Not interactive. */
 export function secretCard() {
-  return sized(h("div", { class: "gc cp back blank", role: "img", "aria-label": "Secret card" }, [h("span.gc-face")]));
+  return sized(h("div", { class: "gc cp back blank", role: "img", "aria-label": t("card.secret") }, [h("span.gc-face")]));
 }
 
 /** Art and orb only: for the rows of a matchup strip. */
 export function miniCard(c) {
-  return h("button.mc", { type: "button", "data-card": c.key, title: cardName(c), "aria-label": `${cardName(c)}. Show the card details` }, [
+  return h("button.mc", { type: "button", "data-card": c.key, title: cardName(c), "aria-label": t("card.show", { name: cardName(c) }) }, [
     h("img", { class: "mc-art", loading: "lazy", decoding: "async", alt: "", width: 112, height: 160, src: THUMB("s", c.key) }),
     h("i.mc-orb.sp-el-" + c.element),
   ]);
@@ -108,7 +108,7 @@ export function miniCard(c) {
 
 /** A card name as a small chip that opens the card dialog. */
 export function chip(c) {
-  return h("button.cc", { type: "button", "data-card": c.key, title: `${cardName(c)}: show the card details` }, [
+  return h("button.cc", { type: "button", "data-card": c.key, title: t("card.show", { name: cardName(c) }) }, [
     h("img", { class: "cc-art", loading: "lazy", decoding: "async", alt: "", width: 18, height: 24, src: THUMB("s", c.key) }),
     h("span", { lang: getLang(), translate: "no" }, cardName(c)),
   ]);
@@ -154,6 +154,6 @@ export function ownToggle(c) {
 }
 export function setOwnedView(b, c, on) {
   b.setAttribute("aria-pressed", String(on));
-  b.setAttribute("aria-label", `Mark ${cardName(c)} as owned`);
-  b.title = on ? `You own ${cardName(c)}. Click to remove it` : `Mark ${cardName(c)} as owned`;
+  b.setAttribute("aria-label", t("card.own", { name: cardName(c) }));
+  b.title = t(on ? "card.owned" : "card.own", { name: cardName(c) });
 }

@@ -1,12 +1,13 @@
 // Dialogs (card, About, collection code) and the toast. Native <dialog>: the browser traps focus, makes the page behind
 // inert and closes on Escape; we add the 280 ms enter, the back-button close and the backdrop click.
 
-import { h, $, icon, reducedMotion, fmtInt, plural } from "./util.js";
-import { DB, loadTier, withheldLong } from "./data.js";
+import { h, $, icon, reducedMotion, pct, fmtDate } from "./util.js";
+import { DB, loadTier, dumpDay } from "./data.js";
 import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js";
-import { gameCard, L, cardName, otherName, ELEMENTS, ELEMENT_NAME, RARITY_NAME, unsize } from "./cards.js";
+import { gameCard, chip, L, cardName, otherName, ELEMENTS, elName, raName, unsize } from "./cards.js";
 import { encode, decode } from "./code.js";
 import { copyText } from "./ui.js";
+import { t, tx, millions } from "./i18n.js";
 
 let openDlg = null, pushed = false;
 
@@ -83,30 +84,51 @@ export function openCard(key, mode) {
   dlg.querySelector(".dlg-scroll").scrollTop = 0;
 }
 
-export function refreshCardDialog() { if (currentKey && cardDlg().open) renderCardDialog(); }
+/** A language change redraws what the dialogs show: the open card, the About text, the collection dialog's counts. */
+export function refreshDialogs() {
+  if (currentKey && cardDlg().open) renderCardDialog();
+  $("#about-body").replaceChildren(buildAbout());
+  if ($("#dlg-code").open) paintCodeCount();
+}
 
 const fact = (k, v) => h("div.fact", [h("span.fact-k", k), h("span.fact-v", v)]);
 
 // An ability, passive or talent the exporter flagged as changed since the game files the values come from: a quiet note
-// placed before the numbers it qualifies (DESIGN.md, "Data notice"). English UI text, so it keeps the page language.
-const dataNote = (e) => e.data_notice ? h("p.dnote", [icon("info"), h("span", [h("span.sr", "Note: "), e.data_notice])]) : null;
+// placed before the numbers it qualifies (DESIGN.md, "Data notice"); `data_notice` is a notice code, "notice.<code>".
+const dataNote = (e) => e.data_notice ? h("p.dnote", [icon("info"), h("span", [h("span.sr", t("card.note") + " "),
+  t("notice." + e.data_notice, { date: dumpDay(), patch: DB.patch })])]) : null;
+
+const pctInt = (n) => pct(n / 100, 0);
 
 function abilityBlock(c, a) {
-  const tags = [h("span.tag", ["Cooldown ", h("b", String(a.cooldown))])];
-  if (a.mana_cost) tags.push(h("span.tag", ["Mana ", h("b", String(a.mana_cost))]));
-  if (a.uses_limit != null) tags.push(h("span.tag", ["Limited to ", h("b", plural(a.uses_limit, "use"))]));
+  const tags = [h("span.tag", [t("card.cooldown") + " ", h("b", String(a.cooldown))])];
+  if (a.mana_cost) tags.push(h("span.tag", [t("card.mana") + " ", h("b", String(a.mana_cost))]));
+  if (a.uses_limit != null) tags.push(h("span.tag", [t("card.limited") + " ", h("b", t("card.uses", { n: a.uses_limit }))]));
   const stats = [
-    h("span.tag", ["Hit ", h("b", `${a.hit_chance}%`)]),
-    h("span.tag", ["Crit ", h("b", `${a.crit_chance}%`), " ×", h("b", String(a.crit_ratio))]),
+    h("span.tag", [t("card.hit") + " ", h("b", pctInt(a.hit_chance))]),
+    h("span.tag", [t("card.crit") + " ", h("b", pctInt(a.crit_chance)), " ×", h("b", String(a.crit_ratio))]),
   ];
-  if (a.echo_chance) stats.push(h("span.tag", ["Echo ", h("b", `${a.echo_chance}%`)]));
+  if (a.echo_chance) stats.push(h("span.tag", [t("card.echo") + " ", h("b", pctInt(a.echo_chance))]));
   return h("div.ab", [
     h("div.ab-h", [h("i.ab-orb.sp-el-" + (a.element || c.element)), h("h4", { lang: getLang() }, L(a, "name")), h("span.tags", tags)]),
     dataNote(a),
     h("p.ab-d", { lang: getLang() }, L(a, "description")),
     h("div.tags", stats),
-    h("p.ab-t", ["Targets: ", a.targets]),
+    h("p.ab-t", [t("card.targets") + " ", t("target." + a.target)]),
   ]);
+}
+
+/**
+ * Per-card matchup lists ("Strong with", "Strong against", "Weak against"): a slot for the lab's card counters, which are
+ * not published yet. Each list is a row of card chips, or "No clear result yet."; returns null while there is no data.
+ */
+function counterLists(c) {
+  const data = DB.cardCounters && DB.cardCounters.get(c.id);
+  if (!data) return null;
+  const list = (key, ids) => h("div.ab", [h("h4", t(key)), ids && ids.length
+    ? h("p.tags", ids.map((id) => DB.byId.get(id)).filter(Boolean).map(chip))
+    : h("p.muted", t("card.noClear"))]);
+  return [list("card.strongWith", data.with), list("card.strongAgainst", data.against), list("card.weakAgainst", data.weak)];
 }
 
 function renderCardDialog() {
@@ -117,29 +139,30 @@ function renderCardDialog() {
   const own = isOwned(c.key);
   const ownBtn = h("button.btn.toggle", { type: "button", "aria-pressed": String(own), "data-own-dlg": c.key, onclick: () => {
     setOwned(c.key, !isOwned(c.key));
-  } }, [icon("plus"), icon("check"), h("span.on-off", own ? "Owned" : "Mark as owned")]);
+  } }, [icon("plus"), icon("check"), h("span.on-off", t(own ? "card.isOwned" : "card.markOwned"))]);
 
-  const resist = ELEMENTS.filter(([id]) => c.resistances && c.resistances[id] != null).map(([id, label]) =>
-    h("li.res", { title: `${label} resistance` }, [h("span.sr", `${label} resistance `), h("i.sp-el-" + id), h("b", String(c.resistances[id]))]));
+  const resist = ELEMENTS.filter((id) => c.resistances && c.resistances[id] != null).map((id) =>
+    h("li.res", { title: t("card.resistance", { element: elName(id) }) }, [h("span.sr", t("card.resistance", { element: elName(id) }) + " "), h("i.sp-el-" + id), h("b", String(c.resistances[id]))]));
 
-  const abilities = c.abilities.length ? c.abilities.map((a) => abilityBlock(c, a)) : [h("p.muted", "This card has no active ability.")];
+  const abilities = c.abilities.length ? c.abilities.map((a) => abilityBlock(c, a)) : [h("p.muted", t("card.noAbility"))];
   const passives = c.passives.map((p) => h("div.ab", [
-    h("div.ab-h", [h("h4", { lang }, L(p, "name")), h("span.tag.soft", "Passive")]),
+    h("div.ab-h", [h("h4", { lang }, L(p, "name")), h("span.tag.soft", t("card.passive"))]),
     dataNote(p),
     h("p.ab-d", { lang }, L(p, "description")),
   ]));
-  const talents = c.talents.map((t) => h("div.ab", [
-    h("div.ab-h", [h("i.ab-talent"), h("h4", { lang }, L(t, "name"))]),
-    dataNote(t),
-    h("p.ab-d", { lang }, L(t, "description")),
+  const talents = c.talents.map((tl) => h("div.ab", [
+    h("div.ab-h", [h("i.ab-talent"), h("h4", { lang }, L(tl, "name"))]),
+    dataNote(tl),
+    h("p.ab-d", { lang }, L(tl, "description")),
   ]));
+  const counters = counterLists(c);
   const where = h("p.dlg-where.muted");
 
   const body = h("div.dlg", [
     h("div.dlg-card", [
       h("div.gcwrap", gameCard(c, { size: "full", interactive: false, eager: true })),
       ownBtn,
-      h("p.dlg-hint", "Owned cards feed the My decks tab."),
+      h("p.dlg-hint", t("card.feeds")),
     ]),
     h("div.dlg-txt", [
       h("div.dlg-title", [
@@ -147,15 +170,16 @@ function renderCardDialog() {
         otherName(c) !== cardName(c) ? h("p.muted", { lang: lang === "fr" ? "en" : "fr", translate: "no" }, otherName(c)) : null,
       ]),
       h("div.facts", [
-        fact("Element", [h("i.fact-ico.sp-el-" + c.element), ELEMENT_NAME[c.element]]),
-        fact("Rarity", [h("i.fact-ico.sp-gem-" + c.rarity), RARITY_NAME[c.rarity]]),
-        fact("Health", String(c.hp)),
-        fact("Gold per turn", String(c.gold_income)),
+        fact(t("card.element"), [h("i.fact-ico.sp-el-" + c.element), elName(c.element)]),
+        fact(t("card.rarity"), [h("i.fact-ico.sp-gem-" + c.rarity), raName(c.rarity)]),
+        fact(t("card.hp"), String(c.hp)),
+        fact(t("card.gold"), String(c.gold_income)),
       ]),
-      resist.length ? h("section.dlg-sec", [h("h3", "Resistances"), h("ul.ress", resist)]) : null,
-      h("section.dlg-sec", [h("h3", "Abilities"), ...abilities]),
-      passives.length ? h("section.dlg-sec", [h("h3", "Passives"), ...passives]) : null,
-      talents.length ? h("section.dlg-sec", [h("h3", "Talents"), h("p.muted", "A deck may draft one talent per card."), ...talents]) : null,
+      resist.length ? h("section.dlg-sec", [h("h3", t("card.resistances")), h("ul.ress", resist)]) : null,
+      h("section.dlg-sec", [h("h3", t("card.abilities")), ...abilities]),
+      passives.length ? h("section.dlg-sec", [h("h3", t("card.passives")), ...passives]) : null,
+      talents.length ? h("section.dlg-sec", [h("h3", t("card.talents")), h("p.muted", t("card.talentsNote")), ...talents]) : null,
+      counters ? h("section.dlg-sec", counters) : null,
       where,
     ]),
   ]);
@@ -163,12 +187,12 @@ function renderCardDialog() {
   dlg.setAttribute("aria-labelledby", "dlg-name");
 
   // where the card plays: filled once the tier list is loaded
-  loadTier().then((t) => {
+  loadTier().then((tl) => {
     if (currentKey !== c.key) return;
-    const decks = t.decks.filter((d) => !d.withheld && Array.isArray(d.cards) && d.cards.includes(c.id));
-    if (!decks.length) { where.textContent = "It is not in any deck of the tier list."; return; }
+    const decks = tl.decks.filter((d) => !d.withheld && Array.isArray(d.cards) && d.cards.includes(c.id));
+    if (!decks.length) { where.textContent = t("card.inNoDeck"); return; }
     const best = decks[0];
-    where.textContent = `It plays in ${plural(decks.length, "deck")} of the tier list; the highest is #${best.rank} (tier ${best.tier}).`;
+    where.textContent = t("card.inDecks", { n: decks.length, rank: best.rank, tier: best.tier });
   }).catch(() => { where.remove(); });
 }
 
@@ -177,94 +201,103 @@ export function syncDialogOwned() {
   if (!b || !cardDlg().open) return;
   const on = isOwned(b.dataset.ownDlg);
   b.setAttribute("aria-pressed", String(on));
-  b.querySelector(".on-off").textContent = on ? "Owned" : "Mark as owned";
+  b.querySelector(".on-off").textContent = t(on ? "card.isOwned" : "card.markOwned");
 }
 
 // ---------------------------------------------------------------- About
-function crossCheck(cc) {
-  const found = cc.same_winner && cc.same_top4 ? "It found the same winner and the same top 4." : "Its results are in the data files.";
-  return `The top decks were also cross-checked by a different kind of AI, an AlphaZero-style AI (neural networks plus tree search, trained by self-play). ${found} The two rankings of the ${cc.finalists} finalists agree closely (rank correlation ${cc.spearman_finals.toFixed(2)}).`;
+/** One stage of the lab's funnel in plain words, from meta.json `methodology.pipeline` (numbers only). */
+function stageText(s) {
+  const p = { refs: s.reference_decks, games: s.games_per_deck, probes: s.probe_decks, decks: s.decks, gpp: s.games_per_pair,
+    rounds: (s.rounds_games || []).join(" / ") };
+  return t("about.stage." + s.stage, p);
 }
 
 function buildAbout() {
   const m = DB.meta, mm = m.methodology;
-  const stageNames = { screen: "Quick screen", halving: "Halving", round_robin: "Round-robin", finals: "Finals" };
-  const date = new Date(m.generated + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
-  const faceDown = withheldLong(m.totals);
+  const down = (m.totals && m.totals.decks_withheld) || 0;
+  const cc = mm.cross_check || {};
   return h("div.about", [
-    h("h2#about-title", "About SPAM Meta"),
-    h("p.lead", [h("b", "This site is AI-generated."), " Its data export and its analysis are AI-generated too."]),
+    h("h2#about-title", t("about.h")),
+    h("p.lead", tx("about.lead")),
+    h("section", [h("h3", t("about.whatH")), h("p", t("about.what"))]),
     h("section", [
-      h("h3", "What it is"),
-      h("p", "A fan-made guide to the card game SPAM. The Tier list ranks the strongest decks of the current patch, the Codex shows every card, and My decks finds the best decks you can build from the cards you own."),
+      h("h3", t("about.howH")),
+      h("p", tx("about.how")),
+      h("ol.stages", mm.pipeline.map((s) => h("li", [h("b", t("stage." + s.stage + ".title")), h("span", stageText(s))]))),
+      h("p", t("about.total", { decks: m.totals.decks_measured, patch: m.patch, games: millions(m.totals.patch_games || m.totals.simulated_games) })),
+      cc.same_winner && cc.same_top4 ? h("p", t("about.cross")) : null,
     ]),
+    h("section", [h("h3", t("about.readH")), h("p", t("about.read"))]),
     h("section", [
-      h("h3", "How the rankings were made"),
-      h("p", [h("b", "In short: "), "computer players played each deck against many others, again and again, in a copy of the game that runs offline. The decks that win the most are ranked highest."]),
-      h("p", mm.headline),
-      h("p", mm.settings),
-      h("ol.stages", mm.pipeline.map((s) => h("li", [h("b", stageNames[s.stage] || s.stage), h("span", s.description)]))),
-      h("p", `${fmtInt(m.totals.decks_measured)} decks were measured for patch ${m.patch}, over about ${((m.totals.patch_games || m.totals.simulated_games) / 1e6).toFixed(2)} million simulated matches.`),
-      h("p", crossCheck(mm.cross_check)),
+      h("h3", t("about.limitsH")),
+      h("ul", [
+        ...mm.limits.map((l) => h("li", t("limit." + l.id, { from: l.from, to: l.to, pm: l.pm }))),
+        down ? h("li", t("about.down", { n: down })) : null,
+        h("li", t("about.talents")),
+      ]),
     ]),
-    h("section", [
-      h("h3", "How to read a win rate"),
-      h("p", "A win rate only means something next to what it was measured against. The Tier list shows two numbers for every deck, measured the same way for all of them: against the 10 best decks and against the good decks of the round-robin. Ranks 1 to 10 follow the finals; the decks after them are ranked by their results against the 10 best decks, with the other number shown beside it. My decks also lists decks that were only tested lightly (halving and quick screen, with fewer games). Those rates cannot be compared with each other or with the Tier list numbers, which is why each deck says how it was tested."),
-    ]),
-    h("section", [
-      h("h3", "Limits"),
-      h("ul", mm.limits.map((t) => h("li", t))),
-      faceDown ? h("p", faceDown) : null,
-      h("p", "In the game each card can draft one talent; the decks here were played without, so a deck with talents can play differently from what is measured."),
-    ]),
-    h("section", [
-      h("h3", "Data"),
-      h("p", `Patch ${m.patch}. Generated on ${date}.`),
-    ]),
-    h("p.legal", m.legal),
+    h("section", [h("h3", t("about.dataH")), h("p", t("about.data", { patch: m.patch, date: fmtDate(m.generated) }))]),
+    h("p.legal", t("foot.legal")),
   ]);
 }
 
 // ---------------------------------------------------------------- collection code
 const codeState = { parsed: null };
 
+function paintCodeCount() {
+  $("#code-count").textContent = ownedCount() ? t("code.count", { n: ownedCount() }) : t("code.empty");
+  paintCodeMsg();
+}
+
 export function openCollection() {
   const dlg = $("#dlg-code");
   const code = encode(ownedKeys(), DB.cards.map((c) => c.key));
   $("#code-out", dlg).value = code;
   $("#code-in", dlg).value = "";
-  const msg = $("#code-msg", dlg);
-  msg.textContent = ""; msg.className = "msg";
   $("#code-replace", dlg).disabled = true;
   $("#code-add", dlg).disabled = true;
-  $("#code-count", dlg).textContent = ownedCount() ? `${plural(ownedCount(), "card")} in this code.` : "Your collection is empty, so this code is empty too.";
   $("#code-store", dlg).hidden = canPersist();
   codeState.parsed = null;
+  codeState.error = null;
+  paintCodeCount();
   openModal(dlg);
+}
+
+/** The line under the import field: the error of the pasted code, or what it holds. */
+function paintCodeMsg() {
+  const msg = $("#code-msg");
+  const r = codeState.parsed;
+  if (codeState.error) { msg.textContent = t("code.err." + codeState.error); msg.className = "msg err"; return; }
+  if (!r) { msg.textContent = ""; msg.className = "msg"; return; }
+  msg.className = "msg ok";
+  msg.textContent = t("code.holds", { n: r.keys.length }) + (r.unknown ? t("code.unknown", { n: r.unknown }) : "");
 }
 
 function initCollectionDialog() {
   const dlg = $("#dlg-code");
   const all = () => DB.cards.map((c) => c.key);
-  const inp = $("#code-in", dlg), msg = $("#code-msg", dlg);
+  const inp = $("#code-in", dlg);
   inp.addEventListener("input", () => {
     const text = inp.value.trim();
     codeState.parsed = null;
+    codeState.error = null;
     $("#code-replace", dlg).disabled = true;
     $("#code-add", dlg).disabled = true;
-    if (!text) { msg.textContent = ""; msg.className = "msg"; return; }
-    const r = decode(text, all());
-    if (r.error) { msg.textContent = r.error; msg.className = "msg err"; return; }
-    codeState.parsed = r;
-    msg.className = "msg ok";
-    msg.textContent = `This code holds ${plural(r.keys.length, "card")}.` + (r.unknown ? ` ${plural(r.unknown, "card")} in it ${r.unknown === 1 ? "is" : "are"} not in the game data yet and will be ignored.` : "");
-    $("#code-replace", dlg).disabled = false;
-    $("#code-add", dlg).disabled = false;
+    if (text) {
+      const r = decode(text, all());
+      if (r.error) codeState.error = r.error;
+      else {
+        codeState.parsed = r;
+        $("#code-replace", dlg).disabled = false;
+        $("#code-add", dlg).disabled = false;
+      }
+    }
+    paintCodeMsg();
   });
   $("#code-copy", dlg).addEventListener("click", async () => {
     const out = $("#code-out", dlg);
     const ok = await copyText(out.value, out);
-    toast(ok ? "Code copied." : "Select the code and copy it by hand.");
+    toast(t(ok ? "code.copiedToast" : "code.copyFail"));
   });
   $("#code-replace", dlg).addEventListener("click", () => {
     if (!codeState.parsed) return;
@@ -272,14 +305,14 @@ function initCollectionDialog() {
     const n = codeState.parsed.keys.length;
     replaceOwned(codeState.parsed.keys);
     closeModal(dlg);
-    toast(`Collection replaced: ${plural(n, "card")} owned.`, { label: "Undo", run: () => replaceOwned(before) });
+    toast(t("code.replaced", { n }), { label: t("ui.undo"), run: () => replaceOwned(before) });
   });
   $("#code-add", dlg).addEventListener("click", () => {
     if (!codeState.parsed) return;
     const before = ownedKeys();
     replaceOwned([...before, ...codeState.parsed.keys]);
     closeModal(dlg);
-    toast(`Added to your collection: ${plural(ownedCount(), "card")} owned now.`, { label: "Undo", run: () => replaceOwned(before) });
+    toast(t("code.added", { n: ownedCount() }), { label: t("ui.undo"), run: () => replaceOwned(before) });
   });
 }
 

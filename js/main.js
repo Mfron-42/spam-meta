@@ -1,14 +1,16 @@
 // Entry point: loads the core data, wires the header, the tabs and the delegated clicks, and mounts the four views.
 
-import { h, $, $$, icon, fmtInt } from "./util.js";
+import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js";
+import { t, applyStatic, millions } from "./i18n.js";
 import { copyText } from "./ui.js";
 import { DB, loadCore } from "./data.js";
 import { on, ownedCount, prune, getLang, setLang } from "./store.js";
-import { initDialogs, openCard, openAbout, refreshCardDialog, syncDialogOwned } from "./dialogs.js";
+import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned } from "./dialogs.js";
 
 const TABS = ["tiers", "card-tiers", "codex", "decks"];
-const TITLES = { tiers: "Deck tier list", "card-tiers": "Card tier list", codex: "Codex", decks: "My decks" };
-const BASE_TITLE = "SPAM Meta: best decks and card codex";
+const TITLE_KEYS = { tiers: "tab.tiers", "card-tiers": "tab.cardTiers", codex: "tab.codex", decks: "tab.decks" };
+const tabName = (tab) => t(TITLE_KEYS[tab]);
+let firstTab = true;         // the landing page keeps the site title until the visitor moves
 const mounted = {};
 const scrolls = {};          // where each tab was scrolled to, so coming back does not lose the place
 let freshNav = false;        // a button that sends you to a tab starts it at the top
@@ -72,7 +74,8 @@ function show(tab, force) {
     window.scrollTo(0, freshNav ? 0 : scrolls[tab] || 0);
     freshNav = false;
   }
-  document.title = (first && tab === "tiers") ? BASE_TITLE : `${TITLES[tab]} · SPAM Meta`;
+  if (!first) firstTab = false;
+  paintTitle();
   ensure(tab);
 }
 
@@ -89,8 +92,7 @@ async function ensure(tab) {
     } catch (err) {
       console.error(err);
       mounted[tab] = null;          // showing the tab again tries once more; the Reload button starts afresh
-      view.replaceChildren(errorPanel(`The ${TITLES[tab]} could not be loaded`,
-        "Part of the page did not arrive, even after a second try. Reload the page to try again.", "Reload", () => location.reload()));
+      view.replaceChildren(errorPanel(t("err.viewTitle", { tab: tabName(tab) }), t("err.viewText"), t("err.reload"), () => location.reload()));
       view.removeAttribute("aria-busy");
       return;
     }
@@ -100,8 +102,7 @@ async function ensure(tab) {
     } catch (err) {
       console.error(err);
       mounted[tab] = null;
-      view.replaceChildren(errorPanel("Something went wrong", "The data could not be loaded. Check your connection and try again.",
-        "Try again", () => ensure(tab)));
+      view.replaceChildren(errorPanel(t("err.title"), t("err.dataText"), t("err.retry"), () => ensure(tab)));
     }
     view.removeAttribute("aria-busy");
   })();
@@ -150,56 +151,71 @@ function updatePill() {
   $("#own-pill-n").textContent = fmtInt(n);
   $(".own-pill-t").textContent = ` / ${DB.cards.length}`;
   $("#own-pill").classList.toggle("has", n > 0);
-  $("#own-pill").setAttribute("aria-label", `${n} of ${DB.cards.length} cards owned. Open the Codex to change them`);
+  $("#own-pill").setAttribute("aria-label", t("head.ownAria", { n, total: DB.cards.length }));
 }
 
+let lastCount = 0;
 function updateTabCount(n) {
+  lastCount = n;
   const el = $("#tab-decks-n");
   el.hidden = !(ownedCount() > 0 && n > 0);
   el.textContent = fmtInt(n);
-  el.title = `${fmtInt(n)} decks you can build`;
+  el.title = t("tab.decksCount", { n });
 }
 
 function paintLang() {
   for (const b of $$("#names-seg button")) b.setAttribute("aria-pressed", String(b.dataset.v === getLang()));
 }
 
+function paintTitle() {
+  document.title = firstTab && current === "tiers" ? t("doc.title") : t("doc.tabTitle", { tab: tabName(current) });
+}
+
 // Every figure comes from meta.json: the games behind this patch (with the games of each stage) and, apart, all patches.
-const STAGE_NAMES = [["screen", "quick screen"], ["halving", "halving"], ["round_robin", "round-robin"], ["finals", "finals"]];
+const STAGES = ["screen", "halving", "round_robin", "finals"];
 function gamesLine(m) {
-  const t = m.totals, b = t.patch_games_breakdown || {};
-  const parts = STAGE_NAMES.filter(([k]) => typeof b[k] === "number").map(([k, name]) => `${fmtInt(b[k])} ${name}`);
-  const patch = typeof t.patch_games === "number" ? `Patch ${m.patch}: ${fmtInt(t.patch_games)} simulated matches${parts.length ? ` (${parts.join(", ")})` : ""}.` : "";
-  const all = typeof t.simulated_games === "number" ? ` All patches: ${fmtInt(t.simulated_games)} simulated matches.` : "";
-  return (patch + all).trim();
+  const tot = m.totals, b = tot.patch_games_breakdown || {};
+  if (typeof tot.patch_games !== "number") return "";
+  const parts = STAGES.filter((k) => typeof b[k] === "number").map((k) => `${t("stage." + k)} ${fmtInt(b[k])}`).join(", ");
+  return t("foot.games", { patch: m.patch, games: tot.patch_games, parts, all: tot.simulated_games ?? "—" });
 }
 
 // The Discord name is plain selectable text; the button copies it, or selects it when the browser refuses to copy.
+let copyPaint = () => {};
 function copyHandle() {
   const handle = $("#foot-handle"), btn = $("#foot-copy"), label = $(".copy-l", btn), ico = $(".copy-ico", btn), note = $("#foot-copy-note");
-  const paint = (done) => { btn.classList.toggle("done", done); label.textContent = done ? "Copied" : "Copy"; ico.replaceChildren(icon(done ? "check" : "copy", 14)); };
-  let timer;
+  const paint = (done) => { btn.classList.toggle("done", done); label.textContent = t(done ? "ui.copied" : "ui.copy"); ico.replaceChildren(icon(done ? "check" : "copy", 14)); };
+  let timer, done = false;
+  copyPaint = () => paint(done);
   paint(false);
   btn.addEventListener("click", async () => {
     const ok = await copyText(handle.textContent.trim(), handle);
     clearTimeout(timer);
+    done = ok;
     paint(ok);
     note.className = ok ? "copy-note sr" : "copy-note";
-    note.textContent = ok ? "Copied to the clipboard." : "Selected. Press Ctrl+C to copy it.";
-    timer = setTimeout(() => { paint(false); note.textContent = ""; }, 2400);
+    note.textContent = t(ok ? "foot.copiedNote" : "foot.selectedNote");
+    timer = setTimeout(() => { done = false; paint(false); note.textContent = ""; }, 2400);
   });
 }
 
-function footer() {
+function paintFooter() {
   const m = DB.meta;
-  const date = new Date(m.generated + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
-  const headline = m.methodology.headline.replace(/\s*\([^)]*\)\.?$/, ".");
-  $("#foot-method").textContent = `${headline} The top decks were cross-checked by an AlphaZero-style AI (neural networks plus tree search, trained by self-play), which found the same winner and top 4.`;
+  $("#foot-method").textContent = t("foot.method", { patch: m.patch, games: millions(m.totals.patch_games) });
   $("#foot-games").textContent = gamesLine(m);
-  $("#foot-patch").textContent = `Patch ${m.patch} · generated ${date}.`;
-  $("#foot-legal").textContent = m.legal;
-  $("#foot-about").addEventListener("click", openAbout);
-  copyHandle();
+  $("#foot-patch").textContent = t("foot.patch", { patch: m.patch, date: fmtDate(m.generated) });
+  copyPaint();
+}
+
+/** Everything outside the views that carries text: index.html, the title, the header counters, the footer. */
+function paintChrome() {
+  applyStatic();
+  paintLang();
+  if (!DB.meta) return;
+  paintFooter();
+  updatePill();
+  updateTabCount(lastCount);
+  if (current) paintTitle();
 }
 
 // ---- boot
@@ -208,17 +224,17 @@ async function boot() {
     await loadCore();
   } catch (err) {
     console.error(err);
-    $("#view-tiers").replaceChildren(errorPanel("Something went wrong", "The card data could not be loaded. Check your connection and try again.", "Reload", () => location.reload()));
+    $("#view-tiers").replaceChildren(errorPanel(t("err.title"), t("err.dataText"), t("err.reload"), () => location.reload()));
     return;
   }
   prune(new Set(DB.cards.map((c) => c.key)));
   initDialogs();
-  footer();
-  updatePill();
-  paintLang();
+  $("#foot-about").addEventListener("click", openAbout);
+  copyHandle();
+  paintChrome();
 
   on("owned", () => { updatePill(); syncDialogOwned(); });
-  on("lang", () => { paintLang(); refreshCardDialog(); });
+  on("lang", () => { paintChrome(); refreshDialogs(); });
 
   $("#names-seg").addEventListener("click", (e) => { const b = e.target.closest("button[data-v]"); if (b) setLang(b.dataset.v); });
   $("#about-btn").addEventListener("click", openAbout);
@@ -233,4 +249,5 @@ async function boot() {
   idle(() => { for (const t of TABS) ensure(t); });
 }
 
+applyStatic();               // the static markup in the page language before the data arrives
 boot();

@@ -86,18 +86,19 @@ export function encode(owned, allKeys) {
   return PREFIX + "-" + body.match(/.{1,4}/g).join("-");
 }
 
-/** Returns {keys:[...], unknown:n} or {error:"..."} . allKeys: every key of the current data. */
+/** Returns {keys:[...], unknown:n} or {error: code}, code one of "empty", "prefix", "short", "char", "check" (the page
+ * words them, i18n "code.err.<code>"). allKeys: every key of the current data. */
 export function decode(text, allKeys) {
   const t = String(text).toUpperCase().replace(/[\s-]+/g, "").replace(/[IL]/g, "1").replace(/O/g, "0");
-  if (!t) return { error: "Paste a code first." };
-  if (!t.startsWith(PREFIX)) return { error: "This does not look like a SPAM Meta code. It starts with SPAM1." };
+  if (!t) return { error: "empty" };
+  if (!t.startsWith(PREFIX)) return { error: "prefix" };
   const body = t.slice(PREFIX.length);
-  if (body.length < 3) return { error: "This code is too short." };
+  if (body.length < 3) return { error: "short" };
   const data = body.slice(0, -2), check = body.slice(-2);
   const bytes = fromBase32(data);
-  if (!bytes) return { error: "This code has a character that cannot be right. Check it for typos." };
+  if (!bytes) return { error: "char" };
   const usable = bytes.subarray(0, Math.floor(data.length * 5 / 8));
-  if (checksum(usable) !== check) return { error: "The check characters do not match. Check the code for typos or a missing part." };
+  if (checksum(usable) !== check) return { error: "check" };
   const order = orderFor(allKeys);
   const keys = [];
   let unknown = 0;
