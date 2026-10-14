@@ -15,6 +15,32 @@
 .cb-txt { color: var(--ink-2); max-width: 60ch; }
 .cb-act { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
 .cbar > .note { grid-column: 1 / -1; }
+/* the hint row: the "how to mark" sentence, then "Saved in this browser only" + Copy my code in the same place */
+.cb-say { display: grid; align-items: center; min-height: 32px; }
+
+/* ---------------------------------------------------------------- keeping the collection (keep.js) */
+.keep { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; min-width: 0; }
+.keep-t { display: flex; align-items: flex-start; gap: 8px; min-width: 0; max-width: none; color: var(--muted); font: 600 14px/1.4 var(--text); text-wrap: pretty; }
+.keep-t .ico { height: 1lh; }
+.keep-t > span { min-width: 0; }
+/* no storage: said plainly, on its own full-width row of the collection bar */
+.cbar > .keep { grid-column: 1 / -1; padding-top: 16px; border-top: 1px solid var(--line); }
+.keep.nostore .keep-t { color: var(--ink); font: 400 16px/1.55 var(--text); }
+.keep.nostore .keep-t .ico { color: var(--muted); }
+.keep-copy { white-space: nowrap; }
+.copy-ls { display: inline-grid; }
+.copy-ls > .copy-l { grid-area: 1 / 1; text-align: start; }
+.copy .l-done, .copy.done .l-rest { visibility: hidden; }
+.copy.done .l-done { visibility: visible; }
+.copy:disabled, .copy:disabled:hover, .copy:disabled:active { opacity: .5; cursor: default; background: transparent; color: var(--ink-2); transform: none; }
+
+/* in-app browser notice: one flat row with a dismiss button; hiding fades it, then the row closes */
+.inapp .collapse-in { padding-bottom: 16px; }
+.inapp-in { display: flex; align-items: center; gap: 12px; padding: 4px 4px 4px 16px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line);
+  transition: opacity var(--t-fade) var(--curve); }
+.inapp-in > .ico { color: var(--muted); }
+.inapp-in p { flex: 1 1 auto; min-width: 0; max-width: none; padding: 8px 0; color: var(--ink); text-wrap: pretty; }
+.inapp.out .inapp-in { opacity: 0; }
 .track { position: relative; height: 10px; max-width: 420px; border-radius: 4px; background: var(--socket); box-shadow: var(--sunken); overflow: hidden; }
 .track-fill { position: absolute; inset: 0; background: var(--accent); border-radius: 4px; transform-origin: left center; transform: scaleX(0); transition: transform var(--t-move) var(--curve); }
 
@@ -87,15 +113,14 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .slot { min-width: 0; }
 .deck-facts { display: grid; gap: 16px; align-content: start; }
 .stats { display: grid; gap: 12px; }
+/* the withheld deck's "Why hidden?" paragraph */
 .tip { color: var(--ink-2); font-size: 16px; line-height: 1.55; max-width: 84ch; }
 .tip b { color: var(--ink); }
-.tip-src { display: block; margin-top: 4px; color: var(--muted); font: 600 14px/1.4 var(--text); }
 .deck.spot { padding: 24px 24px 16px; }
 .deck.spot .deck-body { grid-template-columns: minmax(0, 1fr); }
 .deck.spot .deck-cards { gap: 24px; padding: 12px 12px 16px; }
 .deck.spot .deck-facts { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px 24px; align-items: start; }
 .deck.spot .stats { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-column: 1 / -1; }
-.deck.spot .tip { font-size: 18px; }
 .deck > .disc { justify-self: start; margin-left: -16px; }
 .deck.withheld .deck-cards { opacity: .9; }
 .deck.secret .deck-cards { opacity: .9; }
@@ -106,29 +131,22 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .obadge.full { box-shadow: var(--sunken), inset 0 0 0 1.5px var(--accent); color: var(--ink); }
 .obadge.full .ico { color: var(--accent); }
 
-.dgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 40px; border-top: 1px solid var(--line); margin-top: 8px; }
+.dgrid { display: grid; grid-template-columns: minmax(0, 1fr); border-top: 1px solid var(--line); margin-top: 8px; }
 .dgrid > .dsec { padding: 20px 0 8px; }
 .dsec { display: grid; gap: 12px; align-content: start; }
 .dsec h4 { color: var(--ink); }
 .counters { display: grid; gap: 12px; }
-.counters .note { margin-top: 4px; }
+.counters .note { margin-top: 4px; text-wrap: pretty; }
 .counters .seg { justify-self: start; }
 .crows { display: grid; gap: 12px; margin-bottom: 4px; }
 .crow { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 16px; align-items: center; }
 .crow-t { display: grid; gap: 6px; }
 .crow-l { font-size: 16px; line-height: 1.4; color: var(--ink-2); }
 .crow-l b { color: var(--ink); }
-.shopblk { display: grid; gap: 12px; }
-.shop { display: grid; gap: 16px; }
-.shop-row { display: grid; gap: 2px; }
-.shop-main { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
-.shop-n { font: 700 16px/1.3 var(--text); }
-.shop-d { color: var(--ink-2); font-size: 14px; line-height: 1.45; }
-.shop-s { color: var(--muted); font-size: 14px; line-height: 1.4; }
 
 /* ---------------------------------------------------------------- My decks */
 .mdsec { display: grid; gap: 16px; margin-top: 48px; }
-.mdsec .sub, .mdsec .sub + .note { margin-top: -8px; }
+.mdsec .sub { margin-top: -8px; }
 .cbar + .guide-wrap { margin-top: 16px; }
 .drs { display: grid; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 0 24px; }
 .dr { display: grid; grid-template-columns: 56px minmax(0, 640px) minmax(0, 1fr); gap: 16px 24px; align-items: center; padding: 24px 0; border-top: 1px solid var(--line); }
@@ -139,7 +157,6 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .dr-fig .stat-v { font-size: 28px; }
 .dr-t { color: var(--ink-2); font-size: 14px; line-height: 1.5; }
 .dr-miss { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
-.dr > .tip { grid-column: 2 / -1; max-width: 68ch; }
 .ev { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
 .meter { display: inline-flex; gap: 3px; align-items: flex-end; }
 .meter i { width: 6px; height: 14px; border-radius: 2px; background: var(--socket); box-shadow: var(--sunken); }
@@ -177,6 +194,31 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .dnote .ico, .cx-foot .ico { height: 1lh; }
 .dnote > span, .cx-foot > span { min-width: 0; }
 .dlg-where { font-size: 14px; }
+/* "With and against": up to 5 card chips per list, each with its signed win-rate points; a quiet tag beside each list heading */
+.cm-g { display: grid; gap: 8px; justify-items: start; }
+.cm-g + .cm-g { padding-top: 12px; border-top: 1px solid var(--line); }
+.cm-g .cm-l + .ab-h, .cm-g .cm-none + .ab-h { margin-top: 8px; }
+/* one entry per line, strongest first; the points form one right-aligned column, at the same place in the three lists
+   (the name column fits the longest card name, about 260px, and shrinks on a phone) */
+.cm-l { display: grid; grid-template-columns: minmax(0, 264px) 56px; gap: 4px 12px; max-width: 100%; }
+.cm-e { display: grid; grid-column: 1 / -1; grid-template-columns: minmax(0, 1fr) 56px; grid-template-columns: subgrid; column-gap: 12px; align-items: center; min-width: 0; }
+.cm-e .cc { justify-self: start; min-width: 0; margin: 0; }
+.cm-v { justify-self: end; font: 400 16px/1 var(--display); letter-spacing: .01em; white-space: nowrap; }
+.cm-v.up { color: var(--win); }
+.cm-v.down { color: var(--loss); }
+.cm-u { color: var(--muted); font: 600 14px/1 var(--text); letter-spacing: 0; }
+.cm-none { color: var(--muted); font: 600 14px/1.4 var(--text); }
+.cm-foot { display: grid; justify-items: start; margin-top: -4px; }
+.cm-how { display: inline-flex; align-items: center; gap: 4px; height: 36px; margin-left: -12px; padding: 0 12px; border: 0; border-radius: 20px; background: transparent; color: var(--muted);
+  font: 600 14px/1 var(--text); cursor: pointer; transition: background var(--t-state) var(--curve), color var(--t-state) var(--curve); }
+.cm-how:hover { background: rgba(255, 255, 255, .1); color: var(--ink); }
+.cm-how:active { background: rgba(0, 0, 0, .35); }
+.cm-how .ico { transition: transform var(--t-move) var(--curve); }
+.cm-how[aria-expanded="true"] .ico { transform: rotate(180deg); }
+.cm-how-l { display: grid; gap: 4px; padding: 4px 0 0; color: var(--muted); font: 600 14px/1.4 var(--text); max-width: 68ch; }
+.cm-how-l b { color: var(--ink-2); }
+.cm-skel { padding-top: 4px; }
+.cm-err { display: grid; justify-items: start; gap: 12px; color: var(--ink-2); }
 
 /* ---------------------------------------------------------------- About and collection code */
 .about, .codebox { display: grid; gap: 24px; padding: 32px; }
@@ -205,11 +247,10 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 
 /* ---------------------------------------------------------------- tablet and phone */
 @media (max-width: 1040px) {
-  .dgrid { grid-template-columns: minmax(0, 1fr); }
   .deck-body { grid-template-columns: minmax(0, 1fr); }
   .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .dr { grid-template-columns: 48px minmax(0, 1fr); }
-  .dr-info, .dr > .tip { grid-column: 2; }
+  .dr-info { grid-column: 2; }
   .dr .deck-cards { grid-column: 2; max-width: 640px; }
   .dr-rank { grid-row: 1 / span 2; align-self: start; }
   .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -223,8 +264,7 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
   .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ress { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .about, .codebox { padding: 24px 16px; }
-  .cbar { grid-template-columns: minmax(0, 1fr); }
-  .cb-act { justify-content: flex-start; }
+  .cbar { grid-template-columns: minmax(0, 1fr); }  .cb-act { justify-content: flex-start; }
 }
 @media (max-width: 640px) {
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 12px; }
@@ -238,7 +278,7 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
   .deck.spot { padding: 16px; }
   .drs { padding: 0 16px; }
   .dr { grid-template-columns: minmax(0, 1fr); padding: 16px 0; }
-  .dr-info, .dr .deck-cards, .dr > .tip { grid-column: 1; }
+  .dr-info, .dr .deck-cards { grid-column: 1; }
   .dr-rank { grid-row: auto; }
   .dr .deck-cards { max-width: 360px; }
   .tier-head { gap: 12px; }

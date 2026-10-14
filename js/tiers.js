@@ -1,5 +1,6 @@
-// Deck tier list tab: the best decks grouped by tier, each drawn as its four game cards with its measurements, matchups,
-// strategy tip, shop picks and how many of its cards the visitor owns.
+// Deck tier list tab: the best decks grouped by tier, each drawn as its four game cards with its measurements, matchups
+// and how many of its cards the visitor owns. Playbook tips and shop picks are pulled for now (tierlist.json carries no
+// `playbook`); they come back later for the top 10 decks only (SPEC.md).
 // A deck withheld by the maintainer arrives as a stub (`withheld`, no cards) and is drawn as four face-down cards with its
 // numbers and the pay-to-win note; it is never counted as a deck the visitor can build and the "Ready to play" filter hides
 // it. A secret deck (`secret: true`, only its rank and tier) is drawn as four blank grey cards and the word "Secret", nothing
@@ -9,8 +10,8 @@
 
 import { h, icon, pm, pct, pct1, dec } from "./util.js";
 import { DB, loadTier } from "./data.js";
-import { on, isOwned, ownedCount, getLang } from "./store.js";
-import { gameCard, cardBack, secretCard, chip, strip, cardName, L } from "./cards.js";
+import { on, isOwned, ownedCount } from "./store.js";
+import { gameCard, cardBack, secretCard, chip, strip, cardName } from "./cards.js";
 import { disclosure, segmented, scrollToEl } from "./ui.js";
 import { t, tx, millions } from "./i18n.js";
 
@@ -26,63 +27,6 @@ export async function mount(el) {
 }
 
 const cardsOf = (d) => (d.withheld || !Array.isArray(d.cards) ? [] : d.cards.map((id) => DB.byId.get(id)));
-
-// ---------------------------------------------------------------- strategy tip (finalists only)
-/**
- * A finalist's strategy tip, built from the replay of the finals (`playbook.tip`, structured: buys or spread, holds or
- * fires, pace); card names are chips, ability names follow the language, upgrade names are French as in the game. null for
- * every other deck. My decks reuses it.
- */
-export function tipBlock(d) {
-  const tip = d && !d.withheld && d.playbook && d.playbook.tip;
-  if (!tip) return null;
-  const card = (id) => { const c = DB.byId.get(id); return c ? chip(c) : h("span"); };
-  const up = (name) => h("i", { lang: "fr", translate: "no" }, name);
-  const ability = (x) => { const c = DB.byId.get(x.card), a = c && c.abilities[x.ability]; return h("span", { lang: getLang() }, a ? L(a, "name") : "?"); };
-  const parts = [];
-  if (tip.buys && tip.buys.length) {
-    const list = [];
-    tip.buys.forEach((b, i) => {
-      if (i) list.push(t("tl.tipAnd"));
-      list.push(...tx("tl.tipBuy", { upgrade: up(b.upgrade), card: card(b.card), round: b.round, pct: pct(b.share, 0) }));
-    });
-    parts.push(tx("tl.tipBuys", { list: h("span", list) }));
-  } else if (tip.spread) {
-    const s = tip.spread;
-    parts.push(tx("tl.tipSpread", { n: dec(s.per_game, 1), upgrade: up(s.upgrade), card: card(s.card), pct: pct(s.share, 0) }));
-  }
-  // the card is the caster (the ability is its own); a short qualifier says what the ability hits when the data tells
-  if (tip.holds) {
-    const n = Math.max(1, Math.round(tip.holds.rounds));
-    parts.push(tx("tl.tipHolds", { card: card(tip.holds.card), ability: ability(tip.holds), n, scope: scope(tip.holds) }));
-  } else if (tip.fires) parts.push(tx("tl.tipFires", { card: card(tip.fires.card), ability: ability(tip.fires), n: dec(tip.fires.per_game, 1), round: tip.fires.round, scope: scope(tip.fires) }));
-  if (tip.pace) parts.push(tx("tl.tipPace", { n: dec(tip.pace.rounds, 1), pct: pct(tip.pace.board_gone_r6, 0) }));
-  if (!parts.length) return null;
-  const body = [];
-  parts.forEach((p, i) => { if (i) body.push(t("ui.sep")); body.push(...p); });
-  if (typeof body[0] === "string") body[0] = body[0].charAt(0).toLocaleUpperCase(getLang()) + body[0].slice(1);
-  // the finals replays were played by the legacy test AI: the tip reports its habits, not proven best play
-  return h("p.tip", [h("b", t("tl.tipLead")), " ", ...body, ".", h("span.tip-src", t("tl.tipNote"))]);
-}
-
-/**
- * What an ability of a tip hits, from cards.json: its `target` code, and for a whole-board ability the English text that
- * says which side ("to all enemy cards", "to all allied cards", "[Random]"). "" when the target needs no word (the card
- * itself, its own side, a target the player picks).
- */
-function scope(x) {
-  const c = DB.byId.get(x.card), a = c && c.abilities[x.ability];
-  if (!a) return "";
-  const text = a.description_en || "";
-  let k = null;
-  if (a.target === "PlayerOpponent") k = "enemySide";
-  else if (a.target === "AllCardsBoard") {
-    if (/\ball enemy cards\b/i.test(text)) k = "enemies";
-    else if (/\ball allied cards\b/i.test(text)) k = "allies";
-    else if (/\[random\]|\brandom\b/i.test(text)) k = "random";
-  }
-  return k ? t("tl.scope." + k) : "";
-}
 
 // ---------------------------------------------------------------- page
 function render() {
@@ -247,7 +191,7 @@ function deckPanel(d) {
       cardsEl,
       h("div.deck-facts", stats(d)),
     ]),
-    tipBlock(d), btn, region,
+    btn, region,
   ]);
   decks.push({ d, cs, badge, el });
   return el;
@@ -284,12 +228,9 @@ function secretPanel(d) {
   return el;
 }
 
-// ---------------------------------------------------------------- details: counters, shop picks
+// ---------------------------------------------------------------- details: counters
 function details(d) {
-  const out = [h("section.dsec", [h("h4", t("tl.hard")), countersBlock(d)])];
-  if (d.playbook && d.playbook.upgrades && d.playbook.upgrades.length) out.push(h("section.dsec", [h("h4", t("tl.shopH")), shopBlock(d)]));
-  else if (!d.finalist) out.push(h("section.dsec", [h("h4", t("tl.shopNoneH")), h("p.muted", t("tl.shopNone"))]));
-  return [h("div.dgrid", out)];
+  return [h("div.dgrid", h("section.dsec", [h("h4", t("tl.hard")), countersBlock(d)]))];
 }
 
 const sameSet = (a, b) => a.length === b.length && a.every((x) => b.includes(x));
@@ -339,21 +280,6 @@ function countersBlock(d) {
   paint();
   wrap.append(body);
   return wrap;
-}
-
-function shopBlock(d) {
-  const pb = d.playbook;
-  return h("div.shopblk", [
-    h("ul.shop", pb.upgrades.map((u) => {
-      const card = DB.byId.get(u.card);
-      return h("li.shop-row", [
-        h("div.shop-main", tx("tl.upOn", { upgrade: h("b.shop-n", { lang: "fr", translate: "no" }, u.upgrade), card: card ? chip(card) : h("span") })),
-        h("p.shop-d", { lang: "fr" }, u.effect),
-        h("p.shop-s", t("tl.upStat", { pct: pct(u.share_of_games, 0), round: u.median_round })),
-      ]);
-    })),
-    h("p.note", t("tl.shopNote", { games: pb.replay.games })),
-  ]);
 }
 
 // ---------------------------------------------------------------- owned state

@@ -14,7 +14,7 @@ async function getJSON(path) {
   return cache.get(path);
 }
 
-export const DB = { cards: [], byId: new Map(), byKey: new Map(), meta: null, tier: null, decks: null, cardTiers: null };
+export const DB = { cards: [], byId: new Map(), byKey: new Map(), meta: null, tier: null, decks: null, cardTiers: null, cardCounters: null };
 
 /** cards.json and meta.json: needed by every view. */
 export async function loadCore() {
@@ -56,6 +56,23 @@ export async function loadCardTiers() {
     DB.cardTiers = t;
   }
   return DB.cardTiers;
+}
+
+/**
+ * The per-card "Strong with" / "Strong against" / "Weak against" lists (tools/export_cardcounters.py), loaded when a card
+ * dialog first needs them. A failed request is retried once after 1.2 s with a query, so the browser does not hand back
+ * the failed fetch; a second failure rejects, and the next call starts afresh.
+ */
+let ccLoad = null;
+export function loadCardCounters() {
+  const path = "data/cardcounters.json";
+  if (!ccLoad) {
+    ccLoad = getJSON(path)
+      .catch(() => new Promise((r) => setTimeout(r, 1200)).then(() => getJSON(`${path}?retry=${Date.now()}`)))
+      .then((d) => { DB.cardCounters = d; return d; })
+      .catch((e) => { ccLoad = null; throw e; });
+  }
+  return ccLoad;
 }
 
 /** The 4,868 measured decks, with card indices resolved to card objects. */

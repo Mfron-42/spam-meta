@@ -4,6 +4,7 @@
 import { h, icon, norm, fmtInt, debounce } from "./util.js";
 import { DB, dumpDay } from "./data.js";
 import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js";
 import { gameCard, ownToggle, setOwnedView, cardName, ELEMENTS, RARITIES, elName, raName, unsize } from "./cards.js";
 import { disclosure, flip, segmented, filterChip, setChip } from "./ui.js";
 import { toast, openCollection } from "./dialogs.js";
@@ -148,18 +149,20 @@ function build() {
   ui.total = h("span.cb-t");
   ui.fill = h("span.track-fill");
   ui.go = h("a.btn.primary", { href: "#decks", "data-goto": "decks", hidden: true }, [h("span.go-l", t("cx.goDecks")), icon("arrow")]);
+  // one line under the count: how to mark cards, then (once a card is owned) where they are kept and the backup button
   ui.hint = h("p.cb-txt");
-  ui.store = h("p.note", { hidden: true }, t("cx.noStore"));
+  ui.saved = keepLine("saved");
+  ui.store = keepLine("nostore");
   const cbar = h("div.cbar.panel", [
     h("div.cb-main", [
       h("div.cb-fig", [h("p.cb-h", [ui.count, ui.total]), h("div.track", { role: "presentation" }, ui.fill)]),
-      ui.hint,
+      h("div.cb-say", [ui.hint, ui.saved.el]),
     ]),
     h("div.cb-act", [
       ui.go,
       h("button.btn.ghost", { type: "button", onclick: openCollection }, [icon("copy"), t("cx.export")]),
     ]),
-    ui.store,
+    ui.store.el,
   ]);
 
   // toolbar
@@ -208,16 +211,17 @@ function build() {
 
   // where the card values come from, while some of them predate the current patch (cards.json `data_notice`)
   const notice = DB.dataNotice ? t("notice." + DB.dataNotice, { date: dumpDay(), patch: DB.patch }) : null;
-  root.replaceChildren(
+  root.replaceChildren(...[
     h("div.vhead", [
       h("h1", t("cx.h1")),
       h("p.lede", t("cx.lede", { n: DB.cards.length, patch: DB.patch })),
     ]),
+    inAppNotice(),
     cbar,
     h("div.tb-top", [search, sortField, ui.fbtn]), filters, bar,
     grid, ui.empty,
     notice ? h("p.note.cx-foot", [icon("info"), h("span", notice)]) : null,
-  );
+  ].filter(Boolean));
   apply(true);
   syncOwned([]);
 }
@@ -274,8 +278,14 @@ function syncOwned(keys) {
   ui.total.textContent = t("cx.ofOwned", { total });
   ui.fill.style.transform = `scaleX(${n / total})`;
   ui.go.hidden = n === 0;
+  // the "Saved in this browser only" line takes the hint's place once a card is owned (the same row, so nothing jumps);
+  // without storage the full-width warning says it instead
+  const saved = n > 0 && canPersist();
   ui.hint.textContent = t(n ? "cx.hintSome" : "cx.hintNone");
-  ui.store.hidden = canPersist();
+  ui.hint.hidden = saved;
+  ui.saved.el.hidden = !saved;
+  ui.saved.paint();
+  paintNoStore(ui.store);
   ui.clearAll.disabled = n === 0;
   ui.clearAll.title = t(n ? "cx.clearOn" : "cx.clearOff");
   apply(S.own === "all");

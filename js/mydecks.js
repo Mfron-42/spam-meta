@@ -1,7 +1,7 @@
 // My decks tab: the best decks the visitor can build from the cards they marked as owned, plus the best decks that are
 // exactly one card away. Order is the one docs/DATA.md defines: evidence level first, then rank_score (the rows are
 // already sorted that way, so the first rows that fit are the best). A deck that is also in the tier list carries its
-// tier tag and, for a finalist, the same strategy tip as on the Deck tier list (joined by card set, never by position).
+// tier tag (joined by card set, never by position).
 
 import { h, icon, fmtInt, pct } from "./util.js";
 import { DB, loadDecks, loadTier, deckKey } from "./data.js";
@@ -9,7 +9,7 @@ import { on, isOwned, ownedCount } from "./store.js";
 import { gameCard, chip } from "./cards.js";
 import { disclosure } from "./ui.js";
 import { openCollection } from "./dialogs.js";
-import { tipBlock } from "./tiers.js";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js";
 import { t } from "./i18n.js";
 
 const PAGE = 8;
@@ -83,7 +83,6 @@ function deckRow(r, rankLabel, miss) {
       miss ? h("p.dr-miss", [h("span.muted", t("md.missing") + " "), chip(miss)]) : null,
       tags.length ? h("div.tags", tags) : null,
     ]),
-    tipBlock(tr),
   ]);
 }
 
@@ -108,9 +107,12 @@ function render() {
     h("h1", t("md.h1")),
     h("p.lede", t("md.lede")),
   ]);
-  if (!n) { root.replaceChildren(head, emptyState()); return; }
+  const notice = inAppNotice();
+  if (!n) { root.replaceChildren(...[head, notice, emptyState()].filter(Boolean)); return; }
 
   const { build, near } = result;
+  const noStore = keepLine("nostore");
+  paintNoStore(noStore);
   const summary = h("div.cbar.panel", [
     h("div.cb-main", [
       h("div.cb-fig", [h("p.cb-h", [h("span.cb-n", fmtInt(build.length)), t("md.canBuild", { n: build.length })])]),
@@ -120,14 +122,13 @@ function render() {
       h("a.btn.primary", { href: "#codex", "data-goto": "codex" }, [icon("back"), t("md.edit")]),
       h("button.btn.ghost", { type: "button", onclick: openCollection }, [icon("copy"), t("md.export")]),
     ]),
+    noStore.el,
   ]);
 
-  const parts = [head, summary, legend()];
+  const parts = [head, notice, summary, legend()].filter(Boolean);
 
-  // said once, above the first list that has decks; a deck without a tip shows nothing in its place
   parts.push(h("section.mdsec", { "aria-labelledby": "md-build" }, [
     h("h2#md-build", t("md.buildH")),
-    build.length ? h("p.note", t("md.tips")) : null,
     build.length
       ? paged(build, (r, i) => deckRow(r, `#${i + 1}`))
       : h("div.panel.soft", [h("p", t("md.buildNone")), h("a.btn", { href: "#codex", "data-goto": "codex" }, t("md.markMore"))]),
@@ -137,7 +138,6 @@ function render() {
     h("h2#md-near", t("md.nearH")),
     near.length
       ? [h("p.muted.sub", t("md.nearSub")),
-        build.length ? null : h("p.note", t("md.tips")),
         paged(near, (x, i) => deckRow(x.row, `#${i + 1}`, x.miss))]
       : h("div.panel.soft", h("p", t("md.nearNone"))),
   ]));

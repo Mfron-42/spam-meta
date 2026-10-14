@@ -4,7 +4,7 @@ import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js";
 import { t, applyStatic, millions } from "./i18n.js";
 import { copyText } from "./ui.js";
 import { DB, loadCore } from "./data.js";
-import { on, ownedCount, prune, getLang, setLang } from "./store.js";
+import { on, ownedCount, setKnown, getLang, setLang } from "./store.js";
 import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned } from "./dialogs.js";
 
 const TABS = ["tiers", "card-tiers", "codex", "decks"];
@@ -40,9 +40,14 @@ document.addEventListener("click", (e) => {
 });
 
 // ---- tabs
-// #tiers, #card-tiers, #codex, #decks, or #<tab>/<card key> which also opens that card
+// #tiers, #card-tiers, #codex, #decks, or #<tab>/<card key> which also opens that card. A natural spelling of My decks
+// (#my-decks, #mes-decks, #mydecks) opens it too and is replaced in place by the canonical #decks.
+const ALIASES = { "my-decks": "decks", "mes-decks": "decks", mydecks: "decks" };
 function parseHash() {
-  const [t, key] = location.hash.replace(/^#/, "").split("/");
+  const [raw, ...rest] = location.hash.replace(/^#/, "").split("/");
+  const t = ALIASES[raw.toLowerCase()] || raw;
+  if (t !== raw) history.replaceState(history.state, "", "#" + [t, ...rest].join("/"));
+  const key = rest[0];
   return { tab: TABS.includes(t) ? t : "tiers", key: key && DB.byKey.has(key) ? key : null };
 }
 const tabFromHash = () => parseHash().tab;
@@ -227,7 +232,7 @@ async function boot() {
     $("#view-tiers").replaceChildren(errorPanel(t("err.title"), t("err.dataText"), t("err.reload"), () => location.reload()));
     return;
   }
-  prune(new Set(DB.cards.map((c) => c.key)));
+  setKnown(DB.cards.map((c) => c.key));
   initDialogs();
   $("#foot-about").addEventListener("click", openAbout);
   copyHandle();

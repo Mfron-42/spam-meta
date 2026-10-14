@@ -1,12 +1,12 @@
 // Dialogs (card, About, collection code) and the toast. Native <dialog>: the browser traps focus, makes the page behind
 // inert and closes on Escape; we add the 280 ms enter, the back-button close and the backdrop click.
 
-import { h, $, icon, reducedMotion, pct, fmtDate } from "./util.js";
-import { DB, loadTier, dumpDay } from "./data.js";
+import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js";
+import { DB, loadTier, loadCardCounters, dumpDay } from "./data.js";
 import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js";
 import { gameCard, chip, L, cardName, otherName, ELEMENTS, elName, raName, unsize } from "./cards.js";
 import { encode, decode } from "./code.js";
-import { copyText } from "./ui.js";
+import { copyText, disclosure } from "./ui.js";
 import { t, tx, millions } from "./i18n.js";
 
 let openDlg = null, pushed = false;
@@ -119,16 +119,62 @@ function abilityBlock(c, a) {
 }
 
 /**
- * Per-card matchup lists ("Strong with", "Strong against", "Weak against"): a slot for the lab's card counters, which are
- * not published yet. Each list is a row of card chips, or "No clear result yet."; returns null while there is no data.
+ * "With and against": the card's "Strong with", "Strong against" and "Weak against" lists (data/cardcounters.json, loaded
+ * the first time a card dialog opens). Each list holds up to 5 card chips with their signed win-rate points, strongest
+ * first, or one "No clear result." line. A quiet tag beside each heading says what the numbers rest on (basic AI; both
+ * counter lists are preliminary); the method sits behind a small disclosure. The section always keeps its place at the end of the dialog:
+ * a skeleton while the file loads, an inline error with a Reload button if it cannot be loaded.
  */
-function counterLists(c) {
-  const data = DB.cardCounters && DB.cardCounters.get(c.id);
-  if (!data) return null;
-  const list = (key, ids) => h("div.ab", [h("h4", t(key)), ids && ids.length
-    ? h("p.tags", ids.map((id) => DB.byId.get(id)).filter(Boolean).map(chip))
-    : h("p.muted", t("card.noClear"))]);
-  return [list("card.strongWith", data.with), list("card.strongAgainst", data.against), list("card.weakAgainst", data.weak)];
+let howOpen = false;           // the method disclosure stays as the visitor left it, across cards and languages
+
+function counterLists(c, sec) {
+  const d = DB.cardCounters, mine = (d.cards && d.cards[c.id]) || {};
+  const value = (pts) => h("span.cm-v." + (pts > 0 ? "up" : "down"), [(pts > 0 ? "+" : "−") + fmtInt(Math.abs(pts)), h("span.cm-u", " " + t("cm.pts"))]);
+  // one list: its heading (with its quiet tag), then the entries or the empty line
+  const list = (key, entries, tag) => {
+    const id = "cm-" + key.split(".")[1];
+    const items = (entries || []).map(([cid, pts]) => [DB.byId.get(cid), pts]).filter(([x]) => x);
+    const h4 = h("h4", { id }, t(key));
+    return [
+      tag ? h("div.ab-h", [h4, h("span.tag.soft", tag)]) : h4,
+      items.length
+        ? h("ol.cm-l", { "aria-labelledby": id }, items.map(([x, pts]) => h("li.cm-e", [chip(x), value(pts)])))
+        : h("p.cm-none", t("card.noClear")),
+    ];
+  };
+  const btn = h("button.cm-how", { type: "button", "aria-controls": "cm-how" }, [h("span", t("cm.how")), icon("chevron")]);
+  const how = h("div", { id: "cm-how" }, h("div.collapse-in", h("ul.cm-how-l", [
+    h("li", tx("cm.howWith", { games: d.synergy.n_games })),
+    h("li", tx("cm.howVs", { games: d.counters.n_games })),
+  ])));
+  disclosure(btn, how, { open: howOpen, onToggle: (v) => { howOpen = v; } });
+  const prelim = t("cm.prelim", { ai: t("cm.ai." + d.counters.ai) });
+  sec.replaceChildren(
+    h("h3#cm-h3", t("cm.h")),
+    h("div.cm-g", list("card.strongWith", mine.with, t("cm.ai." + d.synergy.ai))),
+    // both counter lists carry the tag, so neither reads as a fact on its own (coordinator, 2026-10-14)
+    h("div.cm-g", [...list("card.strongAgainst", mine.vs, prelim), ...list("card.weakAgainst", mine.weak, prelim)]),
+    h("div.cm-foot", [btn, how]),
+  );
+}
+
+/** The section shell: filled at once when the lists are loaded, else after the load (or with an error line). */
+function counterSection(c) {
+  const sec = h("section.dlg-sec.cm", { "aria-labelledby": "cm-h3" });
+  if (DB.cardCounters) { counterLists(c, sec); return sec; }
+  sec.setAttribute("aria-busy", "true");
+  sec.replaceChildren(h("h3#cm-h3", t("cm.h")), h("div.skel.cm-skel", { "aria-hidden": "true" }, [h("i"), h("i"), h("i")]));
+  loadCardCounters().then(() => {
+    if (currentKey === c.key && sec.isConnected) counterLists(c, sec);
+  }).catch((err) => {
+    console.error(err);
+    if (currentKey !== c.key || !sec.isConnected) return;
+    sec.replaceChildren(h("h3#cm-h3", t("cm.h")), h("div.cm-err", { role: "alert" }, [
+      h("p", t("cm.err")),
+      h("button.btn", { type: "button", onclick: () => location.reload() }, t("err.reload")),
+    ]));
+  }).finally(() => sec.removeAttribute("aria-busy"));
+  return sec;
 }
 
 function renderCardDialog() {
@@ -155,7 +201,6 @@ function renderCardDialog() {
     dataNote(tl),
     h("p.ab-d", { lang }, L(tl, "description")),
   ]));
-  const counters = counterLists(c);
   const where = h("p.dlg-where.muted");
 
   const body = h("div.dlg", [
@@ -179,8 +224,8 @@ function renderCardDialog() {
       h("section.dlg-sec", [h("h3", t("card.abilities")), ...abilities]),
       passives.length ? h("section.dlg-sec", [h("h3", t("card.passives")), ...passives]) : null,
       talents.length ? h("section.dlg-sec", [h("h3", t("card.talents")), h("p.muted", t("card.talentsNote")), ...talents]) : null,
-      counters ? h("section.dlg-sec", counters) : null,
       where,
+      counterSection(c),
     ]),
   ]);
   $(".dlg-scroll", dlg).replaceChildren(body);
@@ -256,7 +301,9 @@ export function openCollection() {
   $("#code-in", dlg).value = "";
   $("#code-replace", dlg).disabled = true;
   $("#code-add", dlg).disabled = true;
+  // without storage the warning replaces the "saved in this browser only" sentence (the two would contradict)
   $("#code-store", dlg).hidden = canPersist();
+  $("#code-p", dlg).hidden = !canPersist();
   codeState.parsed = null;
   codeState.error = null;
   paintCodeCount();
