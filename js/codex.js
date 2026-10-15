@@ -1,15 +1,16 @@
 // Codex tab: every released card as a game card, with search, filters, sort and the Owned toggle on every card.
 // A language change rebuilds the tab from the same state (search, filters, sort, open panels).
 
-import { h, icon, norm, fmtInt } from "./util.js?v=4835fc01ee";
-import { searchField, terms as searchTerms, hasAll } from "./search.js?v=4835fc01ee";
-import { DB } from "./data.js?v=4835fc01ee";
-import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js?v=4835fc01ee";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=4835fc01ee";
-import { gameCard, ownToggle, setOwnedView, cardName, ELEMENTS, RARITIES, elName, raName, unsize } from "./cards.js?v=4835fc01ee";
-import { disclosure, flip, segmented, filterChip, setChip } from "./ui.js?v=4835fc01ee";
-import { toast, openCollection } from "./dialogs.js?v=4835fc01ee";
-import { t, STRINGS } from "./i18n.js?v=4835fc01ee";
+import { h, icon, norm, fmtInt } from "./util.js?v=bd195f6cd6";
+import { searchField, terms as searchTerms, hasAll } from "./search.js?v=bd195f6cd6";
+import { DB } from "./data.js?v=bd195f6cd6";
+import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js?v=bd195f6cd6";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=bd195f6cd6";
+import { gameCard, ownToggle, setOwnedView, cardName, ELEMENTS, RARITIES, elName, raName, unsize } from "./cards.js?v=bd195f6cd6";
+import { disclosure, flip, segmented, filterChip, setChip } from "./ui.js?v=bd195f6cd6";
+import { toast, openCollection } from "./dialogs.js?v=bd195f6cd6";
+import { cardText } from "./cardtext.js?v=bd195f6cd6";
+import { t, STRINGS } from "./i18n.js?v=bd195f6cd6";
 
 // ---- traits, derived from the English texts and numbers of the data (no hand-made tags); names are "trait.<id>"
 const anyText = (c, rx) => c.abilities.some((a) => rx.test(a.description_en)) || c.passives.some((p) => rx.test(p.description_en));
@@ -80,12 +81,13 @@ function snippet(x, ts) {
       const n = ts.filter((w) => hay.includes(w)).length;
       if (n > bestN) { best = it; bestN = n; }
     }
-    if (best) return h("p.snip", { lang }, [h("b", mark(best[0], ts)), " ", mark(best[1].replace(/\n/g, " "), ts, 110)]);
+    if (best) return h("p.snip", { lang }, [h("b", mark(best[0], ts)), " ", excerpt(best[1].replace(/\n/g, " "), ts, 110)]);
   }
   return null;
 }
 
-function mark(text, ts, max) {
+/** Which characters of `text` the search terms mark (accent-free), and the window of at most `max` characters around the first. */
+function markRange(text, ts, max) {
   // normalised copy with an index map so an accent-free match can be marked in the original text
   let n = "";
   const map = [];
@@ -100,16 +102,28 @@ function mark(text, ts, max) {
     start = Math.max(0, (first < 0 ? 0 : first) - 30);
     end = Math.min(text.length, start + max);
   }
-  const out = [start ? "…" : ""];
-  for (let i = start; i < end;) {
+  return { on_, start, end };
+}
+
+/** A name with the search terms marked. */
+function mark(text, ts) {
+  const { on_ } = markRange(text, ts);
+  const out = [];
+  for (let i = 0; i < text.length;) {
     let j = i;
-    while (j < end && on_[j] === on_[i]) j++;
-    const seg = text.slice(i, j);
-    out.push(on_[i] ? h("mark", seg) : seg);
+    while (j < text.length && on_[j] === on_[i]) j++;
+    out.push(on_[i] ? h("mark", text.slice(i, j)) : text.slice(i, j));
     i = j;
   }
-  if (end < text.length) out.push("…");
   return out;
+}
+
+/** An excerpt of a card text, the search terms marked, drawn by the card-text renderer: element words and keyword chips,
+ * without tooltips (the excerpt points at the card, whose dialog explains the keywords). */
+function excerpt(text, ts, max) {
+  const r = markRange(text, ts, max);
+  const { nodes, from, to } = cardText(text, { tips: false, marks: r.on_, from: r.start, to: r.end });
+  return [from ? "…" : "", ...nodes, to < text.length ? "…" : ""];
 }
 
 // ---- build

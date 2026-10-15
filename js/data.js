@@ -1,7 +1,7 @@
 // Loads the generated JSON once and builds the lookups every view needs. Every request carries the publish version
 // (version.js), so a new publish never mixes with data an earlier visit cached.
 
-import { versioned, withQuery } from "./version.js?v=4835fc01ee";
+import { versioned, withQuery } from "./version.js?v=bd195f6cd6";
 
 const cache = new Map();
 
@@ -15,12 +15,17 @@ async function getJSON(path) {
   return cache.get(path);
 }
 
-export const DB = { cards: [], byId: new Map(), byKey: new Map(), meta: null, tier: null, decks: null, cardTiers: null, cardCounters: null };
+export const DB = { cards: [], byId: new Map(), byKey: new Map(), meta: null, keywords: null, tier: null, decks: null, cardTiers: null, cardCounters: null };
 
-/** cards.json and meta.json: needed by every view. */
+/**
+ * cards.json and meta.json: needed by every view; keywords.json (the card texts' keyword chips and tooltips, cardtext.js)
+ * with them, but a failed keywords request only leaves the texts without chips.
+ */
 export async function loadCore() {
-  const [cards, meta] = await Promise.all([getJSON("data/cards.json"), getJSON("data/meta.json")]);
+  const [cards, meta, keywords] = await Promise.all([getJSON("data/cards.json"), getJSON("data/meta.json"),
+    getJSON("data/keywords.json").catch((e) => { console.error(e); return null; })]);
   DB.meta = meta;
+  DB.keywords = keywords;
   // the patch of the card data; the rankings (meta.json `patch`) can be one patch behind it (patch.js, the patch notice)
   DB.patch = cards.patch;
   DB.cards = cards.cards;

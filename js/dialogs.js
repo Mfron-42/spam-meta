@@ -1,14 +1,15 @@
 // Dialogs (card, About, collection code) and the toast. Native <dialog>: the browser traps focus, makes the page behind
 // inert and closes on Escape; we add the 280 ms enter, the back-button close and the backdrop click.
 
-import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=4835fc01ee";
-import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=4835fc01ee";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=4835fc01ee";
-import { gameCard, chip, L, cardName, ELEMENTS, elName, unsize } from "./cards.js?v=4835fc01ee";
-import { encode, decode } from "./code.js?v=4835fc01ee";
-import { copyText, disclosure } from "./ui.js?v=4835fc01ee";
-import { t, tx, millions } from "./i18n.js?v=4835fc01ee";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph } from "./patch.js?v=4835fc01ee";
+import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=bd195f6cd6";
+import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=bd195f6cd6";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=bd195f6cd6";
+import { gameCard, chip, L, cardName, ELEMENTS, elName, unsize } from "./cards.js?v=bd195f6cd6";
+import { encode, decode } from "./code.js?v=bd195f6cd6";
+import { copyText, disclosure } from "./ui.js?v=bd195f6cd6";
+import { t, tx, millions } from "./i18n.js?v=bd195f6cd6";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph } from "./patch.js?v=bd195f6cd6";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=bd195f6cd6";
 
 let openDlg = null, pushed = false;
 
@@ -27,6 +28,7 @@ export function openModal(dlg, onClose, url) {
 }
 
 function closeNow(dlg) {
+  hideTip();
   dlg.classList.remove("on");
   if (dlg.open) dlg.close();
   document.documentElement.classList.remove("modal-open");
@@ -46,7 +48,8 @@ window.addEventListener("popstate", () => {
 });
 
 function wire(dlg) {
-  dlg.addEventListener("cancel", (e) => { e.preventDefault(); closeModal(dlg); });
+  // Escape closes an open keyword tooltip first (cardtext.js), the dialog on the next press
+  dlg.addEventListener("cancel", (e) => { e.preventDefault(); if (!hideTip()) closeModal(dlg); });
   dlg.addEventListener("click", (e) => { if (e.target === dlg) closeModal(dlg); });
   dlg.addEventListener("click", (e) => { if (e.target.closest("[data-close]")) closeModal(dlg); });
 }
@@ -100,6 +103,7 @@ export function leaveCard(view) {
 
 /** A language change redraws what the dialogs show: the open card, the About text, the collection dialog's counts. */
 export function refreshDialogs() {
+  hideTip();
   if (currentKey && cardDlg().open) renderCardDialog();
   $("#about-body").replaceChildren(buildAbout());
   if ($("#dlg-code").open) paintCodeCount();
@@ -152,7 +156,8 @@ const metaRow = (tags) => (tags.some(Boolean) ? h("div.tags.kit-meta", tags) : n
 const signed = (n) => (n > 0 ? "+" : n < 0 ? "−" : "") + fmtInt(Math.abs(n));
 const amountOf = (a, sign) => (Array.isArray(a) ? t("hx.range", { lo: sign ? signed(a[0]) : fmtInt(a[0]), hi: sign ? signed(a[1]) : fmtInt(a[1]) })
   : sign ? signed(a) : fmtInt(a));
-const elNode = (id) => h("span.hx-el", [h("i.hx-orb.sp-el-" + id, { "aria-hidden": "true" }), elName(id)]);
+// an element name: the orb and the coloured word, as in the game texts (cardtext.js)
+const elNode = (id) => elementNode(id, elName(id));
 
 /** Nodes joined by commas, the last pair by `last` (" and " / " or "); `last` null keeps commas throughout. */
 function joinNodes(nodes, last) {
@@ -175,7 +180,7 @@ function hxItem(it) {
   else if (it.fx === "cooldown") fx = [t("hx.cd", { amount: amountOf(it.amount, true) })];
   else if (it.fx === "accuracy") fx = [t("hx.acc", { amount: amountOf(it.amount, true) })];
   else if (it.fx === "crit") fx = [t("hx.critStat", { amount: amountOf(it.amount, true) })];
-  else if (it.fx === "status") fx = [h("b.hx-st", { lang: getLang() }, L(it, "name"))];
+  else if (it.fx === "status") fx = [h("b.hx-st", { lang: getLang() }, textNodes(L(it, "name")))];
   else return null;                                  // an item kind this page does not know: shown nowhere, never guessed
   if (it.all) fx = [...fx, " ", t("hx.all." + it.all)];
   if (it.random) fx = [...fx, " ", t("hx.random")];
@@ -252,7 +257,7 @@ function abilityEntry(c, a, i) {
     h("div.kit-rib.kit-ab", [h("i.kit-orb.sp-el-" + (a.element || c.element), { role: "img", "aria-label": elName(a.element || c.element) }), h("h4", { lang }, L(a, "name")),
       h("span.kit-cd", { title: cd }, [h("span.sr", cd), h("span", { "aria-hidden": "true" }, String(a.cooldown))])]),
     metaRow([changed(c, "abilities", i)]),
-    h("p.cd-e-d", { lang }, L(a, "description")),
+    h("p.cd-e-d", { lang }, textNodes(L(a, "description"))),
     hiddenLine(a, i),
     h("div.cd-e-s", [...stats, ...cost, h("span.cd-e-t", [t("card.targets") + " ", targetText(a)])]),
   ]);
@@ -263,7 +268,7 @@ function passiveEntry(c, p, i) {
   return h("div.cd-e.kit-e", [
     wingRibbon(c, p),
     metaRow([changed(c, "passives", i)]),
-    h("p.cd-e-d", { lang }, L(p, "description")),
+    h("p.cd-e-d", { lang }, textNodes(L(p, "description"))),
   ]);
 }
 
@@ -304,7 +309,7 @@ function talentPicker(c) {
     ]));
     panes.push(h("div.tp-pane" + (i === first ? ".on" : ""), { role: "tabpanel", id: id(i, "pane"), "aria-labelledby": id(i, "tab") }, [
       h("div.tp-pane-h", [h("h4", { lang }, L(tl, "name")), changed(c, "talents", i)]),
-      h("p.cd-e-d", { lang }, L(tl, "description")),
+      h("p.cd-e-d", { lang }, textNodes(L(tl, "description"))),
     ]));
   });
   const list = h("div.tp-tabs", { role: "tablist", "aria-label": t("card.talents"), "aria-describedby": "tp-note" }, tabs);

@@ -56,14 +56,12 @@ dialog.card-dlg { width: min(1040px, calc(100vw - 32px)); }
 
 .cd-e-d { color: var(--ink-2); white-space: pre-line; }
 /* what the game text leaves out (cards.json `hidden`): one sentence per line under it, ruled on its left so it never
-   reads as the game's own words; a choice lists its options one per row ("or" in Dusk Lavender); the element orbs are
-   the client's sprites, at the text's cap height */
+   reads as the game's own words; a choice lists its options one per row ("or" in Dusk Lavender); element words and
+   statuses are drawn by the card-text renderer (cards.css, "Card text") */
 .cd-e-x { display: grid; gap: 8px; padding-left: 12px; border-left: 2px solid var(--line); color: var(--ink-2); text-wrap: pretty; }
 .hx-opts { display: grid; gap: 4px; }
 .hx-opts li { display: grid; grid-template-columns: 24px minmax(0, 1fr); }
 .hx-or { color: var(--muted); }
-.hx-el { white-space: nowrap; }
-.hx-orb { display: inline-block; width: 16px; height: 16px; margin-right: 4px; vertical-align: -2px; background-size: contain; background-repeat: no-repeat; background-position: center; }
 .hx-st { font-weight: 700; color: var(--ink); }
 .cd-e-s { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
 .cd-e-t { color: var(--muted); font: 600 14px/1.4 var(--text); }

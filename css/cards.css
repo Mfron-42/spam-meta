@@ -130,3 +130,39 @@ button.gc:focus-visible .gc-face { box-shadow: var(--shadow), 0 0 0 2px var(--ni
 .sp-pl-legendary-l { background-image: url("../assets/cards/kit/card_ability_passive_line_legendary_left.webp"); }
 .sp-pl-legendary-r { background-image: url("../assets/cards/kit/card_ability_passive_line_legendary_right.webp"); }
 .ab-talent { background-image: url("../assets/cards/kit/card_talent_icon.webp"); }
+
+/* ---------------------------------------------------------------- card text (js/cardtext.js; DESIGN.md "Card text")
+   The one renderer of the card texts. An element word is the client's orb at the text's cap height and the word in its
+   element colour. A keyword is the word in Cream Lavender 700; with a definition it is a button underlined with Field Edge
+   dots, and under the pointer, open or focused it becomes a socket chip with the ring (the box is drawn by box-shadow, so
+   nothing moves). No box at rest: a boxed word read as the stat tags under the text, and a dozen boxes cluttered a talent. */
+/* the orb is the word's own background (not an inline box), so a line never breaks between it, the word and the
+   punctuation around them ("Shadow Heart", "Nature,") */
+.el { padding-left: 20px; background-size: 16px 16px; background-repeat: no-repeat; background-position: 0 55%; white-space: nowrap; font-weight: 700; }
+.el-fire { color: var(--el-fire); }
+.el-water { color: var(--el-water); }
+.el-earth { color: var(--el-earth); }
+.el-nature { color: var(--el-nature); }
+.el-light { color: var(--el-light); }
+.el-shadow { color: var(--el-shadow); }
+.kw { color: var(--ink); font-weight: 700; white-space: nowrap; }
+button.kw { position: relative; display: inline; margin: 0; padding: 0; border: 0; border-radius: 4px; background: none; font: inherit; font-weight: 700;
+  line-height: inherit; vertical-align: baseline; cursor: pointer; text-decoration: underline dotted var(--edge) 1.5px; text-underline-offset: 4px;
+  transition: background var(--t-state) var(--curve), box-shadow var(--t-state) var(--curve); }
+/* a taller hit area than the line, without moving the text */
+button.kw::after { content: ""; position: absolute; inset: -8px -4px; }
+/* hover, open and focus: the socket chip (2px past the word) and the 2px ring, drawn outside the word by box-shadow */
+button.kw:hover, button.kw.on, button.kw:focus-visible { outline: none; background: var(--socket); box-shadow: 0 0 0 2px var(--socket), 0 0 0 4px var(--accent); text-decoration-color: transparent; }
+.kw mark, .el mark { color: inherit; }
+
+/* the keyword tooltip: one for the page, Panel Lifted, opens in 120ms (fade and scale from .96 at the chip), closes in 100ms;
+   it can be hovered and its text selected (WCAG 1.4.13). The definition a screen reader hears is the chip's own hidden
+   description; this box is visual only. */
+.kw-tip { position: fixed; left: 0; top: 0; z-index: 40; width: max-content; max-width: 320px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--panel-hi); box-shadow: var(--shadow); color: var(--ink-2); font: 600 14px/1.4 var(--text); text-align: left; white-space: normal; pointer-events: none; cursor: default;
+  opacity: 0; visibility: hidden; transform: scale(.96); transform-origin: 50% 100%;
+  transition: opacity var(--t-press) var(--curve), transform var(--t-press) var(--curve), visibility 0s linear var(--t-press); }
+.kw-tip.below { transform-origin: 50% 0; }
+.kw-tip.on { opacity: 1; visibility: visible; transform: none; pointer-events: auto; transition: opacity var(--t-state) var(--curve), transform var(--t-state) var(--curve), visibility 0s; }
+.kw-tip-h { display: block; margin-bottom: 4px; color: var(--ink); font: 400 16px/1.15 var(--display); letter-spacing: .01em; }
+.kw-tip-d { display: block; }

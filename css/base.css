@@ -16,6 +16,9 @@
   --kit-shade: rgba(16, 13, 36, .78); --kit-draft-shade: rgba(21, 18, 44, .6);
   --kit-ol: 1px 0 0 var(--card-outline), -1px 0 0 var(--card-outline), 0 -1px 0 var(--card-outline), 0 2px 0 var(--card-outline);
   --r-common: #a6a2ad; --r-rare: #5b9cff; --r-epic: #b77df5; --r-legendary: #ffc756; --r-divine: #f2efe8;
+  /* element words in the card texts (DESIGN.md "Card text"): the hue of the client's element orb, lifted to pass 5.5:1 on the
+     dark tiles; only ever beside that orb, never a fill */
+  --el-fire: #ff9d4d; --el-water: #6ab4f5; --el-earth: #c9a684; --el-nature: #b4d354; --el-light: #f2e58a; --el-shadow: #c58cf0;
   /* card tier scale (Card tier list only): apricot to dusk, calm, night ink passes 4.5:1 on every step */
   --tier-sp: #f0ca9b; --tier-s: #e9b698; --tier-a: #dea49c; --tier-b: #cb95a0; --tier-c: #b48aa3; --tier-d: #9a80a2; --tier-e: #80779b;
   --display: "Lilita One", "Nunito", system-ui, sans-serif;
