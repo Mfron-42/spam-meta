@@ -116,9 +116,9 @@ main.wrap { padding-block: 32px 64px; }
 
 /* Five tabs. One row from 1200px (brand, tabs, tools); below, two rows: the brand row (52px) scrolls away and the tab row
    (56px: 8px above the pills for the count on My decks, 4px below for the focus ring) stays stuck under the top edge. Under
-   760px the tabs use their short labels; under 600px they share the row at 16px, under 420px at 14px, and under 390px the
-   finder tab keeps only its magnifier. If they still do not fit (a large text setting), the row scrolls sideways, the edge
-   hiding a tab fades and the current tab is kept in view (main.js). */
+   760px the tabs use their short labels; under 600px they share the row at 16px (the Builder glyph goes), under 420px at
+   14px. Every tab keeps its word at every width ("Builder" is never a bare glyph). If they still do not fit (a large text
+   setting), the row scrolls sideways, the edge hiding a tab fades and the current tab is kept in view (main.js). */
 @media (max-width: 1199px) {
   :root { --chrome-h: 56px; }
   .chrome { top: -52px; }
@@ -151,11 +151,10 @@ main.wrap { padding-block: 32px 64px; }
 @media (max-width: 389px) {
   .brand-name { display: none; }
   .tools { gap: 4px; }
-  /* the five tabs share what is left of the row: no fixed padding, the spare width spreads evenly (flex-grow); the finder
-     tab shows its magnifier alone (its title and accessible name still say "Find a deck"), so every label keeps 10px or more */
+  /* the five tabs share what is left of the row: no fixed padding, the spare width spreads evenly (flex-grow); the row
+     reaches 8px into each gutter (pills 8px from the screen edge) so every label keeps 11px or more inside its pill */
+  .tabs { margin-inline: -12px; }
   .tab { padding: 0; }
-  #tab-builder .tab-ico { display: block; }
-  #tab-builder .tab-short { display: none; }
 }
 
 /* ---------------------------------------------------------------- buttons */

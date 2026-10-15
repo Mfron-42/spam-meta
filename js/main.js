@@ -1,14 +1,14 @@
 // Entry point: loads the core data, wires the header, the tabs and the delegated clicks, and mounts the five views.
 
-import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=7e4699d742";
-import { t, applyStatic, millions } from "./i18n.js?v=7e4699d742";
-import { copyText } from "./ui.js?v=7e4699d742";
-import { DB, loadCore } from "./data.js?v=7e4699d742";
-import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=7e4699d742";
-import { versioned, withQuery } from "./version.js?v=7e4699d742";
-import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=7e4699d742";
+import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=4a0e972b24";
+import { t, applyStatic, millions } from "./i18n.js?v=4a0e972b24";
+import { copyText } from "./ui.js?v=4a0e972b24";
+import { DB, loadCore } from "./data.js?v=4a0e972b24";
+import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=4a0e972b24";
+import { versioned, withQuery } from "./version.js?v=4a0e972b24";
+import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=4a0e972b24";
 
-// Five tabs, one view each; the Deck finder (#builder) sits next to My decks.
+// Five tabs, one view each; the Deck builder (#builder) sits next to My decks.
 const TABS = ["tiers", "card-tiers", "codex", "decks", "builder"];
 const TITLE_KEYS = { tiers: "tab.tiers", "card-tiers": "tab.cardTiers", codex: "tab.codex", decks: "tab.decks", builder: "fd.title" };
 const tabName = (tab) => t(TITLE_KEYS[tab]);
@@ -33,7 +33,7 @@ document.addEventListener("error", (e) => {
   }
 }, true);
 
-// ---- delegated clicks: card chips and cards open the dialog; [data-goto] jumps to a view ([data-pick]: the Deck finder
+// ---- delegated clicks: card chips and cards open the dialog; [data-goto] jumps to a view ([data-pick]: the Deck builder
 // with that card picked, from the card dialog)
 const plain = (e) => e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey;   // let "open in a new tab" work on links
 document.addEventListener("click", (e) => {
@@ -50,7 +50,7 @@ document.addEventListener("click", (e) => {
   if (c) { e.preventDefault(); openCard(c.dataset.card); }
 });
 
-/** The Deck finder with one card picked: the card dialog closes in place (its address becomes #builder), then the view opens. */
+/** The Deck builder with one card picked: the card dialog closes in place (its address becomes #builder), then the view opens. */
 function pickCard(key) {
   leaveCard("builder");
   go("builder");
@@ -58,10 +58,10 @@ function pickCard(key) {
 }
 
 // ---- tabs
-// #tiers, #card-tiers, #codex, #decks, #builder (the Deck finder), or #<view>/<card key> which also opens that card. A natural
-// spelling of My decks (#my-decks, #mes-decks, #mydecks) or of the Deck finder (#finder, #deck-finder, #trouver) opens it too
+// #tiers, #card-tiers, #codex, #decks, #builder (the Deck builder), or #<view>/<card key> which also opens that card. A natural
+// spelling of My decks (#my-decks, #mes-decks, #mydecks) or of the Deck builder (#finder, #deck-finder, #trouver, #deck-builder) opens it too
 // and is replaced in place by the canonical hash.
-const ALIASES = { "my-decks": "decks", "mes-decks": "decks", mydecks: "decks", finder: "builder", "deck-finder": "builder", trouver: "builder" };
+const ALIASES = { "my-decks": "decks", "mes-decks": "decks", mydecks: "decks", finder: "builder", "deck-finder": "builder", trouver: "builder", "deck-builder": "builder" };
 function parseHash() {
   const [raw, ...rest] = location.hash.replace(/^#/, "").split("/");
   const t = ALIASES[raw.toLowerCase()] || raw;

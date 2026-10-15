@@ -1,4 +1,4 @@
-// Deck finder (#builder, its own tab next to My decks): the visitor picks 1 to 4 cards they want to play and the
+// Deck builder (#builder, its own tab next to My decks): the visitor picks 1 to 4 cards they want to play and the
 // page lists the measured decks (decks.json) that hold all of them, best first by the canonical rank (rows are already
 // sorted by it). When no measured deck holds every pick, one line says so and the decks holding the most of them follow,
 // labelled "3 of your 4 cards". Only decks.json rows are read: the withheld and hidden decks have none, so they can never
@@ -6,14 +6,14 @@
 // The picks live in memory only (the address holds a tab and, while a card dialog is open, a card key; SPEC.md); the card
 // dialog's "Decks with this card" sets them through pick().
 
-import { h, icon, fmtInt } from "./util.js?v=7e4699d742";
-import { DB, loadDecks, loadTier } from "./data.js?v=7e4699d742";
-import { on, isOwned, ownedCount } from "./store.js?v=7e4699d742";
-import { cardName, chip } from "./cards.js?v=7e4699d742";
-import { t } from "./i18n.js?v=7e4699d742";
-import { patchNotice } from "./patch.js?v=7e4699d742";
-import { searchField, announcer, terms, namedCards } from "./search.js?v=7e4699d742";
-import { deckRow, paged, legend, paintOwned } from "./decklist.js?v=7e4699d742";
+import { h, icon, fmtInt } from "./util.js?v=4a0e972b24";
+import { DB, loadDecks, loadTier } from "./data.js?v=4a0e972b24";
+import { on, isOwned, ownedCount } from "./store.js?v=4a0e972b24";
+import { cardName, chip } from "./cards.js?v=4a0e972b24";
+import { t } from "./i18n.js?v=4a0e972b24";
+import { patchNotice } from "./patch.js?v=4a0e972b24";
+import { searchField, announcer, terms, namedCards } from "./search.js?v=4a0e972b24";
+import { deckRow, paged, legend, paintOwned } from "./decklist.js?v=4a0e972b24";
 
 const MAX = 4;           // four picks are a whole deck
 const PAGE = 10;         // results shown, then ten more on request

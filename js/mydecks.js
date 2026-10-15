@@ -4,15 +4,15 @@
 // tier tag (joined by card set, never by position). The card search of the Deck tier list (search.js) keeps only the decks
 // of both lists that hold a matching card; the query survives a redraw (a card ticked, a language change).
 
-import { h, icon, fmtInt } from "./util.js?v=7e4699d742";
-import { DB, loadDecks, loadTier } from "./data.js?v=7e4699d742";
-import { on, isOwned, ownedCount } from "./store.js?v=7e4699d742";
-import { deckRow, missingLine, paged, legend } from "./decklist.js?v=7e4699d742";
-import { findRow, terms, namedCards } from "./search.js?v=7e4699d742";
-import { openCollection } from "./dialogs.js?v=7e4699d742";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=7e4699d742";
-import { t } from "./i18n.js?v=7e4699d742";
-import { patchNotice } from "./patch.js?v=7e4699d742";
+import { h, icon, fmtInt } from "./util.js?v=4a0e972b24";
+import { DB, loadDecks, loadTier } from "./data.js?v=4a0e972b24";
+import { on, isOwned, ownedCount } from "./store.js?v=4a0e972b24";
+import { deckRow, missingLine, paged, legend } from "./decklist.js?v=4a0e972b24";
+import { findRow, terms, namedCards } from "./search.js?v=4a0e972b24";
+import { openCollection } from "./dialogs.js?v=4a0e972b24";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=4a0e972b24";
+import { t } from "./i18n.js?v=4a0e972b24";
+import { patchNotice } from "./patch.js?v=4a0e972b24";
 
 let root, D, listeners = new Set();
 let result = { build: [], near: [] };
@@ -128,7 +128,7 @@ function emptyState() {
       h("a.btn.primary", { href: "#codex", "data-goto": "codex" }, [t("md.openCodex"), icon("arrow")]),
       h("button.btn.ghost", { type: "button", onclick: openCollection }, [icon("copy"), t("md.import")]),
     ]),
-    // no collection yet: the Deck finder works without one
-    h("p.empty-alt", [t("md.orFind") + " ", h("a.link", { href: "#builder", "data-goto": "builder" }, t("fd.title"))]),
+    // no collection yet: the Deck builder works without one
+    h("p.empty-alt", [t("md.orFind") + " ", h("a.link", { href: "#builder", "data-goto": "builder" }, t("fd.title")), "."]),
   ]);
 }

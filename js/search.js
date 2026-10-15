@@ -1,12 +1,12 @@
-// The one card search of the site: the search field (Codex, Deck tier list, Card tier list, My decks, Deck finder), its
+// The one card search of the site: the search field (Codex, Deck tier list, Card tier list, My decks, Deck builder), its
 // matching, and the search row of the two deck lists (Deck tier list, My decks): the field and its one live result line.
 // Matching is accent- and case-insensitive and every word must match ("chouette", "leviathan", "lames en"); a phrase in
 // double quotes must match as written. The field clears with its clear button or Escape.
 
-import { h, icon, norm, debounce } from "./util.js?v=7e4699d742";
-import { DB } from "./data.js?v=7e4699d742";
-import { chip } from "./cards.js?v=7e4699d742";
-import { t, tx } from "./i18n.js?v=7e4699d742";
+import { h, icon, norm, debounce } from "./util.js?v=4a0e972b24";
+import { DB } from "./data.js?v=4a0e972b24";
+import { chip } from "./cards.js?v=4a0e972b24";
+import { t, tx } from "./i18n.js?v=4a0e972b24";
 
 /** The words of a query, normalised: `polychrome "en peine"` -> ["polychrome", "en peine"]. */
 export function terms(q) {
@@ -63,7 +63,7 @@ export function searchField({ id, name = "q", placeholder, label, clearLabel, va
 /**
  * The card search row of a deck list (Deck tier list, My decks): the field, then one live line beside it that names what was
  * found ("3 decks with <chip>") or says nothing matched, with a Clear button. When the query names exactly one card that a deck
- * holds, the line ends with "Decks with this card", which opens the Deck finder with that card picked (every measured deck, not
+ * holds, the line ends with "Decks with this card", which opens the Deck builder with that card picked (every measured deck, not
  * only the ones of this list). The caller filters its decks in onChange and
  * then calls paint(ts, hits, inDecks, shown): the query's words, the cards it names, those of them some deck of the list
  * holds, and how many decks are shown. Returns { el, field, paint }.
@@ -83,7 +83,7 @@ export function findRow({ id, name, placeholder, label, clearLabel, value = "", 
     else if (inDecks.length <= 2) say = tx("find.decks", { n: shown, cards: h("span.find-cards", named(inDecks)) });
     else say = [t("find.decksN", { n: shown, m: inDecks.length })];
     if (hits.length === 1 && shown) {
-      say.push(h("a.btn.ghost.find-more", { href: "#builder", "data-goto": "builder", "data-pick": hits[0].key }, [icon("search"), t("card.findDecks")]));
+      say.push(h("a.btn.ghost.find-more", { href: "#builder", "data-goto": "builder", "data-pick": hits[0].key, title: t("card.findDecksTitle") }, [icon("search"), t("card.findDecks")]));
     }
     status.replaceChildren(...say);
     // the screen reader hears the sentence without the Clear button

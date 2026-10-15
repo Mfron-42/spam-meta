@@ -1,13 +1,13 @@
-// The one way to list measured decks (decks.json rows), shared by My decks and the Deck finder: the deck row (four game
+// The one way to list measured decks (decks.json rows), shared by My decks and the Deck builder: the deck row (four game
 // cards, the evidence level, the win rate, the tier tag), the paging, the "How reliable?" legend and the owned badge. Rows arrive already sorted by the rank key of docs/DATA.md (level
 // descending, then rank_score), so a filter that keeps their order keeps the canonical ranking.
 
-import { h, icon, pct } from "./util.js?v=7e4699d742";
-import { DB, deckKey } from "./data.js?v=7e4699d742";
-import { isOwned, ownedCount } from "./store.js?v=7e4699d742";
-import { gameCard, chip } from "./cards.js?v=7e4699d742";
-import { disclosure } from "./ui.js?v=7e4699d742";
-import { t } from "./i18n.js?v=7e4699d742";
+import { h, icon, pct } from "./util.js?v=4a0e972b24";
+import { DB, deckKey } from "./data.js?v=4a0e972b24";
+import { isOwned, ownedCount } from "./store.js?v=4a0e972b24";
+import { gameCard, chip } from "./cards.js?v=4a0e972b24";
+import { disclosure } from "./ui.js?v=4a0e972b24";
+import { t } from "./i18n.js?v=4a0e972b24";
 
 // ---------------------------------------------------------------- evidence, in plain words
 // level -> funnel stage; the numbers of each stage come from meta.json `methodology.pipeline`

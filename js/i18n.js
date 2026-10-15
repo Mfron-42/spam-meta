@@ -3,15 +3,15 @@
 // card texts are game data (cards.json `*_fr` / `*_en`).
 //
 // Add a string: give it a key in BOTH tables (the same key, dotted by view: "tl." deck tier list, "ct." card tier list,
-// "cx." codex, "md." my decks, "fd." deck finder, "card." card dialog, "about.", "code." collection code, "keep." keeping the collection
+// "cx." codex, "md." my decks, "fd." deck builder, "card." card dialog, "about.", "code." collection code, "keep." keeping the collection
 // (keep.js), "foot.", "head."). Placeholders are
 // {name}; an integer parameter is formatted for the language (1,148,832 / 1 148 832), any other value is printed as given,
 // so callers format decimals and percentages with util.js (dec, pct, pct1). A value that depends on a count is an object
 // {one, other} chosen by Intl.PluralRules on the parameter `count`, else `n` (French: 0 to 1.99 are "one"). `**bold**` is honoured by tx()
 // only. French copy uses plain spaces before : ; ? ! - they become no-break spaces when the table loads.
 
-import { h, fmtInt, dec } from "./util.js?v=7e4699d742";
-import { getLang } from "./store.js?v=7e4699d742";
+import { h, fmtInt, dec } from "./util.js?v=4a0e972b24";
+import { getLang } from "./store.js?v=4a0e972b24";
 
 const EN = {
   // ---- document and header
@@ -31,9 +31,8 @@ const EN = {
   "tab.codex": "Codex",
   "tab.decks": "My decks",
   "tab.decksCount": { one: "{n} deck you can build", other: "{n} decks you can build" },
-  "tab.finder": "Find a deck",
-  "tab.finderShort": "Find",
-  "tab.finderName": "Find a deck",
+  "tab.builder": "Builder",
+  "tab.builderName": "Deck builder",
   "app.loading": "Loading…",
   "err.viewTitle": "{tab} could not be loaded",
   "err.viewText": "Part of the page did not arrive. Reload to try again.",
@@ -95,6 +94,7 @@ const EN = {
   "card.isOwned": "Owned",
   "card.feeds": "Owned cards feed My decks.",
   "card.findDecks": "Decks with this card",
+  "card.findDecksTitle": "Open the Deck builder with this card",
   "card.element": "Element",
   "card.rarity": "Rarity",
   "card.hp": "HP",
@@ -443,9 +443,9 @@ const EN = {
   "md.tagTier": "Tier {tier} · #{rank} overall",
   "md.tagRank": "#{rank} overall",
 
-  // ---- deck finder (#builder, its own tab next to My decks)
-  "fd.title": "Deck finder",
-  "fd.h1": "Deck finder",
+  // ---- deck builder (#builder, its own tab next to My decks)
+  "fd.title": "Deck builder",
+  "fd.h1": "Deck builder",
   "fd.lede": "Pick up to 4 cards to see the best decks that hold them.",
   "fd.ph": "Add a card…",
   "fd.phFull": "4 cards picked",
@@ -550,9 +550,8 @@ const FR = {
   "tab.codex": "Codex",
   "tab.decks": "Mes decks",
   "tab.decksCount": { one: "{n} deck à ta portée", other: "{n} decks à ta portée" },
-  "tab.finder": "Trouver",
-  "tab.finderShort": "Trouver",
-  "tab.finderName": "Trouver un deck",
+  "tab.builder": "Builder",
+  "tab.builderName": "Deck builder",
   "app.loading": "Chargement…",
   "err.viewTitle": "{tab} n’a pas pu se charger",
   "err.viewText": "Une partie de la page n’est pas arrivée. Recharge pour réessayer.",
@@ -610,6 +609,7 @@ const FR = {
   "card.isOwned": "Possédée",
   "card.feeds": "Tes cartes alimentent Mes decks.",
   "card.findDecks": "Decks avec cette carte",
+  "card.findDecksTitle": "Ouvrir le Deck builder avec cette carte",
   "card.element": "Élément",
   "card.rarity": "Rareté",
   "card.hp": "PV",
@@ -945,16 +945,16 @@ const FR = {
   "md.emptyP": "Coche tes cartes dans le Codex pour trouver les decks que tu peux monter parmi {n}.",
   "md.openCodex": "Ouvrir le Codex",
   "md.import": "Importer un code de collection",
-  "md.orFind": "Pas de collection ? Choisis les cartes que tu veux dans",
+  "md.orFind": "Pas de collection ? Choisis les cartes que tu veux dans le",
   "md.meter": "Fiabilité {l} sur 4",
   "md.rateCap": "taux de victoire (ce test)",
   "md.missing": "Il manque :",
   "md.tagTier": "Tier {tier} · #{rank} au classement",
   "md.tagRank": "#{rank} au classement",
 
-  // ---- trouver un deck
-  "fd.title": "Trouver un deck",
-  "fd.h1": "Trouver un deck",
+  // ---- deck builder
+  "fd.title": "Deck builder",
+  "fd.h1": "Deck builder",
   "fd.lede": "Choisis jusqu’à 4 cartes pour voir les meilleurs decks qui les contiennent.",
   "fd.ph": "Ajouter une carte…",
   "fd.phFull": "4 cartes choisies",

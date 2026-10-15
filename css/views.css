@@ -100,7 +100,7 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .find-cards { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0 8px; min-width: 0; }
 .find-hit { display: inline-flex; align-items: center; gap: 4px; }
 .find-clear { height: 36px; padding: 0 16px; font-size: 16px; }
-/* "Decks with this card": the way from a list's search to the Deck finder, pushed to the end of the line */
+/* "Decks with this card": the way from a list's search to the Deck builder, pushed to the end of the line */
 .find-more { height: 36px; padding: 0 12px; margin-left: auto; font-size: 16px; }
 .guide-wrap + .find { margin-top: 16px; }
 @media (max-width: 759px) {
@@ -185,7 +185,7 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .meter i.on { background: var(--ink-2); box-shadow: none; }
 .more { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 16px; }
 
-/* ---------------------------------------------------------------- Deck finder */
+/* ---------------------------------------------------------------- Deck builder */
 .fd-pick { display: grid; gap: 12px; }
 .fd-field { max-width: 420px; }
 .field.off { opacity: .5; cursor: default; }

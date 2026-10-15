@@ -1,14 +1,14 @@
 // Dialogs (card, About, collection code) and the toast. Native <dialog>: the browser traps focus, makes the page behind
 // inert and closes on Escape; we add the 280 ms enter, the back-button close and the backdrop click.
 
-import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=7e4699d742";
-import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=7e4699d742";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=7e4699d742";
-import { gameCard, chip, L, cardName, otherName, ELEMENTS, elName, raName, unsize } from "./cards.js?v=7e4699d742";
-import { encode, decode } from "./code.js?v=7e4699d742";
-import { copyText, disclosure } from "./ui.js?v=7e4699d742";
-import { t, tx, millions } from "./i18n.js?v=7e4699d742";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent } from "./patch.js?v=7e4699d742";
+import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=4a0e972b24";
+import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=4a0e972b24";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=4a0e972b24";
+import { gameCard, chip, L, cardName, otherName, ELEMENTS, elName, raName, unsize } from "./cards.js?v=4a0e972b24";
+import { encode, decode } from "./code.js?v=4a0e972b24";
+import { copyText, disclosure } from "./ui.js?v=4a0e972b24";
+import { t, tx, millions } from "./i18n.js?v=4a0e972b24";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent } from "./patch.js?v=4a0e972b24";
 
 let openDlg = null, pushed = false;
 
@@ -108,7 +108,7 @@ export function refreshDialogs() {
 // ---- the card dialog, in three zones (DESIGN.md, "Card dialog"): a header band with what the card is (names, patch line,
 // element, rarity, HP, gold, the owned toggle); the card itself, its game art (with its resistances) on the left and its
 // kit on the right in framed groups (abilities, passives, talents with the suggested one first); then, on the night
-// ground, the "Meta" band: where it ranks (tier-list decks, card tier), "With and against" and the Deck finder link.
+// ground, the "Meta" band: where it ranks (tier-list decks, card tier), "With and against" and the Deck builder link.
 
 const fact = (k, v) => h("li.fact", [h("span.fact-k", k), h("span.fact-v", v)]);
 
@@ -273,7 +273,7 @@ function metaBand(c) {
   return h("section.cd-meta", { "aria-labelledby": "cd-meta-h" }, [
     h("div.cd-meta-h", [
       h("h3#cd-meta-h", t("card.metaH")),
-      h("a.btn.cd-find", { href: "#builder", "data-goto": "builder", "data-pick": c.key }, [icon("search"), t("card.findDecks")]),
+      h("a.btn.cd-find", { href: "#builder", "data-goto": "builder", "data-pick": c.key, title: t("card.findDecksTitle") }, [icon("search"), t("card.findDecks")]),
     ]),
     // the numbers below were measured before the patch: said once, above them
     oldNumbersNote(c),
