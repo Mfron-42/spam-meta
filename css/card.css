@@ -1,20 +1,17 @@
-/* SPAM Meta: the card dialog (site/js/dialogs.js; DESIGN.md "Card dialog"). Three zones, each with its own ground:
-   the header band (the card's names) on the panel; the card itself, art on the left (patch line, owned toggle and
-   resistances under it) and its kit on the right, dressed in the game card's own kit; the Meta band (where it ranks,
-   with and against) on the night ground. Values from DESIGN.md's closed scales and its game-kit tokens. */
+/* SPAM Meta: the card dialog (site/js/dialogs.js; DESIGN.md "Card dialog"). One dressed card sheet on the panel, no
+   printed title or section headings (the card face and the game dressing say what each part is): the card itself, art
+   on the left (patch line, owned toggle and resistances under it) and its kit on the right in the game card's own dress;
+   then the Meta band (where it ranks, with and against) on the night ground. Values from DESIGN.md's closed scales and
+   its game-kit tokens. */
 
 dialog.card-dlg { width: min(1040px, calc(100vw - 32px)); }
 .cd { display: grid; }
 
-/* ---------------------------------------------------------------- header band: the names (the card face shows the rest) */
-.cd-head { padding: 24px 32px 16px; border-bottom: 1px solid var(--line); }
-/* the close button (44px, 8px from the corner) sits over the name row: the names keep clear of it */
-.cd-id { display: grid; gap: 4px; min-width: 0; padding-right: 32px; }
-.cd-id h2 { font-size: 28px; }
-.cd-alt { color: var(--muted); }
-
-/* ---------------------------------------------------------------- the card: art left, kit right */
+/* ---------------------------------------------------------------- the card: art left, kit right
+   The close button floats in the top-right corner (12px in, 44px): the art starts at the top-left, the kit 32px lower so
+   the button never sits on it. */
 .cd-body { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 32px; align-items: start; padding: 32px; }
+.cd-kit { margin-top: 32px; }
 /* the art stays in view while the kit scrolls past it (inside the dialog's own scroller) */
 .cd-art { position: sticky; top: 24px; display: grid; gap: 16px; }
 .gcwrap { padding: 10px 10px 14px; }
@@ -34,10 +31,7 @@ dialog.card-dlg { width: min(1040px, calc(100vw - 32px)); }
    draws it: an ability on the client's ability banner (orb, name, cooldown sprite), a passive or a talent between the
    card's rarity wings (">> NAME <<"). Ribbon names are capitals with the card's hard outline, as on the card face. */
 .cd-kit { display: grid; gap: 24px; min-width: 0; }
-.cd-g { display: grid; gap: 12px; min-width: 0; }
-.cd-g-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
-.cd-g-h h3 { font-size: 22px; }
-.cd-g-note { color: var(--muted); font: 600 14px/1.4 var(--text); }
+.cd-g { display: grid; gap: 8px; min-width: 0; }
 .cd-g-b { display: grid; gap: 8px; }
 .cd-e { display: grid; gap: 8px; min-width: 0; }
 .kit-e { padding: 8px 16px 16px; border-radius: 12px; background: var(--kit-veil); }
@@ -58,7 +52,6 @@ dialog.card-dlg { width: min(1040px, calc(100vw - 32px)); }
 .kit-wing { display: flex; justify-content: center; gap: 8px; }
 .kit-wing h4 { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; max-width: calc(100% - 48px); text-align: center; }
 .kit-w { flex: 0 1 88px; min-width: 16px; height: 22px; background-size: 100% 100%; background-repeat: no-repeat; }
-.kit-ti { flex: none; width: 20px; height: 26px; background-size: contain; background-repeat: no-repeat; background-position: center; }
 .kit-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
 
 .cd-e-d { color: var(--ink-2); white-space: pre-line; }
@@ -76,17 +69,43 @@ dialog.card-dlg { width: min(1040px, calc(100vw - 32px)); }
 .cd-e-t { color: var(--muted); font: 600 14px/1.4 var(--text); }
 .cd-none { max-width: none; padding: 16px; border-radius: 12px; background: var(--kit-veil); color: var(--muted); }
 
-/* talents: the suggested one on the brighter veil, labelled by the Suggested tag; the others quieter */
-.cd-sugg { padding-top: 12px; background: var(--kit-veil-hi); box-shadow: inset 0 0 0 1px var(--line); }
-.cd-sugg-k { justify-self: start; }
-.cd-sugg .cd-e-d { color: var(--ink); }
-.cd-others { display: grid; gap: 8px; margin-top: 8px; }
-.cd-others-k { color: var(--muted); font: 600 14px/1.4 var(--text); }
-.cd-tl { display: grid; gap: 8px; }
-.cd-t .cd-e-d { color: var(--muted); }
-.cd-t .kit-rib h4 { font-size: 16px; color: var(--ink-2); }
-/* the other talents' wings shorter and dimmer, so the suggested talent and the passives keep the gold */
-.cd-t .kit-w { flex-basis: 56px; opacity: .6; }
+/* where the ruled lines come from: one quiet line under the abilities, with a sample of the rule */
+.hx-note { display: flex; align-items: center; gap: 8px; color: var(--muted); font: 600 14px/1.4 var(--text); }
+.hx-note-rule { flex: none; width: 2px; height: 16px; background: var(--line); }
+
+/* ---------------------------------------------------------------- talent picker (DESIGN.md "Talent picker")
+   The game's talent draft backdrop under a night shade; three talent tabs side by side (stacked on a phone), the
+   selected one ringed in cyan, the suggested one tagged; under them one shared detail area whose panes share a grid cell,
+   so it keeps the longest text's height and nothing moves when the selection changes (200ms cross-fade). */
+.tp { display: grid; gap: 8px; padding: 12px; border-radius: 12px;
+  background: linear-gradient(var(--kit-draft-shade), var(--kit-draft-shade)), url("../assets/ui/draft_talent_my_background.webp") center top / cover no-repeat, var(--night); }
+.tp-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.tp-note { color: var(--ink-2); font: 600 14px/1.4 var(--text); }
+.tp-tab { position: relative; display: grid; grid-template-columns: 24px minmax(0, 1fr); align-content: center; gap: 4px 8px; min-height: 64px; padding: 8px 12px;
+  border: 0; border-radius: 8px; background: var(--kit-shade); color: var(--ink-2); text-align: left; cursor: pointer;
+  transition: background-color var(--t-state) var(--curve), color var(--t-state) var(--curve); }
+.tp-ico { grid-row: 1 / span 2; align-self: center; width: 24px; height: 32px; background-size: contain; background-repeat: no-repeat; background-position: center; }
+.tp-name { align-self: end; min-width: 0; font: 400 16px/1.15 var(--display); letter-spacing: .01em; overflow-wrap: break-word; }
+.tp-rec { grid-column: 2; justify-self: start; align-self: start; }
+.tp-tab:not(:has(.tp-rec)) .tp-name { grid-row: 1 / span 2; align-self: center; }
+.tp-pc { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; }
+.tp-pc .pglyph { margin: 0; }
+/* the suggested talent keeps its own mark whatever is selected: a 1px Field Edge inner edge (never cyan); hover lifts a
+   tile to Panel Violet; the selected one is Panel Lifted with the 2px cyan inner ring */
+.tp-tab.rec { box-shadow: inset 0 0 0 1px var(--edge); }
+.tp-tab:hover { background: var(--panel); color: var(--ink); }
+.tp-tab:active { background: var(--socket); }
+.tp-tab[aria-selected="true"] { background: var(--panel-hi); color: var(--ink); box-shadow: inset 0 0 0 2px var(--accent); }
+.tp-tab:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--night), 0 0 0 4px var(--accent); }
+.tp-tab.rec:focus-visible { box-shadow: inset 0 0 0 1px var(--edge), 0 0 0 2px var(--night), 0 0 0 4px var(--accent); }
+.tp-tab[aria-selected="true"]:focus-visible { box-shadow: inset 0 0 0 2px var(--accent), 0 0 0 2px var(--night), 0 0 0 4px var(--accent); }
+.tp-detail { display: grid; padding: 12px 16px 16px; border-radius: 8px; background: var(--kit-shade); }
+/* the outgoing text goes at once and the new one fades in (200ms), so two texts never overlap */
+.tp-pane { grid-area: 1 / 1; display: grid; align-content: start; gap: 8px; min-width: 0; opacity: 0; visibility: hidden; }
+.tp-pane.on { opacity: 1; visibility: visible; transition: opacity var(--t-fade) var(--curve); }
+.tp-pane-h { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+.tp-pane-h h4 { font-size: 18px; }
+.tp-pane .cd-e-d { color: var(--ink); }
 
 /* ---------------------------------------------------------------- the Meta band, on the night ground */
 .cd-meta { display: grid; gap: 16px; padding: 24px 32px 32px; background: var(--night); border-top: 1px solid var(--line); }
@@ -143,18 +162,23 @@ dialog.card-dlg { width: min(1040px, calc(100vw - 32px)); }
 
 /* ---------------------------------------------------------------- phone: one column, in reading order */
 @media (max-width: 760px) {
-  .cd-head { padding: 24px 16px 16px; }
-  .cd-id { padding-right: 40px; }
-  .cd-id h2 { font-size: 22px; }
-  .cd-body { grid-template-columns: minmax(0, 1fr); gap: 24px; padding: 24px 16px; }
+  .cd-body { grid-template-columns: minmax(0, 1fr); gap: 24px; padding: 16px; }
+  .cd-kit { margin-top: 0; }
   .cd-art { position: static; justify-items: center; }
-  .cd-art .gcwrap { width: 260px; max-width: 100%; }
+  /* the card leaves the corner to the close button: 56px kept free on each side of it */
+  .cd-art .gcwrap { width: min(260px, calc(100% - 112px)); }
   /* under the centred card: the patch line centred, the toggle and the resistances across the column */
   .pline { justify-content: center; text-align: center; padding-inline: 0; }
   .cd-own, .cd-res { justify-self: stretch; }
   .kit-e { padding-inline: 12px; }
   .kit-rib { min-height: 36px; }
   .kit-w { flex-basis: 56px; }
+  /* still three side by side, as the game's draft lays them out: glyph over name over tag, centred */
+  .tp-tab { grid-template-columns: minmax(0, 1fr); justify-items: center; align-content: start; gap: 4px; min-height: 88px; padding: 8px 4px; text-align: center; }
+  .tp-ico { grid-row: auto; }
+  .tp-name, .tp-tab:not(:has(.tp-rec)) .tp-name { grid-row: auto; align-self: start; font-size: 14px; }
+  .tp-rec { grid-column: auto; justify-self: center; }
+  .tp-pc { top: 4px; right: 4px; }
   .cd-meta { padding: 24px 16px; }
   .cd-meta-h .cd-find { width: 100%; }
   .cd-stats { grid-template-columns: minmax(0, 1fr); }

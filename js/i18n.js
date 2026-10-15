@@ -10,8 +10,8 @@
 // {one, other} chosen by Intl.PluralRules on the parameter `count`, else `n` (French: 0 to 1.99 are "one"). `**bold**` is honoured by tx()
 // only. French copy uses plain spaces before : ; ? ! - they become no-break spaces when the table loads.
 
-import { h, fmtInt, dec } from "./util.js?v=a7940cbe94";
-import { getLang } from "./store.js?v=a7940cbe94";
+import { h, fmtInt, dec } from "./util.js?v=4835fc01ee";
+import { getLang } from "./store.js?v=4835fc01ee";
 
 const EN = {
   // ---- document and header
@@ -136,15 +136,13 @@ const EN = {
   "hx.series": "{count} {el} hits of {amounts} damage",
   "hx.bonus": "{el} bonus ({amount})",
   "hx.cd": "{amount} cooldown on the card hit",
-  "hx.note": "Ruled lines: from the card data, not in the game text.",
+  "hx.note": "Ruled lines are read from the card data; the game text leaves them out.",
   "hx.acc": "Accuracy ({amount}%)",
   "hx.critStat": "Critical ({amount}%)",
   "hx.all.enemy": "to all enemy cards",
   "hx.all.ally": "to all allied cards",
   "hx.random": "(random target)",
   // card dialog layout (2026-10-15): the suggested talent's cell, and the Meta band
-  "card.suggestedH": "Suggested talent",
-  "card.otherTalents": "Other talents",
   "card.metaH": "Meta",
   "card.tlK": "Tier-list decks",
   "card.tlBest": "Best: #{rank}, tier {tier}",
@@ -678,15 +676,13 @@ const FR = {
   "hx.series": "{count} coups {el} de {amounts} dégâts",
   "hx.bonus": "Bonus {el} ({amount})",
   "hx.cd": "{amount} de recharge sur la carte touchée",
-  "hx.note": "Lignes en retrait : données de la carte, absentes du texte du jeu.",
+  "hx.note": "Les lignes en retrait viennent des données de la carte ; le texte du jeu les omet.",
   "hx.acc": "Précision ({amount}%)",
   "hx.critStat": "Critique ({amount}%)",
   "hx.all.enemy": "sur toutes les cartes adverses",
   "hx.all.ally": "sur toutes les cartes alliées",
   "hx.random": "(cible au hasard)",
   // card dialog layout (2026-10-15): the suggested talent's cell, and the Meta band
-  "card.suggestedH": "Talent conseillé",
-  "card.otherTalents": "Autres talents",
   "card.metaH": "Méta",
   "card.tlK": "Decks de la tier list",
   "card.tlBest": "Meilleur : #{rank}, tier {tier}",

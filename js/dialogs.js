@@ -1,14 +1,14 @@
 // Dialogs (card, About, collection code) and the toast. Native <dialog>: the browser traps focus, makes the page behind
 // inert and closes on Escape; we add the 280 ms enter, the back-button close and the backdrop click.
 
-import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=a7940cbe94";
-import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=a7940cbe94";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=a7940cbe94";
-import { gameCard, chip, L, cardName, otherName, ELEMENTS, elName, unsize } from "./cards.js?v=a7940cbe94";
-import { encode, decode } from "./code.js?v=a7940cbe94";
-import { copyText, disclosure } from "./ui.js?v=a7940cbe94";
-import { t, tx, millions } from "./i18n.js?v=a7940cbe94";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent } from "./patch.js?v=a7940cbe94";
+import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=4835fc01ee";
+import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=4835fc01ee";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=4835fc01ee";
+import { gameCard, chip, L, cardName, ELEMENTS, elName, unsize } from "./cards.js?v=4835fc01ee";
+import { encode, decode } from "./code.js?v=4835fc01ee";
+import { copyText, disclosure } from "./ui.js?v=4835fc01ee";
+import { t, tx, millions } from "./i18n.js?v=4835fc01ee";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph } from "./patch.js?v=4835fc01ee";
 
 let openDlg = null, pushed = false;
 
@@ -116,24 +116,28 @@ const pctInt = (n) => pct(n / 100, 0);
 // an ability, passive or talent the last game patch changed carries a quiet tag beside its name (patch.js)
 const changed = (c, part, i) => (entryChanged(c, part, i) ? entryTag(c) : null);
 
-/** One group of the kit: its heading row (with an optional caption), then its entries, each a tile. */
-function kitGroup(id, title, entries, note) {
+/**
+ * One group of the kit. Its heading is for screen readers only (owner, 2026-10-15: "Capacités / Passifs / Talents ... ça
+ * se comprend"): the game dressing says what each entry is. An optional foot line closes the group.
+ */
+function kitGroup(id, title, entries, foot) {
   return h("section.cd-g", { "aria-labelledby": id }, [
-    h("div.cd-g-h", [h("h3", { id }, title), note ? h("span.cd-g-note", note) : null]),
+    h("h3.sr", { id }, title),
     h("div.cd-g-b", entries),
+    foot || null,
   ]);
 }
 
-// the card's rarity wings frame a passive's or a talent's name, as on the card face (a divine card uses the legendary
-// wings, as the client does; talents carry no rarity in the data, so they take the card's, like its passives)
+// the card's rarity wings frame a passive's name, as on the card face (a divine card uses the legendary wings, as the
+// client does)
 const wingOf = (c) => (c.rarity === "divine" ? "legendary" : c.rarity);
 
-/** A passive's or talent's ribbon: ">> NAME <<" between the card's rarity wings, the talent glyph before a talent's name. */
-function wingRibbon(c, obj, talent) {
+/** A passive's ribbon: ">> NAME <<" between the card's rarity wings. */
+function wingRibbon(c, obj) {
   const w = wingOf(c);
   return h("div.kit-rib.kit-wing", [
     h("i.kit-w.sp-pl-" + w + "-l", { "aria-hidden": "true" }),
-    h("h4", { lang: getLang() }, [talent ? h("i.kit-ti.ab-talent", { "aria-hidden": "true" }) : null, L(obj, "name")]),
+    h("h4", { lang: getLang() }, L(obj, "name")),
     h("i.kit-w.sp-pl-" + w + "-r", { "aria-hidden": "true" }),
   ]);
 }
@@ -225,8 +229,8 @@ function hiddenLine(a, idx) {
     say(it.on === "crit" ? (it.every_hit ? "hx.everyCrit" : "hx.crit") : it.every_hit ? "hx.every" : "hx.also", [n]);
   }
   if (!sentences.length) return null;
-  // these words are the site's, not the game's: the Abilities heading says so ("hx.note"), and a hidden prefix says it to
-  // a screen reader at the block itself (no title as well, it would be announced twice)
+  // these words are the site's, not the game's: one line under the abilities says so ("hx.note"), and a hidden prefix says
+  // it to a screen reader at the block itself (no title as well, it would be announced twice)
   return h("div.cd-e-x", [h("span.sr", t("hx.title")), ...sentences]);
 }
 
@@ -257,35 +261,64 @@ function abilityEntry(c, a, i) {
 function passiveEntry(c, p, i) {
   const lang = getLang();
   return h("div.cd-e.kit-e", [
-    wingRibbon(c, p, false),
+    wingRibbon(c, p),
     metaRow([changed(c, "passives", i)]),
     h("p.cd-e-d", { lang }, L(p, "description")),
   ]);
 }
 
 /**
- * The talents: the suggested one (the talent the site's simulations give the card) first, its tile one step brighter and
- * labelled "Suggested talent", then the others as quieter tiles. Without a suggested talent, the plain list.
+ * The talents, as the choice they are: a deck drafts ONE of the card's talents (owner, 2026-10-15: "on ne ressent pas trop
+ * le switch entre les 3 et la reco"). On the backdrop of the game's own talent draft screen, the talents sit side by side as
+ * three tabs (stacked on a phone), the suggested one carrying the "Suggested" tag and selected when the dialog opens; the
+ * selected talent's name and text show in one shared detail area under them. Every text stays in the page (the panes share
+ * one grid cell, so the area keeps the height of the longest and nothing moves when the choice changes); arrow keys move
+ * between the tabs. Without a suggested talent, the first one is selected and no tag is drawn.
  */
-function talentEntries(c) {
+function talentPicker(c) {
   const lang = getLang();
   const sugg = suggestedTalent(c);
-  const row = (tl, i) => h("li.cd-e.kit-e.cd-t", [
-    wingRibbon(c, tl, true),
-    metaRow([changed(c, "talents", i)]),
-    h("p.cd-e-d", { lang }, L(tl, "description")),
-  ]);
-  const others = c.talents.map((tl, i) => [tl, i]).filter(([, i]) => !sugg || i !== sugg.i);
-  if (!sugg) return [h("ul.cd-tl", others.map(([tl, i]) => row(tl, i)))];
-  return [
-    h("div.cd-e.kit-e.cd-sugg", [
-      h("span.tag.sugg.cd-sugg-k", { title: t("card.suggestedTip") }, t("card.suggestedH")),
-      wingRibbon(c, sugg.tl, true),
-      metaRow([changed(c, "talents", sugg.i)]),
-      h("p.cd-e-d", { lang }, L(sugg.tl, "description")),
-    ]),
-    others.length ? h("div.cd-others", [h("p.cd-others-k", t("card.otherTalents")), h("ul.cd-tl", others.map(([tl, i]) => row(tl, i)))]) : null,
-  ];
+  const first = sugg ? sugg.i : 0;
+  const id = (i, part) => `tp-${part}-${i}`;
+  const tabs = [], panes = [];
+  const select = (k, focus) => {
+    tabs.forEach((b, i) => {
+      const on = i === k;
+      b.setAttribute("aria-selected", String(on));
+      b.tabIndex = on ? 0 : -1;
+      panes[i].classList.toggle("on", on);
+    });
+    if (focus) tabs[k].focus();
+  };
+  c.talents.forEach((tl, i) => {
+    const rec = sugg && i === sugg.i;
+    tabs.push(h("button.tp-tab" + (rec ? ".rec" : ""), {
+      type: "button", role: "tab", id: id(i, "tab"), "aria-controls": id(i, "pane"), "aria-selected": String(i === first),
+      tabIndex: i === first ? 0 : -1, onclick: () => select(i, false),
+    }, [
+      h("i.tp-ico.ab-talent", { "aria-hidden": "true" }),
+      h("span.tp-name", { lang }, L(tl, "name")),
+      rec ? h("span.tag.sugg.tp-rec", { title: t("card.suggestedTip") }, t("card.suggested")) : null,
+      // the patch mark (its words in the pane's tag, and here for a screen reader)
+      entryChanged(c, "talents", i) ? h("span.tp-pc", { title: t("pc.entry", { patch: DB.patch }) }, [glyph(c), h("span.sr", t("pc.entry", { patch: DB.patch }))]) : null,
+    ]));
+    panes.push(h("div.tp-pane" + (i === first ? ".on" : ""), { role: "tabpanel", id: id(i, "pane"), "aria-labelledby": id(i, "tab") }, [
+      h("div.tp-pane-h", [h("h4", { lang }, L(tl, "name")), changed(c, "talents", i)]),
+      h("p.cd-e-d", { lang }, L(tl, "description")),
+    ]));
+  });
+  const list = h("div.tp-tabs", { role: "tablist", "aria-label": t("card.talents"), "aria-describedby": "tp-note" }, tabs);
+  list.addEventListener("keydown", (e) => {
+    const k = tabs.indexOf(document.activeElement);
+    if (k < 0) return;
+    const n = tabs.length;
+    const to = { ArrowRight: k + 1, ArrowDown: k + 1, ArrowLeft: k - 1, ArrowUp: k - 1, Home: 0, End: n - 1 }[e.key];
+    if (to == null) return;
+    e.preventDefault();
+    select((to + n) % n, true);
+  });
+  // the one rule that makes it a choice, said once on the panel
+  return [h("div.tp", [h("p.tp-note#tp-note", t("card.talentsNote")), list, h("div.tp-detail", panes)])];
 }
 
 /**
@@ -412,18 +445,15 @@ function renderCardDialog() {
 
   const kit = [
     kitGroup("cd-ab", t("card.abilities"), c.abilities.length ? c.abilities.map((a, i) => abilityEntry(c, a, i)) : [h("p.cd-none", t("card.noAbility"))],
-      c.abilities.some((a) => a.hidden) ? t("hx.note") : null),
+      // where the ruled lines come from, said once under the abilities that have them
+      c.abilities.some((a) => a.hidden) ? h("p.hx-note", [h("span.hx-note-rule", { "aria-hidden": "true" }), t("hx.note")]) : null),
     c.passives.length ? kitGroup("cd-pa", t("card.passives"), c.passives.map((p, i) => passiveEntry(c, p, i))) : null,
-    c.talents.length ? kitGroup("cd-ta", t("card.talents"), talentEntries(c), t("card.talentsNote")) : null,
+    c.talents.length ? kitGroup("cd-ta", t("card.talents"), talentPicker(c)) : null,
   ];
 
+  // the card's name is the dialog's accessible name; it is not printed (owner, 2026-10-15: the card face carries it)
   const body = h("div.cd", [
-    h("header.cd-head", [
-      h("div.cd-id", [
-        h("h2#dlg-name", { lang }, cardName(c)),
-        otherName(c) !== cardName(c) ? h("p.cd-alt", { lang: lang === "fr" ? "en" : "fr", translate: "no" }, otherName(c)) : null,
-      ]),
-    ]),
+    h("h2.sr#dlg-name", { lang }, cardName(c)),
     h("div.cd-body", [
       h("div.cd-art", [
         h("div.gcwrap", gameCard(c, { size: "full", interactive: false, eager: true })),
