@@ -8,15 +8,15 @@
 // here from tierlist.json and decks.json, the files the other tabs already read. No counter is shown per card.
 // A language change rebuilds the page from the same state (measurement, view, filters, rings, open panels).
 
-import { h, $, $$, icon, fmtInt, pct, pct1, sgn, reducedMotion } from "./util.js?v=e2b18ad8df";
-import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=e2b18ad8df";
-import { DB, loadCardTiers, loadTier, loadDecks } from "./data.js?v=e2b18ad8df";
-import { on, getLang } from "./store.js?v=e2b18ad8df";
-import { cardName, otherName, chip, L, ELEMENTS, RARITIES, elName, raName } from "./cards.js?v=e2b18ad8df";
-import { disclosure, filterChip, setChip } from "./ui.js?v=e2b18ad8df";
-import { t, tx, ord } from "./i18n.js?v=e2b18ad8df";
-import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, patchNotice, suggestedTalent } from "./patch.js?v=e2b18ad8df";
-import { textNodes, hideTip } from "./cardtext.js?v=e2b18ad8df";
+import { h, $, $$, icon, fmtInt, pct, pct1, sgn, reducedMotion } from "./util.js?v=dc677fb3a3";
+import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=dc677fb3a3";
+import { DB, loadCardTiers, loadTier, loadDecks } from "./data.js?v=dc677fb3a3";
+import { on, getLang } from "./store.js?v=dc677fb3a3";
+import { cardName, otherName, chip, L, ELEMENTS, RARITIES, elName, raName } from "./cards.js?v=dc677fb3a3";
+import { disclosure, filterChip, setChip } from "./ui.js?v=dc677fb3a3";
+import { t, tx, ord } from "./i18n.js?v=dc677fb3a3";
+import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, patchNotice, suggestedTalent } from "./patch.js?v=dc677fb3a3";
+import { textNodes, hideTip } from "./cardtext.js?v=dc677fb3a3";
 
 const AXK = { c: "ct.axC", r: "ct.axR" };
 const ax = (a) => t(AXK[a]);

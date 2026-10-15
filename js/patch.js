@@ -3,16 +3,28 @@
 // filled when a value, an ability or a passive changed (the class "mechanical"), hollow when only talents or texts did.
 // The data carries codes and positions; every word comes from i18n.js ("pc.*").
 
-import { h, icon } from "./util.js?v=e2b18ad8df";
-import { DB } from "./data.js?v=e2b18ad8df";
-import { L } from "./cards.js?v=e2b18ad8df";
-import { t } from "./i18n.js?v=e2b18ad8df";
+import { h, icon, fmtDate } from "./util.js?v=dc677fb3a3";
+import { DB } from "./data.js?v=dc677fb3a3";
+import { L } from "./cards.js?v=dc677fb3a3";
+import { t } from "./i18n.js?v=dc677fb3a3";
+
+// Three patches can differ, and each label names the one it is about (SPEC.md, "Patch labels"):
+// - the GAME patch, the client players run today (below; the lab reads it from the game files);
+// - the CARD DATA patch, DB.patch (cards.json `patch`): card faces, card markers, the Codex;
+// - the RANKINGS patch, DB.meta.patch (meta.json `patch`): decks, tiers, counters, games, everything measured.
+// The game patch has no export of its own yet: bump it here, with the pc.notice text, when the lab reports a new client.
+export const GAME_PATCH = { patch: "1.24", date: "2026-10-15" };
 
 export const changeOf = (c) => (c && c.patch_change) || null;
 /** A value, an ability or a passive changed: the rankings' numbers for this card are from before the change. */
 export const numbersMoved = (c) => (changeOf(c) || {}).class === "mechanical";
 /** The patch the rankings were computed on (meta.json), when it is older than the card data's (cards.json). */
 export const rankingsBehind = () => (DB.meta && DB.patch && DB.meta.patch !== DB.patch ? DB.meta.patch : null);
+/** The rankings patch, when it is not the game's: the ranking views then carry the patch notice. */
+const rankingsBehindGame = () => (DB.meta && DB.meta.patch !== GAME_PATCH.patch ? DB.meta.patch : null);
+
+/** The three patches in one line (footer, About): "Game patch 1.24, card data 1.23, rankings 1.22". */
+export const patchLine = () => t("pc.line", { game: GAME_PATCH.patch, cards: DB.patch, rank: DB.meta.patch });
 
 const word = (c) => t("pc." + changeOf(c).class, { patch: DB.patch });
 
@@ -61,15 +73,16 @@ export function oldNumbersNote(c) {
 }
 
 /**
- * The patch notice of the ranking views (Deck tier list, Card tier list, My decks), or null when the rankings are current.
+ * The patch notice of the ranking views (Deck tier list, Card tier list, My decks, Deck builder), or null when the rankings
+ * are on the game's patch. Its text is the lab's finding for that game patch (pc.notice), never a card name.
  * `legend`: the view draws the patch mark on its cards and has no other legend for it (the Deck tier list), so the notice
- * ends with "◆ card changed" (the glyph is decorative there; the marks carry their own words for screen readers).
+ * ends with "◆ changed in 1.23", the card data's patch (the glyph is decorative there; the marks carry their own words).
  */
 export function patchNotice({ legend = false } = {}) {
-  const old = rankingsBehind();
-  if (!old) return null;
-  const key = h("span.pnotice-key", [h("i.pglyph", { "aria-hidden": "true" }), t("pc.noticeKey")]);
-  return h("p.pnotice", { role: "note" }, [icon("info"), h("span", [t("pc.notice", { patch: DB.patch, old }), legend ? [" ", key] : null])]);
+  if (!rankingsBehindGame()) return null;
+  const key = h("span.pnotice-key", [h("i.pglyph", { "aria-hidden": "true" }), t("pc.noticeKey", { patch: DB.patch })]);
+  const date = fmtDate(GAME_PATCH.date, "long", false);
+  return h("p.pnotice", { role: "note" }, [icon("info"), h("span", [t("pc.notice", { game: GAME_PATCH.patch, date }), legend ? [" ", key] : null])]);
 }
 
 /** The suggested talent of a card (cards.json `suggested_talent`): the talent object and its position, or null. */

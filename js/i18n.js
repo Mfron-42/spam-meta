@@ -10,8 +10,8 @@
 // {one, other} chosen by Intl.PluralRules on the parameter `count`, else `n` (French: 0 to 1.99 are "one"). `**bold**` is honoured by tx()
 // only. French copy uses plain spaces before : ; ? ! - they become no-break spaces when the table loads.
 
-import { h, fmtInt, dec } from "./util.js?v=e2b18ad8df";
-import { getLang } from "./store.js?v=e2b18ad8df";
+import { h, fmtInt, dec } from "./util.js?v=dc677fb3a3";
+import { getLang } from "./store.js?v=dc677fb3a3";
 
 const EN = {
   // ---- document and header
@@ -51,7 +51,7 @@ const EN = {
   "foot.ai": "This site is AI-generated.",
   "foot.method": "Patch {patch} rankings: {games} matches simulated by AIs in an offline copy of the game, cross-checked by an AlphaZero-style AI.",
   "foot.games": "Patch {patch}: {games} matches ({parts}). All patches: {all}.",
-  "foot.patch": "Patch {patch}, updated {date}.",
+  "foot.patch": "{line}. Updated {date}.",
   "foot.how": "How it is computed",
   "foot.help": "Bug or question? Discord:",
   "foot.copyAria": "Copy the Discord name",
@@ -165,8 +165,10 @@ const EN = {
   "card.suggested": "Suggested",
   "card.suggestedTip": "The talent the site's simulations give this card.",
   // patch markers (patch.js): what the last game patch changed, and the rankings that predate it
-  "pc.notice": "Patch {patch} is out: rankings are from {old}, being recomputed.",
-  "pc.noticeKey": "card changed",
+  // the lab's finding for the game patch in patch.js (GAME_PATCH): rewritten with each new game patch
+  "pc.notice": "Game patch {game} ({date}): in the game files, the only fight change is the Transition talent, which now always brings back its own card. Rankings and decks on this site come from earlier patches and are being recomputed.",
+  "pc.noticeKey": "changed in {patch}",
+  "pc.line": "Game patch {game}, card data {cards}, rankings {rank}",
   "pc.mechanical": "Changed in {patch}",
   "pc.talent": "Talents changed in {patch}",
   "pc.text": "Text changed in {patch}",
@@ -393,7 +395,7 @@ const EN = {
 
   // ---- codex
   "cx.h1": "Codex",
-  "cx.lede": "All {n} cards of patch {patch}. Tap one for its details.",
+  "cx.lede": "All {n} cards, patch {patch} data (game on {game}). Tap one for its details.",
   "cx.ofOwned": " of {total} owned",
   "cx.hintNone": "Tap the round button on each card you own.",
   "cx.hintSome": "My decks uses these cards.",
@@ -520,7 +522,7 @@ const EN = {
   "about.down": { one: "One deck is shown face down: its numbers count, its cards stay hidden until a balance patch to avoid pay-to-win.", other: "{n} decks are shown face down: their numbers count, their cards stay hidden until a balance patch to avoid pay-to-win." },
   "about.talents": "Decks were played without talents; with talents they can play differently.",
   "about.dataH": "Data",
-  "about.data": "Patch {patch}. Updated {date}.",
+  "about.data": "{line}. Updated {date}.",
   "about.stage.screen": "Basic AI, each deck against {refs} reference decks, {games} games.",
   "about.stage.halving": "Strong AI against {probes} probe decks over three rounds ({rounds} games).",
   "about.stage.round_robin": "Strong AI, the {decks} best decks play each other, {gpp} games per pair.",
@@ -595,7 +597,7 @@ const FR = {
   "foot.ai": "Ce site est généré par IA.",
   "foot.method": "Classements du patch {patch} : {games} de parties simulées par des IA dans une copie hors ligne du jeu, recoupés par une IA de type AlphaZero.",
   "foot.games": "Patch {patch} : {games} parties ({parts}). Tous patchs confondus : {all}.",
-  "foot.patch": "Patch {patch}, mis à jour le {date}.",
+  "foot.patch": "{line}. Mis à jour le {date}.",
   "foot.how": "Comment c’est calculé",
   "foot.help": "Un bug, une question ? Discord :",
   "foot.copyAria": "Copier le pseudo Discord",
@@ -703,8 +705,9 @@ const FR = {
   "cm.err": "Ces listes n’ont pas pu se charger.",
   "card.suggested": "Conseillé",
   "card.suggestedTip": "Le talent que les simulations du site donnent à cette carte.",
-  "pc.notice": "Patch {patch} sorti : classements du {old}, recalcul en cours.",
-  "pc.noticeKey": "carte modifiée",
+  "pc.notice": "Patch {game} du jeu ({date}) : dans les fichiers du jeu, le seul changement en combat est le talent Transition, qui ramène désormais toujours sa propre carte. Les classements et les decks du site viennent de patchs précédents et sont en cours de recalcul.",
+  "pc.noticeKey": "modifiée en {patch}",
+  "pc.line": "Patch du jeu {game}, données des cartes {cards}, classements {rank}",
   "pc.mechanical": "Modifiée en {patch}",
   "pc.talent": "Talents modifiés en {patch}",
   "pc.text": "Texte modifié en {patch}",
@@ -928,7 +931,7 @@ const FR = {
   "ct.bestLs": "listé, {level}",
 
   "cx.h1": "Codex",
-  "cx.lede": "Les {n} cartes du patch {patch}. Touche-en une pour ses détails.",
+  "cx.lede": "Les {n} cartes, données du patch {patch} (jeu en {game}). Touche-en une pour ses détails.",
   "cx.ofOwned": " sur {total} possédées",
   "cx.hintNone": "Touche le bouton rond de chaque carte que tu possèdes.",
   "cx.hintSome": "Mes decks utilise ces cartes.",
@@ -1053,7 +1056,7 @@ const FR = {
   "about.down": { one: "Un deck est affiché face cachée : ses chiffres comptent, ses cartes restent cachées jusqu’à un patch d’équilibrage pour éviter le pay-to-win.", other: "{n} decks sont affichés face cachée : leurs chiffres comptent, leurs cartes restent cachées jusqu’à un patch d’équilibrage pour éviter le pay-to-win." },
   "about.talents": "Les decks ont joué sans talents ; avec, ils peuvent se comporter autrement.",
   "about.dataH": "Données",
-  "about.data": "Patch {patch}. Mis à jour le {date}.",
+  "about.data": "{line}. Mis à jour le {date}.",
   "about.stage.screen": "IA de base, chaque deck contre {refs} decks de référence, {games} parties.",
   "about.stage.halving": "IA forte contre {probes} decks témoins en trois tours ({rounds} parties).",
   "about.stage.round_robin": "IA forte, les {decks} meilleurs decks s’affrontent tous, {gpp} parties par duel.",

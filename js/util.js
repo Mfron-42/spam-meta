@@ -1,6 +1,6 @@
 // Small DOM and formatting helpers shared by every module. Numbers follow the page language (store.js).
 
-import { getLang } from "./store.js?v=e2b18ad8df";
+import { getLang } from "./store.js?v=dc677fb3a3";
 
 /** Create an element: h("div.cls#id", {attr: v, onclick}, child, [children], "text"). Text is always set as text. */
 export function h(tag, props, ...kids) {
@@ -68,8 +68,9 @@ export const pm = (ci) => "±" + dec(ci * 100, 1);
 export const sgn = (x) => (x > 0 ? "+" : x < 0 ? "−" : "") + dec(Math.abs(x), 2);
 
 /** A date "YYYY-MM-DD" as "14 October 2026" / "14 octobre 2026" (month "long" or "short"). */
+// a date never breaks across lines ("14 octobre 2026" stays whole): its spaces are no-break spaces
 export const fmtDate = (iso, month = "long", year = true) => new Date(iso + "T00:00:00Z")
-  .toLocaleDateString(locale(), { day: "numeric", month, year: year ? "numeric" : undefined, timeZone: "UTC" });
+  .toLocaleDateString(locale(), { day: "numeric", month, year: year ? "numeric" : undefined, timeZone: "UTC" }).replace(/ /g, " ");
 
 export function debounce(fn, ms) {
   let t;

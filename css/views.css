@@ -249,7 +249,7 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .pnotice { display: flex; align-items: flex-start; gap: 12px; justify-self: start; max-width: 100%; margin-top: 8px; padding: 10px 16px; border-radius: 12px;
   background: var(--panel); border: 1px solid var(--line); color: var(--ink); text-wrap: pretty; }
 .pnotice .ico { height: 1lh; color: var(--muted); }
-.pnotice > span { min-width: 0; }
+.pnotice > span { min-width: 0; max-width: 68ch; }
 .pnotice-key { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); white-space: nowrap; }
 
 /* ---------------------------------------------------------------- About and collection code */

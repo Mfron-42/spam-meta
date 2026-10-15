@@ -3,16 +3,16 @@
 // drawn as a full-screen card view (card.css); its enter and exit (the card flying from its tile) are played by
 // cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=e2b18ad8df";
-import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=e2b18ad8df";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=e2b18ad8df";
-import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize } from "./cards.js?v=e2b18ad8df";
-import { encode, decode } from "./code.js?v=e2b18ad8df";
-import { copyText, disclosure } from "./ui.js?v=e2b18ad8df";
-import { t, tx, millions } from "./i18n.js?v=e2b18ad8df";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph } from "./patch.js?v=e2b18ad8df";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=e2b18ad8df";
-import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=e2b18ad8df";
+import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=dc677fb3a3";
+import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=dc677fb3a3";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=dc677fb3a3";
+import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize } from "./cards.js?v=dc677fb3a3";
+import { encode, decode } from "./code.js?v=dc677fb3a3";
+import { copyText, disclosure } from "./ui.js?v=dc677fb3a3";
+import { t, tx, millions } from "./i18n.js?v=dc677fb3a3";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine } from "./patch.js?v=dc677fb3a3";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=dc677fb3a3";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=dc677fb3a3";
 
 let openDlg = null, pushed = false;
 
@@ -549,7 +549,7 @@ function buildAbout() {
         h("li", t("about.talents")),
       ]),
     ]),
-    h("section", [h("h3", t("about.dataH")), h("p", t("about.data", { patch: m.patch, date: fmtDate(m.generated) }))]),
+    h("section", [h("h3", t("about.dataH")), h("p", t("about.data", { line: patchLine(), date: fmtDate(m.generated) }))]),
     h("p.legal", t("foot.legal")),
   ]);
 }
