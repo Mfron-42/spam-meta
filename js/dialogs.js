@@ -1,15 +1,17 @@
 // Dialogs (card, About, collection code) and the toast. Native <dialog>: the browser traps focus, makes the page behind
-// inert and closes on Escape; we add the 280 ms enter, the back-button close and the backdrop click.
+// inert and closes on Escape; we add the 280 ms enter, the back-button close and the backdrop click. The card dialog's
+// enter and exit (the card flying from its tile) are played by cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=bd195f6cd6";
-import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=bd195f6cd6";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=bd195f6cd6";
-import { gameCard, chip, L, cardName, ELEMENTS, elName, unsize } from "./cards.js?v=bd195f6cd6";
-import { encode, decode } from "./code.js?v=bd195f6cd6";
-import { copyText, disclosure } from "./ui.js?v=bd195f6cd6";
-import { t, tx, millions } from "./i18n.js?v=bd195f6cd6";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph } from "./patch.js?v=bd195f6cd6";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=bd195f6cd6";
+import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=e8167c6270";
+import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=e8167c6270";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=e8167c6270";
+import { gameCard, chip, L, cardName, ELEMENTS, elName, unsize } from "./cards.js?v=e8167c6270";
+import { encode, decode } from "./code.js?v=e8167c6270";
+import { copyText, disclosure } from "./ui.js?v=e8167c6270";
+import { t, tx, millions } from "./i18n.js?v=e8167c6270";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph } from "./patch.js?v=e8167c6270";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=e8167c6270";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=e8167c6270";
 
 let openDlg = null, pushed = false;
 
@@ -29,6 +31,8 @@ export function openModal(dlg, onClose, url) {
 
 function closeNow(dlg) {
   hideTip();
+  // the card's tile gets its card back before the dialog closes, so the browser can return focus to it
+  if (dlg === cardDlg()) forget();
   dlg.classList.remove("on");
   if (dlg.open) dlg.close();
   document.documentElement.classList.remove("modal-open");
@@ -38,8 +42,8 @@ function closeNow(dlg) {
 
 export function closeModal(dlg, fromPop = false) {
   if (!dlg.open) return;
-  dlg.classList.remove("on");
-  waitClose(() => closeNow(dlg));
+  if (dlg === cardDlg()) closeMotion(dlg, () => closeNow(dlg));
+  else { dlg.classList.remove("on"); waitClose(() => closeNow(dlg)); }
   if (pushed && !fromPop) { pushed = false; history.back(); }
 }
 
@@ -72,12 +76,21 @@ export function hideToast() { $("#toast").classList.remove("on"); }
 let currentKey = null;
 const cardDlg = () => $("#dlg-card");
 
-export function openCard(key, mode) {
+/**
+ * Open a card. `mode` "url": the page was opened on the card's address (a deep link or a direct load), so no history
+ * entry is added and the card opens without travelling. `from`: the pressed control; its card flies to the dialog.
+ */
+export function openCard(key, mode, from) {
   const c = DB.byKey.get(key);
   if (!c) return;
+  // what the flight needs is taken before anything changes (a chip inside the open dialog is replaced below); a motion
+  // still running ends at once, so a second card never lands in a half-open or half-closed dialog
+  const flight = mode === "url" ? null : takeOff(from);
+  settle();
+  const dlg = cardDlg();
+  const fresh = !dlg.open;
   currentKey = key;
   renderCardDialog();
-  const dlg = cardDlg();
   const tab = location.hash.replace(/^#/, "").split("/")[0] || "tiers";
   const fromUrl = mode === "url" && !dlg.open;
   dlg._fromUrl = fromUrl;
@@ -86,6 +99,7 @@ export function openCard(key, mode) {
     if (dlg._fromUrl) { history.replaceState(null, "", "#" + tab); dlg._fromUrl = false; }
   }, `#${tab}/${key}`);
   dlg.querySelector(".dlg-scroll").scrollTop = 0;
+  openMotion(dlg, flight, fresh);
 }
 
 /**
@@ -104,7 +118,7 @@ export function leaveCard(view) {
 /** A language change redraws what the dialogs show: the open card, the About text, the collection dialog's counts. */
 export function refreshDialogs() {
   hideTip();
-  if (currentKey && cardDlg().open) renderCardDialog();
+  if (currentKey && cardDlg().open) { settle(); if (currentKey && cardDlg().open) renderCardDialog(); }
   $("#about-body").replaceChildren(buildAbout());
   if ($("#dlg-code").open) paintCodeCount();
 }

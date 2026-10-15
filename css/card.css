@@ -7,6 +7,21 @@
 dialog.card-dlg { width: min(1040px, calc(100vw - 32px)); }
 .cd { display: grid; }
 
+/* ---------------------------------------------------------------- open and close (site/js/cardmotion.js)
+   The card dialog's enter and exit are Web Animations (opacity and transform only), not the .on transition of the other
+   dialogs. The flying card is a ghost in the top layer, at the dialog card's final place: two faces back to back (the
+   pressed tile, then the card as the dialog draws it), turned and moved by one transform. While it flies, the real card
+   and the tile's art stay mounted but invisible. */
+dialog.card-dlg, dialog.card-dlg.on { opacity: 1; transform: none; transition: none; }
+#card-ghost { position: fixed; inset: auto; margin: 0; padding: 0; border: 0; background: none; color: inherit; overflow: visible; pointer-events: none; }
+.cg-turn { position: absolute; inset: 0; transform-style: preserve-3d; will-change: transform; }
+.cg-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.cg-back { transform: rotateY(180deg); }
+/* a thumbnail (chip, mini card, tier icon) flies as its art on the card frame */
+.cg-thumb { position: absolute; inset: 0; overflow: hidden; border-radius: calc(var(--u) * 7); border: calc(var(--u) * 1.4) solid var(--card-edge); background: var(--card-edge); box-shadow: var(--shadow); }
+.cg-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.cg-away { visibility: hidden !important; }
+
 /* ---------------------------------------------------------------- the card: art left, kit right
    The close button floats in the top-right corner (12px in, 44px): the art starts at the top-left, the kit 32px lower so
    the button never sits on it. */
@@ -160,6 +175,10 @@ dialog.card-dlg { width: min(1040px, calc(100vw - 32px)); }
 
 /* ---------------------------------------------------------------- phone: one column, in reading order */
 @media (max-width: 760px) {
+  /* a full-height sheet anchored to the bottom edge; it rises 24px as it opens */
+  dialog.card-dlg { width: 100%; max-width: none; height: calc(100vh - 8px); height: calc(100dvh - 8px); max-height: none; margin: auto 0 0;
+    border-width: 1px 0 0; border-radius: 12px 12px 0 0; }
+  dialog.card-dlg .dlg-scroll { height: 100%; max-height: none; }
   .cd-body { grid-template-columns: minmax(0, 1fr); gap: 24px; padding: 16px; }
   .cd-kit { margin-top: 0; }
   .cd-art { position: static; justify-items: center; }
@@ -177,7 +196,7 @@ dialog.card-dlg { width: min(1040px, calc(100vw - 32px)); }
   .tp-name, .tp-tab:not(:has(.tp-rec)) .tp-name { grid-row: auto; align-self: start; font-size: 14px; }
   .tp-rec { grid-column: auto; justify-self: center; }
   .tp-pc { top: 4px; right: 4px; }
-  .cd-meta { padding: 24px 16px; }
+  .cd-meta { padding: 24px 16px calc(24px + env(safe-area-inset-bottom)); }
   .cd-meta-h .cd-find { width: 100%; }
   .cd-stats { grid-template-columns: minmax(0, 1fr); }
   .cd-stat { min-height: 0; }

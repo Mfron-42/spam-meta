@@ -1,7 +1,7 @@
 // Loads the generated JSON once and builds the lookups every view needs. Every request carries the publish version
 // (version.js), so a new publish never mixes with data an earlier visit cached.
 
-import { versioned, withQuery } from "./version.js?v=bd195f6cd6";
+import { versioned, withQuery } from "./version.js?v=e8167c6270";
 
 const cache = new Map();
 
