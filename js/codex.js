@@ -1,16 +1,16 @@
 // Codex tab: every released card as a game card, with search, filters, sort and the Owned toggle on every card.
 // A language change rebuilds the tab from the same state (search, filters, sort, open panels).
 
-import { h, icon, norm, fmtInt } from "./util.js?v=e8167c6270";
-import { searchField, terms as searchTerms, hasAll } from "./search.js?v=e8167c6270";
-import { DB } from "./data.js?v=e8167c6270";
-import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js?v=e8167c6270";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=e8167c6270";
-import { gameCard, ownToggle, setOwnedView, cardName, ELEMENTS, RARITIES, elName, raName, unsize } from "./cards.js?v=e8167c6270";
-import { disclosure, flip, segmented, filterChip, setChip } from "./ui.js?v=e8167c6270";
-import { toast, openCollection } from "./dialogs.js?v=e8167c6270";
-import { cardText } from "./cardtext.js?v=e8167c6270";
-import { t, STRINGS } from "./i18n.js?v=e8167c6270";
+import { h, icon, norm, fmtInt } from "./util.js?v=3882ed7763";
+import { searchField, terms as searchTerms, hasAll } from "./search.js?v=3882ed7763";
+import { DB } from "./data.js?v=3882ed7763";
+import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js?v=3882ed7763";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=3882ed7763";
+import { gameCard, ownToggle, setOwnedView, cardName, ELEMENTS, RARITIES, elName, raName, unsize } from "./cards.js?v=3882ed7763";
+import { disclosure, flip, segmented, filterChip, setChip } from "./ui.js?v=3882ed7763";
+import { toast, openCollection } from "./dialogs.js?v=3882ed7763";
+import { cardText } from "./cardtext.js?v=3882ed7763";
+import { t, STRINGS } from "./i18n.js?v=3882ed7763";
 
 // ---- traits, derived from the English texts and numbers of the data (no hand-made tags); names are "trait.<id>"
 const anyText = (c, rx) => c.abilities.some((a) => rx.test(a.description_en)) || c.passives.some((p) => rx.test(p.description_en));

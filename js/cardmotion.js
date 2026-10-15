@@ -1,24 +1,25 @@
-// The card dialog's open and close motion (DESIGN.md "Card dialog", Motion; SPEC.md section 3.3). Opening from a card on
-// the page, the card turns over on its own vertical axis while it travels from the tile that was pressed to its place in
-// the dialog; the backdrop fades in behind it and the sheet arrives around the card's place, all in one 280 ms move on the
-// site's one curve. Closing plays the same move back to the tile when the tile is still on screen, else the sheet
-// collapses where it is. A deep link or a direct load opens without the travel; reduced motion is a short opacity change.
+// The card view's open and close motion (DESIGN.md "Card view motion"; SPEC.md section 3.3). Opening from a card on the
+// page, the card makes one turn on its own vertical axis, showing the game's card back on the way, while it travels from
+// the tile that was pressed to its place in the view; the blurred backdrop fades in behind it and the open layout arrives
+// around the card's place, all in one 280 ms move on the site's one curve. Closing plays the same move back to the tile
+// when the tile is still on screen, else the layout collapses where it is. A deep link or a direct load opens without the
+// travel; reduced motion is a short opacity change (no turn, so no card back).
 //
 // How: Web Animations on `opacity` and `transform` only (FLIP: the flying card sits at its final place and is transformed
 // back to the tile's rect). The flying card is a "ghost" in the top layer (a manual popover shown above the modal dialog,
-// so nothing clips it), with two faces: the tile as it looks on the page, and the card as the dialog draws it, back to
-// back, so the face changes while the card is edge-on. The real card in the dialog and the tile's art stay mounted and are
-// only made invisible while the ghost stands in for them. Every run can be reversed (close while opening) or settled at
-// once (another card, a language change), so the dialog is never left half-open or showing the wrong card.
+// so nothing clips it): its front holds the tile as it looks on the page and the card as the view draws it, stacked, and
+// they swap while the front is turned away; its back is the card back. The real card in the view and the tile's art stay
+// mounted and are only made invisible while the ghost stands in for them. Every run can be reversed (close while opening)
+// or settled at once (another card, a language change), so the view is never left half-open or showing the wrong card.
 
-import { reducedMotion } from "./util.js?v=e8167c6270";
+import { reducedMotion } from "./util.js?v=3882ed7763";
 
 const CURVE = "cubic-bezier(.4, 0, .2, 1)";
 const SHEET = "(max-width: 760px)";                     // the phone layout of the card dialog (card.css)
 const AWAY = "cg-away";                                 // visibility: hidden, while the ghost stands in for an element
-// the sheet's opacity holds at 0 for the first third of its open, and is gone by 60% of its close: its text never shows
-// over the page while the backdrop is still light
-const SHEET_IN = 0.35, SHEET_OUT = 0.6;
+// the view's opacity holds at 0 until 60% of its open's progress (about 45% of the time, when the backdrop is 85% in), and
+// is gone by 60% of its close: with no panel behind it, its text never shows over the page while the backdrop is light
+const SHEET_IN = 0.6, SHEET_OUT = 0.6;
 
 // the closed durations of base.css (--t-state, --t-fade, --t-move), read once
 let T = null;
@@ -112,31 +113,78 @@ export function takeOff(from) {
 const rectOf = (el) => el.getBoundingClientRect();
 const center = (r) => [r.left + r.width / 2, r.top + r.height / 2];
 
-/** The ghost's transform at a tile's rect (FLIP from the final rect `to`), and at rest. */
-function flipFrames(from, to) {
+/**
+ * The flight's animations, from a tile's rect to the final rect `to` (FLIP), or back when `back` is true: the turn (one
+ * transform: travel and scale move evenly with the progress, the angle follows TURN) and the front's face swap (opacity).
+ */
+function flightAnims(g, from, to, t, back) {
   const [fx, fy] = center(from), [tx, ty] = center(to);
   const p = `perspective(${Math.round(to.width * 4)}px)`;
-  return [
-    `${p} translate(${fx - tx}px, ${fy - ty}px) scale(${from.width / to.width}, ${from.height / to.height}) rotateY(0deg)`,
-    `${p} translate(0px, 0px) scale(1, 1) rotateY(180deg)`,
-  ];
+  const sx = from.width / to.width, sy = from.height / to.height;
+  const at = (o, deg) => `${p} translate(${(fx - tx) * (1 - o)}px, ${(fy - ty) * (1 - o)}px) scale(${sx + (1 - sx) * o}, ${sy + (1 - sy) * o}) rotateY(${deg}deg)`;
+  const flip = (frames) => (back ? frames.map((f) => ({ ...f, offset: 1 - f.offset })).reverse() : frames);
+  const turn = flip(TURN.map(([o, deg]) => ({ offset: o, transform: at(o, deg) })));
+  // a dimmed tile (its face carries the tile's opacity) stays dimmed until it hands over
+  const dim = parseFloat(g.tile.style.opacity) || 1;
+  const swap = (a, b) => flip([{ offset: 0, opacity: a }, { offset: SWAP, opacity: a }, { offset: SWAP, opacity: b }, { offset: 1, opacity: b }]);
+  const opts = { duration: t.move, easing: CURVE, fill: "both" };
+  return [g.turn.animate(turn, opts), g.tile.animate(swap(dim, 0), opts), g.card.animate(swap(0, 1), opts)];
 }
 
-/** Place the ghost on the dialog's card, the pressed tile's face on its front and the dialog's card on its back. */
+/**
+ * Place the ghost on the view's card. One full turn: its front starts as the pressed tile's face and ends as the card the
+ * view draws (the two are stacked and swap while the front is turned away), and its back is the game's own card back.
+ * Returns { turn, tile, card }, or null when the browser refuses the top layer.
+ */
 function buildGhost(src, target, to) {
   const g = ghostEl();
   g.replaceChildren();
   Object.assign(g.style, { left: to.left + "px", top: to.top + "px", width: to.width + "px", height: to.height + "px" });
   const turn = document.createElement("div");
   turn.className = "cg-turn";
-  const front = faceOf(src, to.width), back = faceOf(target, to.width);
-  back.classList.add("cg-back");
-  turn.append(front, back);
+  const tile = faceOf(src, to.width), card = faceOf(target, to.width), back = backFace(to.width);
+  card.style.opacity = "0";
+  turn.append(tile, card, back);
   g.append(turn);
   // after showModal, so it is above the dialog in the top layer; if the browser refuses, the card simply does not travel
   try { g.showPopover(); } catch { g.replaceChildren(); return null; }
-  return turn;
+  return { turn, tile, card };
 }
+
+// ---- the card back: the game's own (site/assets/ui/card_back.webp), on the card frame like a thumbnail. Fetched and
+// decoded once the page is idle, so the first turn never shows an empty back; never with reduced motion (no turn then).
+const BACK_SRC = new URL("../assets/ui/card_back.webp", import.meta.url).href;
+let backImg = null;
+function loadBack() {
+  if (backImg || reducedMotion() || typeof Image === "undefined") return;
+  backImg = new Image();
+  backImg.decoding = "async";
+  backImg.alt = "";
+  backImg.src = BACK_SRC;
+  if (backImg.decode) backImg.decode().catch(() => { /* drawn on the frame's own ground if it fails */ });
+}
+if (typeof window !== "undefined") {
+  const idle = window.requestIdleCallback || ((f) => setTimeout(f, 1200));
+  if (document.readyState === "complete") idle(loadBack); else window.addEventListener("load", () => idle(loadBack), { once: true });
+}
+function backFace(w) {
+  loadBack();
+  const frame = document.createElement("div");
+  frame.className = "cg-thumb cg-cardback";
+  if (backImg) frame.append(backImg.cloneNode(false));
+  const wrap = document.createElement("div");
+  wrap.className = "cg-face cg-back";
+  wrap.style.setProperty("--u", w / 100 + "px");
+  frame.style.setProperty("--u", w / 100 + "px");
+  wrap.append(frame);
+  return wrap;
+}
+
+// the turn's angle by progress (the keyframes share the one curve): the front turns away within the first 15% of the move,
+// the back faces the visitor until 75%, then the card's face turns in and settles; the front's tile face hands over to
+// the card's face at 45%, while the back is showing
+const TURN = [[0, 0], [0.15, 90], [0.75, 270], [1, 360]];
+const SWAP = 0.45;
 
 function backdrop(dlg, frames, opts) {
   try { return dlg.animate({ opacity: frames }, { ...opts, pseudoElement: "::backdrop" }); } catch { return null; }
@@ -194,9 +242,9 @@ export function openMotion(dlg, flight, fresh) {
     const art = target.querySelector(".gc-art"), had = flight.el.matches("img") ? flight.el : flight.el.querySelector(".gc-art");
     if (art && !art.complete && had && had.currentSrc) art.style.background = `url("${had.currentSrc}") center top / cover`;
     // a pressed chip inside the dialog is gone by now: its detached copy still gives the front face
-    const turn = buildGhost(flight.el, target, to);
-    if (turn) {
-      anims.push(turn.animate({ transform: flipFrames(flight.rect, to) }, { duration: t.move, easing: CURVE, fill: "both" }));
+    const g = buildGhost(flight.el, target, to);
+    if (g) {
+      anims.push(...flightAnims(g, flight.rect, to, t, false));
       target.classList.add(AWAY);
       if (flight.el.isConnected && !flight.el.closest("dialog")) { home = flight.el; home.classList.add(AWAY); }
     }
@@ -235,15 +283,14 @@ export function closeMotion(dlg, done) {
   const target = dlg.querySelector(".cd-art .gc");
   const anims = [];
   const reduce = reducedMotion();
+  let g = null;
   if (reduce) {
     if (home) { release(home); home = null; }
     anims.push(dlg.animate({ opacity: [1, 0] }, { duration: t.state, easing: CURVE, fill: "both" }));
     anims.push(backdrop(dlg, [1, 0], { duration: t.state, easing: CURVE, fill: "both" }));
-  } else if (home && target && canFly() && onScreen(home) && onScreen(target) && buildGhost(home, target, rectOf(target))) {
+  } else if (home && target && canFly() && onScreen(home) && onScreen(target) && (g = buildGhost(home, target, rectOf(target)))) {
     // back to the tile: the same flight, reversed
-    const to = rectOf(target), turn = ghost.firstChild;
-    const [atTile, atRest] = flipFrames(rectOf(home), to);
-    anims.push(turn.animate({ transform: [atRest, atTile] }, { duration: t.move, easing: CURVE, fill: "both" }));
+    anims.push(...flightAnims(g, rectOf(home), rectOf(target), t, true));
     target.classList.add(AWAY);
     // the sheet leaves first (200ms) and the backdrop trails with the card (280ms), so the tile is uncovered as it lands
     const sf = sheetFrames(dlg, target);

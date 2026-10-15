@@ -1,17 +1,18 @@
 // Dialogs (card, About, collection code) and the toast. Native <dialog>: the browser traps focus, makes the page behind
-// inert and closes on Escape; we add the 280 ms enter, the back-button close and the backdrop click. The card dialog's
-// enter and exit (the card flying from its tile) are played by cardmotion.js.
+// inert and closes on Escape; we add the 280 ms enter, the back-button close and the backdrop click. The card dialog is
+// drawn as a full-screen card view (card.css); its enter and exit (the card flying from its tile) are played by
+// cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=e8167c6270";
-import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=e8167c6270";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=e8167c6270";
-import { gameCard, chip, L, cardName, ELEMENTS, elName, unsize } from "./cards.js?v=e8167c6270";
-import { encode, decode } from "./code.js?v=e8167c6270";
-import { copyText, disclosure } from "./ui.js?v=e8167c6270";
-import { t, tx, millions } from "./i18n.js?v=e8167c6270";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph } from "./patch.js?v=e8167c6270";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=e8167c6270";
-import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=e8167c6270";
+import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=3882ed7763";
+import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=3882ed7763";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=3882ed7763";
+import { gameCard, chip, L, cardName, ELEMENTS, elName, unsize } from "./cards.js?v=3882ed7763";
+import { encode, decode } from "./code.js?v=3882ed7763";
+import { copyText, disclosure } from "./ui.js?v=3882ed7763";
+import { t, tx, millions } from "./i18n.js?v=3882ed7763";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph } from "./patch.js?v=3882ed7763";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=3882ed7763";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=3882ed7763";
 
 let openDlg = null, pushed = false;
 
@@ -54,7 +55,12 @@ window.addEventListener("popstate", () => {
 function wire(dlg) {
   // Escape closes an open keyword tooltip first (cardtext.js), the dialog on the next press
   dlg.addEventListener("cancel", (e) => { e.preventDefault(); if (!hideTip()) closeModal(dlg); });
-  dlg.addEventListener("click", (e) => { if (e.target === dlg) closeModal(dlg); });
+  // a click on the backdrop closes; the card view fills the screen, so its own empty ground (the scroller outside the
+  // content column) counts as backdrop, unless the click ends a text selection
+  dlg.addEventListener("click", (e) => {
+    const ground = e.target === dlg || (dlg === cardDlg() && e.target.matches(".dlg-scroll"));
+    if (ground && !String(getSelection() || "")) closeModal(dlg);
+  });
   dlg.addEventListener("click", (e) => { if (e.target.closest("[data-close]")) closeModal(dlg); });
 }
 
@@ -123,11 +129,12 @@ export function refreshDialogs() {
   if ($("#dlg-code").open) paintCodeCount();
 }
 
-// ---- the card dialog, in three zones (DESIGN.md, "Card dialog"): a header band with the card's names; the card itself,
-// its game art on the left (with, under it, the patch line, the owned toggle and the resistances: element, rarity, HP and
-// gold are on the card face, so they are not repeated) and its kit on the right, dressed in the game card's own kit
-// (abilities on the client's ability banner, passives and talents between the card's rarity wings); then, on the night
-// ground, the "Meta" band: where it ranks (tier-list decks, card tier), "With and against" and the Deck builder link.
+// ---- the card dialog, drawn as a full-screen card view (DESIGN.md, "Card view"): no panel, the content sits on the blurred
+// backdrop. The card itself, its game art on the left (with, under it, the patch line, the owned toggle and the
+// resistances: element, rarity, HP and gold are on the card face, so they are not repeated) and its kit on the right,
+// dressed in the game card's own kit (abilities on the client's ability banner, passives between the card's rarity wings,
+// the talent picker); then, under a hairline, the "Meta" section: where it ranks (tier-list decks, card tier), "With and
+// against" and the Deck builder link.
 
 const pctInt = (n) => pct(n / 100, 0);
 
@@ -345,7 +352,7 @@ function talentPicker(c) {
  * the first time a card dialog opens), side by side in three columns (stacked on a phone). Each list holds up to 5 card
  * chips with their signed win-rate points, strongest first, or one "No clear result." line. A quiet tag beside each heading
  * says what the numbers rest on (basic AI; both counter lists are preliminary); the method sits behind a small disclosure.
- * The section always keeps its place in the Meta band: a skeleton while the file loads, an inline error with a Reload button.
+ * The section always keeps its place in the Meta section: a skeleton while the file loads, an inline error with a Reload button.
  */
 let howOpen = false;           // the method disclosure stays as the visitor left it, across cards and languages
 
@@ -417,7 +424,7 @@ function cardTierRows(c, T) {
   });
 }
 
-/** The Meta band: where the card ranks, then "With and against". Its numbers fill in once their files are loaded. */
+/** The Meta section: where the card ranks, then "With and against". Its numbers fill in once their files are loaded. */
 function metaBand(c) {
   const tlFig = h("span.stat-v", "—"), tlCap = h("span.stat-s", " ");
   const tlCell = h("div.stat.cd-stat", { "aria-busy": "true" }, [h("span.stat-k", t("card.tlK")), tlFig, tlCap]);

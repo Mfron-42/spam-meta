@@ -12,8 +12,9 @@
   --gold: #ffcf3a; --hp: #7bdc4b; --win: #5fcf72; --loss: #ff6b6b;
   --card-edge: #0d0a1a; --card-outline: #1a1530;
   /* game kit (DESIGN.md "Game kit"): the card's own white banner and outlined labels, brought to the card dialog's kit */
-  --kit-veil: rgba(255, 255, 255, .045); --kit-banner: .26;
-  --kit-shade: rgba(16, 13, 36, .78); --kit-draft-shade: rgba(21, 18, 44, .6);
+  --kit-banner: .26; --kit-shade: rgba(16, 13, 36, .78);
+  /* card view (DESIGN.md "Card view"): the backdrop that takes the page out of focus, drawn at its final state, faded by opacity */
+  --view-shade: rgba(16, 13, 36, .84); --view-blur: 24px;
   --kit-ol: 1px 0 0 var(--card-outline), -1px 0 0 var(--card-outline), 0 -1px 0 var(--card-outline), 0 2px 0 var(--card-outline);
   --r-common: #a6a2ad; --r-rare: #5b9cff; --r-epic: #b77df5; --r-legendary: #ffc756; --r-divine: #f2efe8;
   /* element words in the card texts (DESIGN.md "Card text"): the hue of the client's element orb, lifted to pass 5.5:1 on the
