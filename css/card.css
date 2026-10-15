@@ -1,71 +1,92 @@
 /* SPAM Meta: the card dialog (site/js/dialogs.js; DESIGN.md "Card dialog"). Three zones, each with its own ground:
-   the header band (what the card is) on the panel; the card itself, art on the left and its kit in framed groups on the
-   right; the Meta band (where it ranks, with and against) on the night ground. Values from DESIGN.md's closed scales. */
+   the header band (the card's names) on the panel; the card itself, art on the left (patch line, owned toggle and
+   resistances under it) and its kit on the right, dressed in the game card's own kit; the Meta band (where it ranks,
+   with and against) on the night ground. Values from DESIGN.md's closed scales and its game-kit tokens. */
 
 dialog.card-dlg { width: min(1040px, calc(100vw - 32px)); }
 .cd { display: grid; }
 
-/* ---------------------------------------------------------------- header band */
-.cd-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "id id" "facts own"; align-items: end; gap: 16px 24px;
-  padding: 32px 32px 24px; border-bottom: 1px solid var(--line); }
+/* ---------------------------------------------------------------- header band: the names (the card face shows the rest) */
+.cd-head { padding: 24px 32px 16px; border-bottom: 1px solid var(--line); }
 /* the close button (44px, 8px from the corner) sits over the name row: the names keep clear of it */
-.cd-id { grid-area: id; display: grid; gap: 4px; min-width: 0; padding-right: 32px; }
+.cd-id { display: grid; gap: 4px; min-width: 0; padding-right: 32px; }
 .cd-id h2 { font-size: 28px; }
 .cd-alt { color: var(--muted); }
-.pline { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-top: 8px; color: var(--muted); font: 600 14px/1.4 var(--text); }
-.pline > span:not(.tag) { min-width: 0; text-wrap: pretty; }
-.cd-facts { grid-area: facts; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.fact { display: grid; gap: 2px; padding: 8px 12px; border-radius: 8px; background: var(--socket); box-shadow: var(--sunken); min-width: 0; }
-.fact-k { color: var(--muted); font: 600 14px/1.3 var(--text); }
-.fact-v { display: flex; align-items: center; gap: 8px; font: 400 18px/1.2 var(--display); min-width: 0; }
-.fact-ico { width: 22px; height: 22px; flex: none; background-size: contain; background-repeat: no-repeat; background-position: center; }
-.cd-own { grid-area: own; display: grid; gap: 4px; justify-items: stretch; min-width: 200px; }
-.cd-hint { color: var(--muted); font: 600 14px/1.4 var(--text); text-align: center; }
 
 /* ---------------------------------------------------------------- the card: art left, kit right */
 .cd-body { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 32px; align-items: start; padding: 32px; }
 /* the art stays in view while the kit scrolls past it (inside the dialog's own scroller) */
 .cd-art { position: sticky; top: 24px; display: grid; gap: 16px; }
 .gcwrap { padding: 10px 10px 14px; }
+/* the patch line hangs right under the card it describes (the card's own bottom padding is the gap) */
+.pline { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-top: -12px; padding-inline: 10px; color: var(--muted); font: 600 14px/1.4 var(--text); }
+.pline > span:not(.tag) { min-width: 0; text-wrap: pretty; }
+.cd-own { display: grid; gap: 4px; justify-items: stretch; }
+.cd-hint { color: var(--muted); font: 600 14px/1.4 var(--text); text-align: center; }
 .cd-res { display: grid; gap: 8px; }
 .cd-res h3 { font-size: 18px; color: var(--ink-2); }
 .ress { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.res { display: flex; align-items: center; gap: 8px; padding: 4px 12px; min-height: 36px; border-radius: 8px; background: var(--socket); box-shadow: var(--sunken); font: 400 16px/1 var(--display); }
+.res { display: flex; align-items: center; gap: 8px; padding: 4px 12px; min-height: 36px; border-radius: 8px; background: var(--socket); box-shadow: var(--sunken); font: 400 16px/1 var(--display); white-space: nowrap; }
 .res i { width: 20px; height: 20px; flex: none; background-size: contain; background-repeat: no-repeat; background-position: center; }
 
-.cd-kit { display: grid; gap: 16px; min-width: 0; }
-/* one framed group per part of the kit: a 1px frame, a heading row ruled off, then the entries ruled from each other */
-.cd-g { border: 1px solid var(--line); border-radius: 12px; min-width: 0; }
-.cd-g-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 12px 24px; border-bottom: 1px solid var(--line); }
+/* ---------------------------------------------------------------- the kit, in the game card's own dress
+   Each entry is a tile on a soft white veil (the card's banner white at low alpha), headed by a ribbon as the card face
+   draws it: an ability on the client's ability banner (orb, name, cooldown sprite), a passive or a talent between the
+   card's rarity wings (">> NAME <<"). Ribbon names are capitals with the card's hard outline, as on the card face. */
+.cd-kit { display: grid; gap: 24px; min-width: 0; }
+.cd-g { display: grid; gap: 12px; min-width: 0; }
+.cd-g-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
 .cd-g-h h3 { font-size: 22px; }
 .cd-g-note { color: var(--muted); font: 600 14px/1.4 var(--text); }
-.cd-g-b { display: grid; padding: 0 24px; }
-.cd-e { display: grid; gap: 8px; padding: 16px 0; min-width: 0; }
-.cd-e + .cd-e { border-top: 1px solid var(--line); }
-.cd-e-h { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; min-width: 0; }
-.cd-e-h h4 { font-size: 18px; }
-/* what an ability costs sits at the end of its name row */
-.cd-cost { margin-left: auto; }
+.cd-g-b { display: grid; gap: 8px; }
+.cd-e { display: grid; gap: 8px; min-width: 0; }
+.kit-e { padding: 8px 16px 16px; border-radius: 12px; background: var(--kit-veil); }
+
+.kit-rib { position: relative; display: grid; align-items: center; min-height: 44px; margin-inline: -8px; }
+.kit-rib h4 { min-width: 0; color: var(--ink); font: 400 18px/1.15 var(--display); letter-spacing: .02em; text-transform: uppercase; text-shadow: var(--kit-ol); overflow-wrap: break-word; }
+/* an ability: the client's ability banner (9-slice, so its slanted ends keep their shape at any width) */
+.kit-ab { grid-template-columns: 28px minmax(0, 1fr) 28px; gap: 8px; padding: 0 16px; }
+.kit-ab::before { content: ""; position: absolute; inset: 0; border-style: solid; border-width: 0 24px;
+  border-image: url("../assets/cards/kit/card_ability_active.webp") 0 40 fill / 0 24px stretch; opacity: var(--kit-banner); pointer-events: none; }
+.kit-ab > * { position: relative; }
+.kit-ab h4 { text-align: center; }
+.kit-orb { width: 28px; height: 28px; background-size: contain; background-repeat: no-repeat; background-position: center; }
+.kit-cd { display: grid; place-items: center; width: 28px; height: 30px; background: url("../assets/cards/kit/card_cooldown.webp") center / contain no-repeat;
+  color: var(--ink); font: 400 16px/1 var(--display); text-shadow: var(--kit-ol); }
+/* a passive or a talent: the card's rarity wings either side of the name */
+/* flex, not grid: the name keeps its words whole and the wings give way first (down to 16px each) */
+.kit-wing { display: flex; justify-content: center; gap: 8px; }
+.kit-wing h4 { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; max-width: calc(100% - 48px); text-align: center; }
+.kit-w { flex: 0 1 88px; min-width: 16px; height: 22px; background-size: 100% 100%; background-repeat: no-repeat; }
+.kit-ti { flex: none; width: 20px; height: 26px; background-size: contain; background-repeat: no-repeat; background-position: center; }
+.kit-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+
 .cd-e-d { color: var(--ink-2); white-space: pre-line; }
+/* what the game text leaves out (cards.json `hidden`): one sentence per line under it, ruled on its left so it never
+   reads as the game's own words; a choice lists its options one per row ("or" in Dusk Lavender); the element orbs are
+   the client's sprites, at the text's cap height */
+.cd-e-x { display: grid; gap: 8px; padding-left: 12px; border-left: 2px solid var(--line); color: var(--ink-2); text-wrap: pretty; }
+.hx-opts { display: grid; gap: 4px; }
+.hx-opts li { display: grid; grid-template-columns: 24px minmax(0, 1fr); }
+.hx-or { color: var(--muted); }
+.hx-el { white-space: nowrap; }
+.hx-orb { display: inline-block; width: 16px; height: 16px; margin-right: 4px; vertical-align: -2px; background-size: contain; background-repeat: no-repeat; background-position: center; }
+.hx-st { font-weight: 700; color: var(--ink); }
 .cd-e-s { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
 .cd-e-t { color: var(--muted); font: 600 14px/1.4 var(--text); }
-.cd-none { padding: 16px 0; color: var(--muted); }
+.cd-none { max-width: none; padding: 16px; border-radius: 12px; background: var(--kit-veil); color: var(--muted); }
 
-/* talents: the suggested one in a sunken cell, then the others as a quieter list */
-.cd-sugg { display: grid; gap: 8px; margin: 16px 0; padding: 12px 16px 16px; border-radius: 8px; background: var(--socket); box-shadow: var(--sunken); }
-/* its label is the Suggested tag (DESIGN.md), worded "Suggested talent" here */
+/* talents: the suggested one on the brighter veil, labelled by the Suggested tag; the others quieter */
+.cd-sugg { padding-top: 12px; background: var(--kit-veil-hi); box-shadow: inset 0 0 0 1px var(--line); }
 .cd-sugg-k { justify-self: start; }
 .cd-sugg .cd-e-d { color: var(--ink); }
-.cd-others { display: grid; padding-bottom: 4px; }
+.cd-others { display: grid; gap: 8px; margin-top: 8px; }
 .cd-others-k { color: var(--muted); font: 600 14px/1.4 var(--text); }
-.cd-tl { display: grid; }
-.cd-t { display: grid; gap: 4px; padding: 12px 0; }
-.cd-t + .cd-t { border-top: 1px solid var(--line); }
-.cd-t h4 { font-size: 16px; color: var(--ink-2); }
-.cd-t .ab-talent { width: 20px; height: 20px; }
+.cd-tl { display: grid; gap: 8px; }
 .cd-t .cd-e-d { color: var(--muted); }
-.cd-g-b > .cd-tl:only-child .cd-t:first-child { padding-top: 16px; }
-.cd-g-b > .cd-tl:only-child .cd-t:last-child { padding-bottom: 16px; }
+.cd-t .kit-rib h4 { font-size: 16px; color: var(--ink-2); }
+/* the other talents' wings shorter and dimmer, so the suggested talent and the passives keep the gold */
+.cd-t .kit-w { flex-basis: 56px; opacity: .6; }
 
 /* ---------------------------------------------------------------- the Meta band, on the night ground */
 .cd-meta { display: grid; gap: 16px; padding: 24px 32px 32px; background: var(--night); border-top: 1px solid var(--line); }
@@ -113,12 +134,7 @@ dialog.card-dlg { width: min(1040px, calc(100vw - 32px)); }
 
 /* ---------------------------------------------------------------- tablet: the kit narrows, the lists stack */
 @media (max-width: 900px) {
-  .cd-head { grid-template-areas: "id id" "facts facts" "own own"; }
-  .cd-own { grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px; justify-self: start; }
-  .cd-own .btn.toggle { min-width: 200px; }
-  .cd-hint { text-align: left; }
   .cd-body { grid-template-columns: 240px minmax(0, 1fr); gap: 24px; }
-  .cd-cost { margin-left: 0; flex-basis: 100%; }
   .cm-cols { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .cm-col, .cm-col:first-child, .cm-col:last-child { padding: 0; border-left: 0; }
   .cm-col + .cm-col { padding-top: 16px; border-top: 1px solid var(--line); }
@@ -130,15 +146,15 @@ dialog.card-dlg { width: min(1040px, calc(100vw - 32px)); }
   .cd-head { padding: 24px 16px 16px; }
   .cd-id { padding-right: 40px; }
   .cd-id h2 { font-size: 22px; }
-  .cd-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .cd-own { grid-template-columns: minmax(0, 1fr); justify-self: stretch; }
-  .cd-hint { text-align: center; }
   .cd-body { grid-template-columns: minmax(0, 1fr); gap: 24px; padding: 24px 16px; }
   .cd-art { position: static; justify-items: center; }
   .cd-art .gcwrap { width: 260px; max-width: 100%; }
-  .cd-res { justify-self: stretch; }
-  .cd-g-h, .cd-g-b { padding-inline: 16px; }
-  .cd-cost { margin-left: 0; flex-basis: 100%; }
+  /* under the centred card: the patch line centred, the toggle and the resistances across the column */
+  .pline { justify-content: center; text-align: center; padding-inline: 0; }
+  .cd-own, .cd-res { justify-self: stretch; }
+  .kit-e { padding-inline: 12px; }
+  .kit-rib { min-height: 36px; }
+  .kit-w { flex-basis: 56px; }
   .cd-meta { padding: 24px 16px; }
   .cd-meta-h .cd-find { width: 100%; }
   .cd-stats { grid-template-columns: minmax(0, 1fr); }

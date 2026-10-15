@@ -1,14 +1,14 @@
 // Dialogs (card, About, collection code) and the toast. Native <dialog>: the browser traps focus, makes the page behind
 // inert and closes on Escape; we add the 280 ms enter, the back-button close and the backdrop click.
 
-import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=d521583bec";
-import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=d521583bec";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=d521583bec";
-import { gameCard, chip, L, cardName, otherName, ELEMENTS, elName, raName, unsize } from "./cards.js?v=d521583bec";
-import { encode, decode } from "./code.js?v=d521583bec";
-import { copyText, disclosure } from "./ui.js?v=d521583bec";
-import { t, tx, millions } from "./i18n.js?v=d521583bec";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent } from "./patch.js?v=d521583bec";
+import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=a7940cbe94";
+import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=a7940cbe94";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=a7940cbe94";
+import { gameCard, chip, L, cardName, otherName, ELEMENTS, elName, unsize } from "./cards.js?v=a7940cbe94";
+import { encode, decode } from "./code.js?v=a7940cbe94";
+import { copyText, disclosure } from "./ui.js?v=a7940cbe94";
+import { t, tx, millions } from "./i18n.js?v=a7940cbe94";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent } from "./patch.js?v=a7940cbe94";
 
 let openDlg = null, pushed = false;
 
@@ -105,19 +105,18 @@ export function refreshDialogs() {
   if ($("#dlg-code").open) paintCodeCount();
 }
 
-// ---- the card dialog, in three zones (DESIGN.md, "Card dialog"): a header band with what the card is (names, patch line,
-// element, rarity, HP, gold, the owned toggle); the card itself, its game art (with its resistances) on the left and its
-// kit on the right in framed groups (abilities, passives, talents with the suggested one first); then, on the night
+// ---- the card dialog, in three zones (DESIGN.md, "Card dialog"): a header band with the card's names; the card itself,
+// its game art on the left (with, under it, the patch line, the owned toggle and the resistances: element, rarity, HP and
+// gold are on the card face, so they are not repeated) and its kit on the right, dressed in the game card's own kit
+// (abilities on the client's ability banner, passives and talents between the card's rarity wings); then, on the night
 // ground, the "Meta" band: where it ranks (tier-list decks, card tier), "With and against" and the Deck builder link.
-
-const fact = (k, v) => h("li.fact", [h("span.fact-k", k), h("span.fact-v", v)]);
 
 const pctInt = (n) => pct(n / 100, 0);
 
 // an ability, passive or talent the last game patch changed carries a quiet tag beside its name (patch.js)
 const changed = (c, part, i) => (entryChanged(c, part, i) ? entryTag(c) : null);
 
-/** One framed group of the kit: its heading row (with an optional caption), then its entries. */
+/** One group of the kit: its heading row (with an optional caption), then its entries, each a tile. */
 function kitGroup(id, title, entries, note) {
   return h("section.cd-g", { "aria-labelledby": id }, [
     h("div.cd-g-h", [h("h3", { id }, title), note ? h("span.cd-g-note", note) : null]),
@@ -125,50 +124,164 @@ function kitGroup(id, title, entries, note) {
   ]);
 }
 
+// the card's rarity wings frame a passive's or a talent's name, as on the card face (a divine card uses the legendary
+// wings, as the client does; talents carry no rarity in the data, so they take the card's, like its passives)
+const wingOf = (c) => (c.rarity === "divine" ? "legendary" : c.rarity);
+
+/** A passive's or talent's ribbon: ">> NAME <<" between the card's rarity wings, the talent glyph before a talent's name. */
+function wingRibbon(c, obj, talent) {
+  const w = wingOf(c);
+  return h("div.kit-rib.kit-wing", [
+    h("i.kit-w.sp-pl-" + w + "-l", { "aria-hidden": "true" }),
+    h("h4", { lang: getLang() }, [talent ? h("i.kit-ti.ab-talent", { "aria-hidden": "true" }) : null, L(obj, "name")]),
+    h("i.kit-w.sp-pl-" + w + "-r", { "aria-hidden": "true" }),
+  ]);
+}
+
+/** The site's tags of an entry (patch change, costs), one quiet row under its ribbon; absent when empty. */
+const metaRow = (tags) => (tags.some(Boolean) ? h("div.tags.kit-meta", tags) : null);
+
+// ---- what an ability does that its game text leaves out (cards.json `hidden`, docs/DATA.md "Hidden effects"): chained
+// hits after the first one, the options of a "Choice" ability, a status the text does not name. One short line under the
+// game text, worded here from the structured data; it never adds anything the data does not hold.
+
+const signed = (n) => (n > 0 ? "+" : n < 0 ? "−" : "") + fmtInt(Math.abs(n));
+const amountOf = (a, sign) => (Array.isArray(a) ? t("hx.range", { lo: sign ? signed(a[0]) : fmtInt(a[0]), hi: sign ? signed(a[1]) : fmtInt(a[1]) })
+  : sign ? signed(a) : fmtInt(a));
+const elNode = (id) => h("span.hx-el", [h("i.hx-orb.sp-el-" + id, { "aria-hidden": "true" }), elName(id)]);
+
+/** Nodes joined by commas, the last pair by `last` (" and " / " or "); `last` null keeps commas throughout. */
+function joinNodes(nodes, last) {
+  const out = [];
+  nodes.forEach((n, i) => {
+    if (i) out.push(last && i === nodes.length - 1 ? last : ", ");
+    out.push(n);
+  });
+  return h("span", out);
+}
+
+/** One summary item as inline nodes (its own conditions, "on a critical hit" and "on every hit", are worded by its sentence). */
+function hxItem(it) {
+  const els = () => joinNodes((it.el || []).map(elNode), t("hx.and"));
+  let fx;
+  if (it.fx === "damage" && it.others) fx = tx("hx.others", { amount: amountOf(it.amount), els: joinNodes(it.el.map(elNode), null) });
+  else if (it.fx === "damage") fx = tx(it.count > 1 ? "hx.dmgN" : "hx.dmg", { amount: amountOf(it.amount), el: els(), count: it.count });
+  else if (it.fx === "heal") fx = tx(it.count > 1 ? "hx.healN" : "hx.heal", { amount: amountOf(it.amount), el: els(), count: it.count });
+  else if (it.fx === "bonus") fx = tx("hx.bonus", { amount: amountOf(it.amount, true), el: els() });
+  else if (it.fx === "cooldown") fx = [t("hx.cd", { amount: amountOf(it.amount, true) })];
+  else if (it.fx === "accuracy") fx = [t("hx.acc", { amount: amountOf(it.amount, true) })];
+  else if (it.fx === "crit") fx = [t("hx.critStat", { amount: amountOf(it.amount, true) })];
+  else if (it.fx === "status") fx = [h("b.hx-st", { lang: getLang() }, L(it, "name"))];
+  else return null;                                  // an item kind this page does not know: shown nowhere, never guessed
+  if (it.all) fx = [...fx, " ", t("hx.all." + it.all)];
+  if (it.random) fx = [...fx, " ", t("hx.random")];
+  return h("span", fx);
+}
+
+/** Consecutive single hits of one element with different amounts read as one series: "3 Nature hits of 20, 30 and 40 damage". */
+function hxSeries(items) {
+  const out = [];
+  for (const it of items) {
+    const prev = out[out.length - 1];
+    const plain = (x) => x.fx === "damage" && !x.others && !x.count && !x.on && !x.random && !x.all && x.el && x.el.length === 1 && !Array.isArray(x.amount);
+    if (prev && plain(it) && (prev.series || plain(prev)) && prev.el[0] === it.el[0]) {
+      if (!prev.series) out[out.length - 1] = { series: [prev.amount], el: prev.el };
+      out[out.length - 1].series.push(it.amount);
+    } else out.push(it);
+  }
+  return out.map((it) => (it.series
+    ? h("span", tx("hx.series", { count: it.series.length, el: elNode(it.el[0]), amounts: joinNodes(it.series.map((n) => fmtInt(n)), t("hx.and")) }))
+    : hxItem(it))).filter(Boolean);
+}
+
+/** The targets caption: a random-target ability hits random cards among its targets, never all of them. */
+const targetText = (a) => (a.random_target ? (a.random_target === 1 ? t("target.random") : t("target.randomN", { n: a.random_target }))
+  : t("target." + a.target));
+
+function hiddenLine(a, idx) {
+  const x = a.hidden;
+  if (!x) return null;
+  const sentences = [];
+  const say = (key, nodes) => { if (nodes.length) sentences.push(h("span.hx-s", tx(key, { fx: joinNodes(nodes, null) }))); };
+  if (x.choices) {
+    // one row per option, so an option never breaks in the middle of its phrase: "Choose one:", then "15 to 40 Fire
+    // damage", "or 15 to 40 Shadow damage"
+    const opts = x.choices.map((o) => o.map(hxItem).filter(Boolean).flatMap((n, i) => (i ? [t("hx.plus"), n] : [n]))).filter((o) => o.length);
+    if (opts.length) {
+      const id = "hx-c-" + idx;
+      sentences.push(h("span.hx-s", { id }, t("hx.choose")));
+      // "or" sits in its own column, so the options' amounts line up
+      sentences.push(h("ul.hx-opts", { "aria-labelledby": id }, opts.map((o, i) => h("li", [h("span.hx-or", i ? t("hx.or") : ""), h("span", o)]))));
+    }
+  }
+  if (x.then) {
+    const nodes = hxSeries(x.then.filter((it) => !it.on));
+    if (nodes.length) sentences.push(h("span.hx-s", tx("hx.then", { fx: h("span", nodes.flatMap((n, i) => (i ? [t("hx.thenSep"), n] : [n]))) })));
+    x.then.filter((it) => it.on === "crit").forEach((it) => say("hx.crit", [hxItem(it)].filter(Boolean)));
+  }
+  for (const it of x.also || []) {
+    const n = hxItem(it);
+    if (!n) continue;
+    say(it.on === "crit" ? (it.every_hit ? "hx.everyCrit" : "hx.crit") : it.every_hit ? "hx.every" : "hx.also", [n]);
+  }
+  if (!sentences.length) return null;
+  // these words are the site's, not the game's: the Abilities heading says so ("hx.note"), and a hidden prefix says it to
+  // a screen reader at the block itself (no title as well, it would be announced twice)
+  return h("div.cd-e-x", [h("span.sr", t("hx.title")), ...sentences]);
+}
+
 function abilityEntry(c, a, i) {
   const lang = getLang();
-  // what it costs, as the data gives it: cooldown always, mana and a use limit when there are
-  const cost = [h("span.tag", [t("card.cooldown") + " ", h("b", String(a.cooldown))])];
+  // what it costs, as the data gives it: the cooldown on the ribbon (the card's own cooldown sprite), mana and a use
+  // limit with the other tags under the text, when there are
+  const cost = [];
   if (a.mana_cost) cost.push(h("span.tag", [t("card.mana") + " ", h("b", String(a.mana_cost))]));
   if (a.uses_limit != null) cost.push(h("span.tag", [t("card.limited") + " ", h("b", t("card.uses", { n: a.uses_limit }))]));
+  const cd = t("card.cooldown") + " " + a.cooldown;
   const stats = [
     h("span.tag", [t("card.hit") + " ", h("b", pctInt(a.hit_chance))]),
     h("span.tag", [t("card.crit") + " ", h("b", pctInt(a.crit_chance)), " ×", h("b", String(a.crit_ratio))]),
   ];
   if (a.echo_chance) stats.push(h("span.tag", [t("card.echo") + " ", h("b", pctInt(a.echo_chance))]));
-  return h("div.cd-e", [
-    h("div.cd-e-h", [h("i.ab-orb.sp-el-" + (a.element || c.element)), h("h4", { lang }, L(a, "name")), changed(c, "abilities", i),
-      h("span.tags.cd-cost", cost)]),
+  return h("div.cd-e.kit-e", [
+    // the ability's ribbon, as on the card: element orb, name, cooldown in the client's cooldown sprite
+    h("div.kit-rib.kit-ab", [h("i.kit-orb.sp-el-" + (a.element || c.element), { role: "img", "aria-label": elName(a.element || c.element) }), h("h4", { lang }, L(a, "name")),
+      h("span.kit-cd", { title: cd }, [h("span.sr", cd), h("span", { "aria-hidden": "true" }, String(a.cooldown))])]),
+    metaRow([changed(c, "abilities", i)]),
     h("p.cd-e-d", { lang }, L(a, "description")),
-    h("div.cd-e-s", [...stats, h("span.cd-e-t", [t("card.targets") + " ", t("target." + a.target)])]),
+    hiddenLine(a, i),
+    h("div.cd-e-s", [...stats, ...cost, h("span.cd-e-t", [t("card.targets") + " ", targetText(a)])]),
   ]);
 }
 
 function passiveEntry(c, p, i) {
   const lang = getLang();
-  return h("div.cd-e", [
-    h("div.cd-e-h", [h("h4", { lang }, L(p, "name")), changed(c, "passives", i)]),
+  return h("div.cd-e.kit-e", [
+    wingRibbon(c, p, false),
+    metaRow([changed(c, "passives", i)]),
     h("p.cd-e-d", { lang }, L(p, "description")),
   ]);
 }
 
 /**
- * The talents: the suggested one (the talent the site's simulations give the card) first, in a sunken cell headed
- * "Suggested talent", then the others as a quieter list. Without a suggested talent, the plain list.
+ * The talents: the suggested one (the talent the site's simulations give the card) first, its tile one step brighter and
+ * labelled "Suggested talent", then the others as quieter tiles. Without a suggested talent, the plain list.
  */
 function talentEntries(c) {
   const lang = getLang();
   const sugg = suggestedTalent(c);
-  const row = (tl, i) => h("li.cd-t", [
-    h("div.cd-e-h", [h("i.ab-talent", { "aria-hidden": "true" }), h("h4", { lang }, L(tl, "name")), changed(c, "talents", i)]),
+  const row = (tl, i) => h("li.cd-e.kit-e.cd-t", [
+    wingRibbon(c, tl, true),
+    metaRow([changed(c, "talents", i)]),
     h("p.cd-e-d", { lang }, L(tl, "description")),
   ]);
   const others = c.talents.map((tl, i) => [tl, i]).filter(([, i]) => !sugg || i !== sugg.i);
   if (!sugg) return [h("ul.cd-tl", others.map(([tl, i]) => row(tl, i)))];
   return [
-    h("div.cd-sugg", [
+    h("div.cd-e.kit-e.cd-sugg", [
       h("span.tag.sugg.cd-sugg-k", { title: t("card.suggestedTip") }, t("card.suggestedH")),
-      h("div.cd-e-h", [h("i.ab-talent", { "aria-hidden": "true" }), h("h4", { lang }, L(sugg.tl, "name")), changed(c, "talents", sugg.i)]),
+      wingRibbon(c, sugg.tl, true),
+      metaRow([changed(c, "talents", sugg.i)]),
       h("p.cd-e-d", { lang }, L(sugg.tl, "description")),
     ]),
     others.length ? h("div.cd-others", [h("p.cd-others-k", t("card.otherTalents")), h("ul.cd-tl", others.map(([tl, i]) => row(tl, i)))]) : null,
@@ -293,11 +406,13 @@ function renderCardDialog() {
   } }, [icon("plus"), icon("check"), h("span.on-off", t(own ? "card.isOwned" : "card.markOwned"))]);
 
   const resist = ELEMENTS.filter((id) => c.resistances && c.resistances[id] != null).map((id) =>
-    h("li.res", { title: t("card.resistance", { element: elName(id) }) }, [h("span.sr", t("card.resistance", { element: elName(id) }) + " "), h("i.sp-el-" + id), h("b", String(c.resistances[id]))]));
+    // a resistance is a percentage (the game's own texts: "résistances du lanceur de (+5%)")
+    h("li.res", { title: t("card.resistance", { element: elName(id) }) }, [h("span.sr", t("card.resistance", { element: elName(id) }) + " "), h("i.sp-el-" + id), h("b", pctInt(c.resistances[id]))]));
   const tag = patchTag(c), what = patchDetail(c);
 
   const kit = [
-    kitGroup("cd-ab", t("card.abilities"), c.abilities.length ? c.abilities.map((a, i) => abilityEntry(c, a, i)) : [h("p.cd-none", t("card.noAbility"))]),
+    kitGroup("cd-ab", t("card.abilities"), c.abilities.length ? c.abilities.map((a, i) => abilityEntry(c, a, i)) : [h("p.cd-none", t("card.noAbility"))],
+      c.abilities.some((a) => a.hidden) ? t("hx.note") : null),
     c.passives.length ? kitGroup("cd-pa", t("card.passives"), c.passives.map((p, i) => passiveEntry(c, p, i))) : null,
     c.talents.length ? kitGroup("cd-ta", t("card.talents"), talentEntries(c), t("card.talentsNote")) : null,
   ];
@@ -307,19 +422,14 @@ function renderCardDialog() {
       h("div.cd-id", [
         h("h2#dlg-name", { lang }, cardName(c)),
         otherName(c) !== cardName(c) ? h("p.cd-alt", { lang: lang === "fr" ? "en" : "fr", translate: "no" }, otherName(c)) : null,
-        tag ? h("p.pline", [tag, what ? h("span", what) : null]) : null,
       ]),
-      h("ul.cd-facts", [
-        fact(t("card.element"), [h("i.fact-ico.sp-el-" + c.element), elName(c.element)]),
-        fact(t("card.rarity"), [h("i.fact-ico.sp-gem-" + c.rarity), raName(c.rarity)]),
-        fact(t("card.hp"), String(c.hp)),
-        fact(t("card.gold"), String(c.gold_income)),
-      ]),
-      h("div.cd-own", [ownBtn, h("p.cd-hint#cd-hint", t("card.feeds"))]),
     ]),
     h("div.cd-body", [
       h("div.cd-art", [
         h("div.gcwrap", gameCard(c, { size: "full", interactive: false, eager: true })),
+        // what the last patch changed, attached under the card it describes
+        tag ? h("p.pline", [tag, what ? h("span", what) : null]) : null,
+        h("div.cd-own", [ownBtn, h("p.cd-hint#cd-hint", t("card.feeds"))]),
         resist.length ? h("section.cd-res", { "aria-labelledby": "cd-res-h" }, [h("h3#cd-res-h", t("card.resistances")), h("ul.ress", resist)]) : null,
       ]),
       h("div.cd-kit", kit),

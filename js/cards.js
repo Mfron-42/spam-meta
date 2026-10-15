@@ -2,10 +2,10 @@
 // Cards are built like the game client builds them, from its own sprites (CSS classes sp-*), so the page carries no
 // per-card sprite <img>; only the art is an <img>, and it is lazy.
 
-import { h, icon, reEscape } from "./util.js?v=d521583bec";
-import { DB } from "./data.js?v=d521583bec";
-import { getLang, isOwned, setOwned } from "./store.js?v=d521583bec";
-import { t } from "./i18n.js?v=d521583bec";
+import { h, icon, reEscape } from "./util.js?v=a7940cbe94";
+import { DB } from "./data.js?v=a7940cbe94";
+import { getLang, isOwned, setOwned } from "./store.js?v=a7940cbe94";
+import { t } from "./i18n.js?v=a7940cbe94";
 
 // element and rarity ids in game order; their names are UI strings ("el.fire", "ra.common")
 export const ELEMENTS = ["fire", "water", "earth", "nature", "light", "shadow", "divine"];
@@ -78,7 +78,8 @@ export function gameCard(c, { size = "full", interactive = true, eager = false }
     h("i.gc-gem.sp-gem-" + c.rarity),
   ];
   const cls = "gc" + (compact ? " cp" : "");
-  if (!interactive) return sized(h("div", { class: cls }, kids));
+  // a plain card (the card dialog's) says what its face shows, since nothing else on the page repeats it
+  if (!interactive) return sized(h("div", { class: cls, role: "img", "aria-label": t("card.face", { name, element: elName(c.element), rarity: raName(c.rarity), hp: c.hp, gold: c.gold_income }) }, kids));
   const label = t("card.label", { name, element: elName(c.element), rarity: raName(c.rarity), hp: c.hp });
   return sized(h("button", { class: cls, type: "button", "data-card": c.key, "aria-label": label }, kids));
 }

@@ -11,6 +11,9 @@
   --edge: #7a73aa;
   --gold: #ffcf3a; --hp: #7bdc4b; --win: #5fcf72; --loss: #ff6b6b;
   --card-edge: #0d0a1a; --card-outline: #1a1530;
+  /* game kit (DESIGN.md "Game kit"): the card's own white banner and outlined labels, brought to the card dialog's kit */
+  --kit-veil: rgba(255, 255, 255, .045); --kit-veil-hi: rgba(255, 255, 255, .08); --kit-banner: .26;
+  --kit-ol: 1px 0 0 var(--card-outline), -1px 0 0 var(--card-outline), 0 -1px 0 var(--card-outline), 0 2px 0 var(--card-outline);
   --r-common: #a6a2ad; --r-rare: #5b9cff; --r-epic: #b77df5; --r-legendary: #ffc756; --r-divine: #f2efe8;
   /* card tier scale (Card tier list only): apricot to dusk, calm, night ink passes 4.5:1 on every step */
   --tier-sp: #f0ca9b; --tier-s: #e9b698; --tier-a: #dea49c; --tier-b: #cb95a0; --tier-c: #b48aa3; --tier-d: #9a80a2; --tier-e: #80779b;
