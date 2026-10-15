@@ -1,16 +1,16 @@
 // Codex tab: every released card as a game card, with search, filters, sort and the Owned toggle on every card.
 // A language change rebuilds the tab from the same state (search, filters, sort, open panels).
 
-import { h, icon, norm, fmtInt } from "./util.js?v=3882ed7763";
-import { searchField, terms as searchTerms, hasAll } from "./search.js?v=3882ed7763";
-import { DB } from "./data.js?v=3882ed7763";
-import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js?v=3882ed7763";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=3882ed7763";
-import { gameCard, ownToggle, setOwnedView, cardName, ELEMENTS, RARITIES, elName, raName, unsize } from "./cards.js?v=3882ed7763";
-import { disclosure, flip, segmented, filterChip, setChip } from "./ui.js?v=3882ed7763";
-import { toast, openCollection } from "./dialogs.js?v=3882ed7763";
-import { cardText } from "./cardtext.js?v=3882ed7763";
-import { t, STRINGS } from "./i18n.js?v=3882ed7763";
+import { h, icon, norm, fmtInt } from "./util.js?v=e2b18ad8df";
+import { searchField, terms as searchTerms, hasAll } from "./search.js?v=e2b18ad8df";
+import { DB } from "./data.js?v=e2b18ad8df";
+import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js?v=e2b18ad8df";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=e2b18ad8df";
+import { cardTile, ownToggle, setOwnedView, cardName, ELEMENTS, RARITIES, elName, raName, unsize } from "./cards.js?v=e2b18ad8df";
+import { disclosure, flip, segmented, filterChip, setChip } from "./ui.js?v=e2b18ad8df";
+import { toast, openCollection } from "./dialogs.js?v=e2b18ad8df";
+import { cardText } from "./cardtext.js?v=e2b18ad8df";
+import { t, STRINGS } from "./i18n.js?v=e2b18ad8df";
 
 // ---- traits, derived from the English texts and numbers of the data (no hand-made tags); names are "trait.<id>"
 const anyText = (c, rx) => c.abilities.some((a) => rx.test(a.description_en)) || c.passives.some((p) => rx.test(p.description_en));
@@ -132,7 +132,7 @@ function buildCells() {
   cells = DB.cards.map((c) => {
     const tg = ownToggle(c);
     const cap = h("div.cap", { hidden: true });
-    const el = h("div.cell", { "data-key": c.key }, [h("div.cw", [gameCard(c, { size: "full" }), tg]), cap]);
+    const el = cardTile(c, { toggle: tg, cap });
     return { c, el, tg, cap, hay: hayOf(c), traits: new Set(TRAITS.filter(([, test]) => test(c)).map(([id]) => id)) };
   });
 }

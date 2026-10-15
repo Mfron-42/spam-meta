@@ -3,16 +3,16 @@
 // drawn as a full-screen card view (card.css); its enter and exit (the card flying from its tile) are played by
 // cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=3882ed7763";
-import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=3882ed7763";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=3882ed7763";
-import { gameCard, chip, L, cardName, ELEMENTS, elName, unsize } from "./cards.js?v=3882ed7763";
-import { encode, decode } from "./code.js?v=3882ed7763";
-import { copyText, disclosure } from "./ui.js?v=3882ed7763";
-import { t, tx, millions } from "./i18n.js?v=3882ed7763";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph } from "./patch.js?v=3882ed7763";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=3882ed7763";
-import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=3882ed7763";
+import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=e2b18ad8df";
+import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=e2b18ad8df";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=e2b18ad8df";
+import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize } from "./cards.js?v=e2b18ad8df";
+import { encode, decode } from "./code.js?v=e2b18ad8df";
+import { copyText, disclosure } from "./ui.js?v=e2b18ad8df";
+import { t, tx, millions } from "./i18n.js?v=e2b18ad8df";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph } from "./patch.js?v=e2b18ad8df";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=e2b18ad8df";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=e2b18ad8df";
 
 let openDlg = null, pushed = false;
 
@@ -329,11 +329,13 @@ function talentPicker(c) {
       entryChanged(c, "talents", i) ? h("span.tp-pc", { title: t("pc.entry", { patch: DB.patch }) }, [glyph(c), h("span.sr", t("pc.entry", { patch: DB.patch }))]) : null,
     ]));
     panes.push(h("div.tp-pane" + (i === first ? ".on" : ""), { role: "tabpanel", id: id(i, "pane"), "aria-labelledby": id(i, "tab") }, [
-      h("div.tp-pane-h", [h("h4", { lang }, L(tl, "name")), changed(c, "talents", i)]),
+      // the talent's name is on its tab (the control) and only there; the pane holds its text and, when the patch
+      // changed it, its tag
+      changed(c, "talents", i) ? h("div.tp-pane-h", changed(c, "talents", i)) : null,
       h("p.cd-e-d", { lang }, textNodes(L(tl, "description"))),
     ]));
   });
-  const list = h("div.tp-tabs", { role: "tablist", "aria-label": t("card.talents"), "aria-describedby": "tp-note" }, tabs);
+  const list = h("div.tp-tabs", { role: "tablist", "aria-label": t("card.talents") }, tabs);
   list.addEventListener("keydown", (e) => {
     const k = tabs.indexOf(document.activeElement);
     if (k < 0) return;
@@ -343,8 +345,8 @@ function talentPicker(c) {
     e.preventDefault();
     select((to + n) % n, true);
   });
-  // the one rule that makes it a choice, said once on the panel
-  return [h("div.tp", [h("p.tp-note#tp-note", t("card.talentsNote")), list, h("div.tp-detail", panes)])];
+  // no intro line (owner, 2026-10-15: players know a deck drafts one talent): the tabs, then the selected talent's text
+  return [h("div.tp", [list, h("div.tp-detail", panes)])];
 }
 
 /**
@@ -356,9 +358,12 @@ function talentPicker(c) {
  */
 let howOpen = false;           // the method disclosure stays as the visitor left it, across cards and languages
 
-/** The section heading; a card the last patch changed carries its patch tag there (the lists predate the patch). */
+/**
+ * The section heading; a card the last patch changed carries its patch tag there (the lists predate the patch), unless the
+ * Meta section already says so at its top (the data notice "1.22 numbers, from before the change."): said once.
+ */
 function cmHead(c) {
-  return h("div.cm-head", [h("h4#cm-h", t("cm.h")), patchTag(c)]);
+  return h("div.cm-head", [h("h4#cm-h", t("cm.h")), oldNumbersNote(c) ? null : patchTag(c)]);
 }
 
 function counterLists(c, sec) {
@@ -468,6 +473,12 @@ function renderCardDialog() {
     // a resistance is a percentage (the game's own texts: "résistances du lanceur de (+5%)")
     h("li.res", { title: t("card.resistance", { element: elName(id) }) }, [h("span.sr", t("card.resistance", { element: elName(id) }) + " "), h("i.sp-el-" + id), h("b", pctInt(c.resistances[id]))]));
   const tag = patchTag(c), what = patchDetail(c);
+  // what the last patch changed, in its own section at the foot of the view (owner, 2026-10-15), the notes as they read
+  // before; absent for an unchanged card
+  const mods = tag ? h("section.cd-mods", { "aria-labelledby": "cd-mods-h" }, [
+    h("h3#cd-mods-h", t("card.changesH")),
+    h("ul.cd-mods-l", [h("li", tag), what ? h("li", what) : null]),
+  ]) : null;
 
   const kit = [
     kitGroup("cd-ab", t("card.abilities"), c.abilities.length ? c.abilities.map((a, i) => abilityEntry(c, a, i)) : [h("p.cd-none", t("card.noAbility"))],
@@ -482,15 +493,17 @@ function renderCardDialog() {
     h("h2.sr#dlg-name", { lang }, cardName(c)),
     h("div.cd-body", [
       h("div.cd-art", [
-        h("div.gcwrap", gameCard(c, { size: "full", interactive: false, eager: true })),
-        // what the last patch changed, attached under the card it describes
-        tag ? h("p.pline", [tag, what ? h("span", what) : null]) : null,
+        // the card in the site's card tile, as the Codex draws it (plain: it is not a button here)
+        cardTile(c, { interactive: false, eager: true }),
+        // the six resistances straight under the card, untitled (owner, 2026-10-15: players know what they are); the
+        // list keeps its name for screen readers
+        resist.length ? h("ul.ress", { "aria-label": t("card.resistances") }, resist) : null,
         h("div.cd-own", [ownBtn, h("p.cd-hint#cd-hint", t("card.feeds"))]),
-        resist.length ? h("section.cd-res", { "aria-labelledby": "cd-res-h" }, [h("h3#cd-res-h", t("card.resistances")), h("ul.ress", resist)]) : null,
       ]),
       h("div.cd-kit", kit),
     ]),
     metaBand(c),
+    mods,
   ]);
   $(".dlg-scroll", dlg).replaceChildren(body);
   dlg.setAttribute("aria-labelledby", "dlg-name");

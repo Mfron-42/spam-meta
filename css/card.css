@@ -1,9 +1,11 @@
 /* SPAM Meta: the card view (site/js/dialogs.js; DESIGN.md "Card view"). A full-screen information view, not a popup: the
    page behind is blurred and darkened (the backdrop), and the content sits straight on it in an open layout, with no
    panel, border, radius or shadow around it. No printed title or section headings (the card face and the game dressing
-   say what each part is): the card itself, art on the left (patch line, owned toggle and resistances under it) and its
-   kit on the right in the game card's own dress, groups ruled apart by hairlines; then the Meta section under a
-   hairline. Values from DESIGN.md's closed scales and its game-kit and view tokens. */
+   say what each part is). One narrow composition in the card's own proportions, centred with wide air above and below:
+   the card on the left (the site's card tile, then its resistances and the owned toggle) and its kit beside it in a
+   reading column that never stretches to the screen, in the game card's own dress, groups ruled apart by hairlines; then
+   the Meta section and, for a card the last patch changed, the Modifications section, each under a hairline. Values from
+   DESIGN.md's closed scales and its game-kit and view tokens. */
 
 /* the native modal <dialog> stays (focus, inert page, Escape, the accessible name); it is the whole viewport, transparent */
 dialog.card-dlg { position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none; margin: 0; padding: 0;
@@ -13,7 +15,9 @@ dialog.card-dlg { position: fixed; inset: 0; width: 100%; height: 100%; max-widt
 dialog.card-dlg::backdrop { background: var(--view-shade); -webkit-backdrop-filter: blur(var(--view-blur)); backdrop-filter: blur(var(--view-blur)); }
 /* a control brought into view by the keyboard never stops under the close control */
 dialog.card-dlg .dlg-scroll { height: 100%; max-height: none; scroll-padding-block: 72px 24px; }
-.cd { display: grid; width: 100%; max-width: 1120px; margin-inline: auto; padding: 72px 24px 64px; }
+/* the composition: a 320px card column, 48px, a 480px reading column (848px in all, plus the 24px side insets), 96px of
+   air above it and 144px below the last section */
+.cd { display: grid; width: 100%; max-width: 896px; margin-inline: auto; padding: 96px 24px 144px; }
 
 /* the close control: a plain round icon in the viewport's top-right corner (beside the scrollbar), never on the content
    column at 1440. Its quiet disc is the shade of the backdrop, so text scrolling under it on narrower screens never shows
@@ -40,19 +44,16 @@ dialog.card-dlg, dialog.card-dlg.on { opacity: 1; transform: none; transition: n
 .cg-cardback img { object-position: center; }
 .cg-away { visibility: hidden !important; }
 
-/* ---------------------------------------------------------------- the card: art left, kit right
-   The card is the hero: a 320px column; the kit's columns start level with the card's top. */
-.cd-body { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 48px; align-items: start; }
-/* the art stays in view while the kit scrolls past it (inside the view's own scroller) */
-.cd-art { position: sticky; top: 24px; display: grid; gap: 16px; }
-.gcwrap { padding: 10px 10px 14px; }
-/* the patch line hangs right under the card it describes (the card's own bottom padding is the gap) */
-.pline { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-top: -12px; padding-inline: 10px; color: var(--muted); font: 600 14px/1.4 var(--text); }
-.pline > span:not(.tag) { min-width: 0; text-wrap: pretty; }
-.cd-own { display: grid; gap: 4px; justify-items: stretch; }
+/* ---------------------------------------------------------------- the card: card left, kit right
+   The card is the hero: a 320px column; the kit's narrow reading column starts level with the card's top. */
+.cd-body { display: grid; grid-template-columns: 320px minmax(0, 480px); justify-content: center; gap: 48px; align-items: start; }
+/* the card column stays in view while the kit scrolls past it (inside the view's own scroller): it rises 48px, then holds */
+.cd-art { position: sticky; top: 48px; display: grid; gap: 16px; }
+/* the six resistances hang under the card, clear of its rarity gem (which overhangs the tile's bottom padding); the owned
+   toggle closes the column a step further down; both keep to the card frame's width (inside the tile's 6px padding) */
+.cd-art > .ress { margin: 8px 6px 0; }
+.cd-own { display: grid; gap: 4px; justify-items: stretch; margin: 8px 6px 0; }
 .cd-hint { color: var(--muted); font: 600 14px/1.4 var(--text); text-align: center; }
-.cd-res { display: grid; gap: 8px; }
-.cd-res h3 { font-size: 18px; color: var(--ink-2); }
 .ress { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .res { display: flex; align-items: center; gap: 8px; padding: 4px 12px; min-height: 36px; border-radius: 8px; background: var(--socket); box-shadow: var(--sunken); font: 400 16px/1 var(--display); white-space: nowrap; }
 .res i { width: 20px; height: 20px; flex: none; background-size: contain; background-repeat: no-repeat; background-position: center; }
@@ -62,7 +63,8 @@ dialog.card-dlg, dialog.card-dlg.on { opacity: 1; transform: none; transition: n
    client's ability banner with orb, name and cooldown sprite; a passive between the card's rarity wings, ">> NAME <<"),
    its text straight under it on the ground; entries sit 24px apart, and the groups (abilities, passives, talents) are
    ruled apart by a hairline with 32px either side. Ribbon names are capitals with the card's hard outline. */
-.cd-kit { display: grid; gap: 32px; min-width: 0; }
+/* the first ribbon's top lines up with the card frame's (the tile's 6px padding) */
+.cd-kit { display: grid; gap: 32px; min-width: 0; padding-top: 6px; }
 .cd-g { display: grid; gap: 16px; min-width: 0; }
 .cd-g + .cd-g { padding-top: 32px; border-top: 1px solid var(--line); }
 .cd-g-b { display: grid; gap: 24px; }
@@ -112,7 +114,6 @@ dialog.card-dlg, dialog.card-dlg.on { opacity: 1; transform: none; transition: n
    selection changes (200ms cross-fade). */
 .tp { display: grid; gap: 8px; }
 .tp-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.tp-note { color: var(--ink-2); font: 600 14px/1.4 var(--text); }
 .tp-tab { position: relative; display: grid; grid-template-columns: 24px minmax(0, 1fr); align-content: center; gap: 4px 8px; min-height: 64px; padding: 8px 12px;
   border: 0; border-radius: 8px; background: var(--kit-shade); color: var(--ink-2); text-align: left; cursor: pointer;
   transition: background-color var(--t-state) var(--curve), color var(--t-state) var(--curve); }
@@ -136,7 +137,6 @@ dialog.card-dlg, dialog.card-dlg.on { opacity: 1; transform: none; transition: n
 .tp-pane { grid-area: 1 / 1; display: grid; align-content: start; gap: 8px; min-width: 0; opacity: 0; visibility: hidden; }
 .tp-pane.on { opacity: 1; visibility: visible; transition: opacity var(--t-fade) var(--curve); }
 .tp-pane-h { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
-.tp-pane-h h4 { font-size: 18px; }
 .tp-pane .cd-e-d { color: var(--ink); }
 
 /* ---------------------------------------------------------------- the Meta section, under a hairline across the column */
@@ -151,12 +151,18 @@ dialog.card-dlg, dialog.card-dlg.on { opacity: 1; transform: none; transition: n
 .cd-ct { display: flex; align-items: center; gap: 12px; min-height: 24px; color: var(--ink-2); font: 600 14px/1.3 var(--text); }
 .cd-ct .ct-tchip { min-width: 36px; }
 
+/* ---------------------------------------------------------------- Modifications: what the last patch changed, at the foot
+   of the view under a hairline like the Meta section; the card-level tag, then what changed, one note per line */
+.cd-mods { display: grid; gap: 16px; margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--line); }
+.cd-mods h3 { font-size: 22px; }
+.cd-mods-l { display: grid; justify-items: start; gap: 8px; max-width: 68ch; color: var(--ink-2); text-wrap: pretty; }
+
 /* "With and against": three lists side by side, ruled apart; each entry a card chip and its signed points */
 .cm { display: grid; gap: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
 .cm-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
 .cm-head h4 { font-size: 18px; }
 .cm-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.cm-col { display: grid; gap: 8px; align-content: start; min-width: 0; padding: 0 24px; border-left: 1px solid var(--line); }
+.cm-col { display: grid; gap: 8px; align-content: start; min-width: 0; padding: 0 16px; border-left: 1px solid var(--line); }
 .cm-col:first-child { padding-left: 0; border-left: 0; }
 .cm-col:last-child { padding-right: 0; }
 .cm-col-h { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
@@ -196,16 +202,16 @@ dialog.card-dlg, dialog.card-dlg.on { opacity: 1; transform: none; transition: n
 @media (max-width: 760px) {
   /* the view fills the screen and scrolls as one page; it rises 24px as it opens. The card sits at the top at a reduced
      size, then everything flows below it in reading order. */
-  .cd { padding: calc(16px + env(safe-area-inset-top)) 16px calc(48px + env(safe-area-inset-bottom)); }
+  .cd { padding: calc(24px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom)); }
   dialog.card-dlg .close { top: calc(8px + env(safe-area-inset-top)); right: 8px; }
   dialog.card-dlg .dlg-scroll { scroll-padding-block: calc(60px + env(safe-area-inset-top)) 16px; }
   .cd-body { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .cd-kit { padding-top: 0; }
   .cd-art { position: static; justify-items: center; }
   /* the card leaves the corner to the close control: 56px kept free on each side of it */
-  .cd-art .gcwrap { width: min(232px, calc(100% - 112px)); }
-  /* under the centred card: the patch line centred, the toggle and the resistances across the column */
-  .pline { justify-content: center; text-align: center; padding-inline: 0; }
-  .cd-own, .cd-res { justify-self: stretch; }
+  .cd-art > .cell { width: min(232px, calc(100% - 112px)); }
+  /* under the centred card: the resistances and the toggle across the column */
+  .cd-own, .cd-art > .ress { justify-self: stretch; margin-inline: 0; }
   .kit-e > :not(.kit-rib), .hx-note { margin-inline: 8px; }
   .tp-detail { padding-inline: 8px; }
   .kit-rib { min-height: 36px; }
@@ -216,7 +222,7 @@ dialog.card-dlg, dialog.card-dlg.on { opacity: 1; transform: none; transition: n
   .tp-name, .tp-tab:not(:has(.tp-rec)) .tp-name { grid-row: auto; align-self: start; font-size: 14px; }
   .tp-rec { grid-column: auto; justify-self: center; }
   .tp-pc { top: 4px; right: 4px; }
-  .cd-meta { margin-top: 32px; padding-top: 24px; }
+  .cd-meta, .cd-mods { margin-top: 32px; padding-top: 24px; }
   .cd-meta-h .cd-find { width: 100%; }
   .cd-stats { grid-template-columns: minmax(0, 1fr); }
   .cd-stat { min-height: 0; }

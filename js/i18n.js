@@ -10,8 +10,8 @@
 // {one, other} chosen by Intl.PluralRules on the parameter `count`, else `n` (French: 0 to 1.99 are "one"). `**bold**` is honoured by tx()
 // only. French copy uses plain spaces before : ; ? ! - they become no-break spaces when the table loads.
 
-import { h, fmtInt, dec } from "./util.js?v=3882ed7763";
-import { getLang } from "./store.js?v=3882ed7763";
+import { h, fmtInt, dec } from "./util.js?v=e2b18ad8df";
+import { getLang } from "./store.js?v=e2b18ad8df";
 
 const EN = {
   // ---- document and header
@@ -106,7 +106,6 @@ const EN = {
   "card.noAbility": "No active ability.",
   "card.passives": "Passives",
   "card.talents": "Talents",
-  "card.talentsNote": "A deck drafts one talent per card.",
   "card.cooldown": "Cooldown",
   "card.mana": "Mana",
   "card.uses": { one: "{n} use", other: "{n} uses" },
@@ -144,6 +143,7 @@ const EN = {
   "hx.random": "(random target)",
   // card dialog layout (2026-10-15): the suggested talent's cell, and the Meta band
   "card.metaH": "Meta",
+  "card.changesH": "Changes",
   "card.tlK": "Tier-list decks",
   "card.tlBest": "Best: #{rank}, tier {tier}",
   "card.tlNone": "No listed deck plays it.",
@@ -647,7 +647,6 @@ const FR = {
   "card.noAbility": "Pas de capacité active.",
   "card.passives": "Passifs",
   "card.talents": "Talents",
-  "card.talentsNote": "Un deck choisit un talent par carte.",
   "card.cooldown": "Recharge",
   "card.mana": "Mana",
   "card.uses": { one: "{n} utilisation", other: "{n} utilisations" },
@@ -684,6 +683,7 @@ const FR = {
   "hx.random": "(cible au hasard)",
   // card dialog layout (2026-10-15): the suggested talent's cell, and the Meta band
   "card.metaH": "Méta",
+  "card.changesH": "Modifications",
   "card.tlK": "Decks de la tier list",
   "card.tlBest": "Meilleur : #{rank}, tier {tier}",
   "card.tlNone": "Aucun deck affiché ne la joue.",

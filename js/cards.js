@@ -2,10 +2,10 @@
 // Cards are built like the game client builds them, from its own sprites (CSS classes sp-*), so the page carries no
 // per-card sprite <img>; only the art is an <img>, and it is lazy.
 
-import { h, icon, reEscape } from "./util.js?v=3882ed7763";
-import { DB } from "./data.js?v=3882ed7763";
-import { getLang, isOwned, setOwned } from "./store.js?v=3882ed7763";
-import { t } from "./i18n.js?v=3882ed7763";
+import { h, icon, reEscape } from "./util.js?v=e2b18ad8df";
+import { DB } from "./data.js?v=e2b18ad8df";
+import { getLang, isOwned, setOwned } from "./store.js?v=e2b18ad8df";
+import { t } from "./i18n.js?v=e2b18ad8df";
 
 // element and rarity ids in game order; their names are UI strings ("el.fire", "ra.common")
 export const ELEMENTS = ["fire", "water", "earth", "nature", "light", "shadow", "divine"];
@@ -82,6 +82,16 @@ export function gameCard(c, { size = "full", interactive = true, eager = false }
   if (!interactive) return sized(h("div", { class: cls, role: "img", "aria-label": t("card.face", { name, element: elName(c.element), rarity: raName(c.rarity), hp: c.hp, gold: c.gold_income }) }, kids));
   const label = t("card.label", { name, element: elName(c.element), rarity: raName(c.rarity), hp: c.hp });
   return sized(h("button", { class: cls, type: "button", "data-card": c.key, "aria-label": label }, kids));
+}
+
+/**
+ * The card tile, the site's default card component (owner, 2026-10-15: the Codex tile is the card format to keep): the full
+ * game card in its cell, with the cell's room for the orb, the gold hexagon and the rarity gem that overhang the frame.
+ * `toggle`: the round owned toggle on its corner (the Codex grid), or none. `cap`: a line under the card (the Codex's
+ * search excerpt), or none. A plain tile (`interactive` false: the card view's) is not a button and says what its face shows.
+ */
+export function cardTile(c, { toggle = null, cap = null, interactive = true, eager = false } = {}) {
+  return h("div.cell", { "data-key": c.key }, [h("div.cw", [gameCard(c, { size: "full", interactive, eager }), toggle]), cap]);
 }
 
 /** A face-down card (only its rarity is known): the withheld deck is drawn with four of them. */

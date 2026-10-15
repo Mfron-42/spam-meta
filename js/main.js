@@ -1,12 +1,12 @@
 // Entry point: loads the core data, wires the header, the tabs and the delegated clicks, and mounts the five views.
 
-import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=3882ed7763";
-import { t, applyStatic, millions } from "./i18n.js?v=3882ed7763";
-import { copyText } from "./ui.js?v=3882ed7763";
-import { DB, loadCore } from "./data.js?v=3882ed7763";
-import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=3882ed7763";
-import { versioned, withQuery } from "./version.js?v=3882ed7763";
-import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=3882ed7763";
+import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=e2b18ad8df";
+import { t, applyStatic, millions } from "./i18n.js?v=e2b18ad8df";
+import { copyText } from "./ui.js?v=e2b18ad8df";
+import { DB, loadCore } from "./data.js?v=e2b18ad8df";
+import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=e2b18ad8df";
+import { versioned, withQuery } from "./version.js?v=e2b18ad8df";
+import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=e2b18ad8df";
 
 // Five tabs, one view each; the Deck builder (#builder) sits next to My decks.
 const TABS = ["tiers", "card-tiers", "codex", "decks", "builder"];
