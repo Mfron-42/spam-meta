@@ -3,16 +3,16 @@
 // drawn as a full-screen card view (card.css); its enter and exit (the card flying from its tile) are played by
 // cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=dc677fb3a3";
-import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=dc677fb3a3";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=dc677fb3a3";
-import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize } from "./cards.js?v=dc677fb3a3";
-import { encode, decode } from "./code.js?v=dc677fb3a3";
-import { copyText, disclosure } from "./ui.js?v=dc677fb3a3";
-import { t, tx, millions } from "./i18n.js?v=dc677fb3a3";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine } from "./patch.js?v=dc677fb3a3";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=dc677fb3a3";
-import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=dc677fb3a3";
+import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=bd314520b1";
+import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=bd314520b1";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=bd314520b1";
+import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=bd314520b1";
+import { encode, decode } from "./code.js?v=bd314520b1";
+import { copyText, disclosure } from "./ui.js?v=bd314520b1";
+import { t, tx, millions } from "./i18n.js?v=bd314520b1";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine } from "./patch.js?v=bd314520b1";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=bd314520b1";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=bd314520b1";
 
 let openDlg = null, pushed = false;
 
@@ -132,7 +132,7 @@ export function refreshDialogs() {
 // ---- the card dialog, drawn as a full-screen card view (DESIGN.md, "Card view"): no panel, the content sits on the blurred
 // backdrop. The card itself, its game art on the left (with, under it, the patch line, the owned toggle and the
 // resistances: element, rarity, HP and gold are on the card face, so they are not repeated) and its kit on the right,
-// dressed in the game card's own kit (abilities on the client's ability banner, passives between the card's rarity wings,
+// dressed in the game card's own kit (abilities on the client's ability banner, passives between their level's wings,
 // the talent picker); then, under a hairline, the "Meta" section: where it ranks (tier-list decks, card tier), "With and
 // against" and the Deck builder link.
 
@@ -153,13 +153,9 @@ function kitGroup(id, title, entries, foot) {
   ]);
 }
 
-// the card's rarity wings frame a passive's name, as on the card face (a divine card uses the legendary wings, as the
-// client does)
-const wingOf = (c) => (c.rarity === "divine" ? "legendary" : c.rarity);
-
-/** A passive's ribbon: ">> NAME <<" between the card's rarity wings. */
+/** A passive's ribbon: ">> NAME <<" between the wings of the passive's own level (passiveWing, cards.js), as on the card face. */
 function wingRibbon(c, obj) {
-  const w = wingOf(c);
+  const w = passiveWing(c, obj);
   return h("div.kit-rib.kit-wing", [
     h("i.kit-w.sp-pl-" + w + "-l", { "aria-hidden": "true" }),
     h("h4", { lang: getLang() }, L(obj, "name")),

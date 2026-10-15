@@ -2,10 +2,10 @@
 // Cards are built like the game client builds them, from its own sprites (CSS classes sp-*), so the page carries no
 // per-card sprite <img>; only the art is an <img>, and it is lazy.
 
-import { h, icon, reEscape } from "./util.js?v=dc677fb3a3";
-import { DB } from "./data.js?v=dc677fb3a3";
-import { getLang, isOwned, setOwned } from "./store.js?v=dc677fb3a3";
-import { t } from "./i18n.js?v=dc677fb3a3";
+import { h, icon, reEscape } from "./util.js?v=bd314520b1";
+import { DB } from "./data.js?v=bd314520b1";
+import { getLang, isOwned, setOwned } from "./store.js?v=bd314520b1";
+import { t } from "./i18n.js?v=bd314520b1";
 
 // element and rarity ids in game order; their names are UI strings ("el.fire", "ra.common")
 export const ELEMENTS = ["fire", "water", "earth", "nature", "light", "shadow", "divine"];
@@ -34,6 +34,11 @@ export function unsize(root) {
   root.querySelectorAll && root.querySelectorAll(".gc").forEach((g) => ro.unobserve(g));
 }
 
+// a passive's wings show the passive's own level (cards.json `tier`, from its table title suffix: Berserk_C 12%, Berserk_R
+// 25%), which does not follow the card's rarity; without a tier, the card's rarity. A divine card uses the legendary wings.
+const WINGS = ["common", "rare", "epic", "legendary"];
+export const passiveWing = (c, p) => (WINGS.includes(p.tier) ? p.tier : c.rarity === "divine" ? "legendary" : c.rarity);
+
 const fit = (name, a = 13, b = 18) => (name.length > b ? ".xlong" : name.length > a ? ".long" : "");
 
 function artImg(src, cls, eager) {
@@ -49,7 +54,6 @@ export function gameCard(c, { size = "full", interactive = true, eager = false }
   const lang = getLang();
   const name = cardName(c);
   const compact = size === "list";
-  const wing = c.rarity === "divine" ? "legendary" : c.rarity;
   const rows = [];
   if (!compact) {
     for (const a of c.abilities) {
@@ -59,7 +63,7 @@ export function gameCard(c, { size = "full", interactive = true, eager = false }
       ]));
     }
     for (const p of c.passives) {
-      const n = L(p, "name");
+      const n = L(p, "name"), wing = passiveWing(c, p);
       rows.push(h("span.gc-pa" + fit(n, 12, 16), [h("i.sp-pl-" + wing + "-l"), h("span.gc-abn", n), h("i.sp-pl-" + wing + "-r")]));
     }
   }
