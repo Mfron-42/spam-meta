@@ -1,13 +1,14 @@
 // Entry point: loads the core data, wires the header, the tabs and the delegated clicks, and mounts the five views.
 
-import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=bd314520b1";
-import { t, applyStatic, millions } from "./i18n.js?v=bd314520b1";
-import { copyText } from "./ui.js?v=bd314520b1";
-import { DB, loadCore } from "./data.js?v=bd314520b1";
-import { patchLine } from "./patch.js?v=bd314520b1";
-import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=bd314520b1";
-import { versioned, withQuery } from "./version.js?v=bd314520b1";
-import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=bd314520b1";
+import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=a12dd2e24e";
+import { t, applyStatic, millions } from "./i18n.js?v=a12dd2e24e";
+import { copyText } from "./ui.js?v=a12dd2e24e";
+import { DB, loadCore } from "./data.js?v=a12dd2e24e";
+import { patchLine } from "./patch.js?v=a12dd2e24e";
+import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=a12dd2e24e";
+import { versioned, withQuery } from "./version.js?v=a12dd2e24e";
+import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=a12dd2e24e";
+import { holdTiles } from "./cardtilt.js?v=a12dd2e24e";
 
 // Five tabs, one view each; the Deck builder (#builder) sits next to My decks.
 const TABS = ["tiers", "card-tiers", "codex", "decks", "builder"];
@@ -277,6 +278,7 @@ async function boot() {
   }
   setKnown(DB.cards.map((c) => c.key));
   initDialogs();
+  holdTiles();     // every card tile tilts in 3D under a hovering mouse (cardtilt.js)
   $("#foot-about").addEventListener("click", openAbout);
   copyHandle();
   paintChrome();

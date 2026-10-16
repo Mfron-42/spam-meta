@@ -12,7 +12,8 @@
 // mounted and are only made invisible while the ghost stands in for them. Every run can be reversed (close while opening)
 // or settled at once (another card, a language change), so the view is never left half-open or showing the wrong card.
 
-import { reducedMotion } from "./util.js?v=bd314520b1";
+import { reducedMotion } from "./util.js?v=a12dd2e24e";
+import { still, dropTilt, sway } from "./cardtilt.js?v=a12dd2e24e";
 
 const CURVE = "cubic-bezier(.4, 0, .2, 1)";
 const SHEET = "(max-width: 760px)";                     // the phone layout of the card dialog (card.css)
@@ -212,6 +213,7 @@ function release(el) { if (el) el.classList.remove(AWAY); }
  */
 export function openMotion(dlg, flight, fresh) {
   settle();
+  still();      // a tilted or turned card is put back at rest before its place is measured
   const t = times(), my = ++token;
   const target = dlg.querySelector(".cd-art .gc");
   // the card's final place, measured before any animation applies its first frame (the sheet starts at .96 or 24px down)
@@ -261,6 +263,7 @@ function landIn() {
   hideGhost();
   stop(r.anims);
   r.dlg.style.transformOrigin = "";
+  sway();       // the landed card sways once, so it reads as a 3D card (cardtilt.js; not with reduced motion)
 }
 
 /**
@@ -279,6 +282,7 @@ export function closeMotion(dlg, done) {
     return;
   }
   settle();
+  still();      // the card flies back from where it lies at rest, never from a tilt or a turn
   const my = ++token;
   const target = dlg.querySelector(".cd-art .gc");
   const anims = [];
@@ -333,6 +337,7 @@ export function forget() {
   const r = run;
   run = null;
   token++;
+  dropTilt();
   if (r) { stop(r.anims); release(r.target); }
   if (home) { release(home); home = null; }
   hideGhost();

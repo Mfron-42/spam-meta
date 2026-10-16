@@ -11,6 +11,8 @@
   --edge: #7a73aa;
   --gold: #ffcf3a; --hp: #7bdc4b; --win: #5fcf72; --loss: #ff6b6b;
   --card-edge: #0d0a1a; --card-outline: #1a1530;
+  /* cards in hand (DESIGN.md "Card in hand"): the card's side seen at a tilt, and its moving light (ink, never coloured) */
+  --card-side: color-mix(in srgb, var(--card-edge) 55%, var(--line)); --card-light: color-mix(in srgb, var(--ink) 58%, transparent);
   /* game kit (DESIGN.md "Game kit"): the card's own white banner and outlined labels, brought to the card dialog's kit */
   --kit-banner: .26; --kit-shade: rgba(16, 13, 36, .78);
   /* card view (DESIGN.md "Card view"): the backdrop that takes the page out of focus, drawn at its final state, faded by opacity */

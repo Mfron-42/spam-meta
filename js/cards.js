@@ -2,10 +2,10 @@
 // Cards are built like the game client builds them, from its own sprites (CSS classes sp-*), so the page carries no
 // per-card sprite <img>; only the art is an <img>, and it is lazy.
 
-import { h, icon, reEscape } from "./util.js?v=bd314520b1";
-import { DB } from "./data.js?v=bd314520b1";
-import { getLang, isOwned, setOwned } from "./store.js?v=bd314520b1";
-import { t } from "./i18n.js?v=bd314520b1";
+import { h, icon, reEscape } from "./util.js?v=a12dd2e24e";
+import { DB } from "./data.js?v=a12dd2e24e";
+import { getLang, isOwned, setOwned } from "./store.js?v=a12dd2e24e";
+import { t } from "./i18n.js?v=a12dd2e24e";
 
 // element and rarity ids in game order; their names are UI strings ("el.fire", "ra.common")
 export const ELEMENTS = ["fire", "water", "earth", "nature", "light", "shadow", "divine"];
@@ -95,7 +95,11 @@ export function gameCard(c, { size = "full", interactive = true, eager = false }
  * search excerpt), or none. A plain tile (`interactive` false: the card view's) is not a button and says what its face shows.
  */
 export function cardTile(c, { toggle = null, cap = null, interactive = true, eager = false } = {}) {
-  return h("div.cell", { "data-key": c.key }, [h("div.cw", [gameCard(c, { size: "full", interactive, eager }), toggle]), cap]);
+  // the card's layers sit in one inner layer (.gc-in) that the 3D hover turns (cardtilt.js), while the card's own box, the
+  // button a click lands on, never moves
+  const card = gameCard(c, { size: "full", interactive, eager });
+  card.replaceChildren(h("span.gc-in", [...card.childNodes]));
+  return h("div.cell", { "data-key": c.key }, [h("div.cw", [card, toggle]), cap]);
 }
 
 /** A face-down card (only its rarity is known): the withheld deck is drawn with four of them. */

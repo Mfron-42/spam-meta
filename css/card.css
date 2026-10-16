@@ -44,6 +44,30 @@ dialog.card-dlg, dialog.card-dlg.on { opacity: 1; transform: none; transition: n
 .cg-cardback img { object-position: center; }
 .cg-away { visibility: hidden !important; }
 
+/* ---------------------------------------------------------------- the card in hand (site/js/cardtilt.js)
+   The view's big card, the hero of the 3D cards (the shared layers are in cards.css, "cards in hand"). The tile (.cell)
+   takes the pointer and never moves, so the hit area is stable; the card itself takes no pointer events (it is a plain
+   image of the card). While it is held (.tilt-on) its wrapper is a 3D context turned by one transform written each frame;
+   at rest the class and the transform are gone and the card is drawn exactly as the tile draws it. Not attached with
+   reduced motion. */
+.cd-art .cell.ct { touch-action: pan-y pinch-zoom; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+.cd-art .cell.ct .gc { pointer-events: none; }
+@media (hover: hover) and (pointer: fine) { .cd-art .cell.ct { cursor: grab; } }
+.cd-art .cell.ct.ct-drag { cursor: grabbing; }
+.ct-peek, .ct-back { position: absolute; inset: 0; visibility: hidden; pointer-events: none; }
+.cw.tilt-on .ct-peek, .cw.tilt-on .ct-back { visibility: visible; }
+/* in a turn every plane of the face hides its back, so the face is never seen mirrored through the S back */
+.cw.tilt-on .gc-in > *, .ct-back, .ct-sheet, .ct-slab { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+.cw.tilt-on .ct-peek { transform-style: preserve-3d; }
+/* the card's back, facing the other way: the game's own back on the card frame, as in the open flight (cg-thumb) */
+.ct-back { transform: rotateY(180deg); }
+/* behind the face: five slabs of the card's edge (its thickness), then the S back 7% of the card width deeper, whose edge
+   shows past the slabs at a strong tilt; they face forward and hide their backs, so they are gone once the card is turned */
+.ct-slab, .ct-sheet { position: absolute; inset: 0; border-radius: calc(var(--u) * 7); }
+.ct-slab { background: var(--card-side); transform: translateZ(calc(var(--u) * -1.15 * var(--i))); }
+.ct-sheet { overflow: hidden; background: var(--panel); transform: translateZ(calc(var(--u) * -7)); }
+.ct-sheet img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+
 /* ---------------------------------------------------------------- the card: card left, kit right
    The card is the hero: a 320px column; the kit's narrow reading column starts level with the card's top. */
 .cd-body { display: grid; grid-template-columns: 320px minmax(0, 480px); justify-content: center; gap: 48px; align-items: start; }

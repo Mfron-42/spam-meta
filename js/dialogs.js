@@ -3,16 +3,17 @@
 // drawn as a full-screen card view (card.css); its enter and exit (the card flying from its tile) are played by
 // cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=bd314520b1";
-import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=bd314520b1";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=bd314520b1";
-import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=bd314520b1";
-import { encode, decode } from "./code.js?v=bd314520b1";
-import { copyText, disclosure } from "./ui.js?v=bd314520b1";
-import { t, tx, millions } from "./i18n.js?v=bd314520b1";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine } from "./patch.js?v=bd314520b1";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=bd314520b1";
-import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=bd314520b1";
+import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=a12dd2e24e";
+import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=a12dd2e24e";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=a12dd2e24e";
+import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=a12dd2e24e";
+import { encode, decode } from "./code.js?v=a12dd2e24e";
+import { copyText, disclosure } from "./ui.js?v=a12dd2e24e";
+import { t, tx, millions } from "./i18n.js?v=a12dd2e24e";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine } from "./patch.js?v=a12dd2e24e";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=a12dd2e24e";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=a12dd2e24e";
+import { attachTilt } from "./cardtilt.js?v=a12dd2e24e";
 
 let openDlg = null, pushed = false;
 
@@ -503,6 +504,8 @@ function renderCardDialog() {
   ]);
   $(".dlg-scroll", dlg).replaceChildren(body);
   dlg.setAttribute("aria-labelledby", "dlg-name");
+  // the big card can be tilted and turned with the pointer (cardtilt.js; not with reduced motion)
+  attachTilt($(".cd-art .cell", dlg));
 }
 
 export function syncDialogOwned() {
