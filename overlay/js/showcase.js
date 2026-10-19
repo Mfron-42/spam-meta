@@ -2,15 +2,15 @@
 // own modules (store, i18n, data, cards), so it draws the same game cards from the same data, speaks the same two languages
 // and shares the visitor's language choice with SPAM Meta. Its strings are the "ov." keys of js/i18n.js.
 
-import { setLang, langChosen, on, getLang } from "../../js/store.js?v=8a5f60f0c0";
-import { t, applyStatic } from "../../js/i18n.js?v=8a5f60f0c0";
-import { h, pct, pct1, icon } from "../../js/util.js?v=8a5f60f0c0";
-import { DB, loadCore, loadTier, loadCardTiers } from "../../js/data.js?v=8a5f60f0c0";
-import { gameCard, cardName } from "../../js/cards.js?v=8a5f60f0c0";
-import { ambient } from "../../js/ambient.js?v=8a5f60f0c0";
-import { copyText, disclosure } from "../../js/ui.js?v=8a5f60f0c0";
-import { createStage } from "./stage.js?v=8a5f60f0c0";
-import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=8a5f60f0c0";
+import { setLang, langChosen, on, getLang } from "../../js/store.js?v=42e43ace8e";
+import { t, applyStatic } from "../../js/i18n.js?v=42e43ace8e";
+import { h, pct, pct1, icon } from "../../js/util.js?v=42e43ace8e";
+import { DB, loadCore, loadTier, loadCardTiers } from "../../js/data.js?v=42e43ace8e";
+import { gameCard, cardName } from "../../js/cards.js?v=42e43ace8e";
+import { ambient } from "../../js/ambient.js?v=42e43ace8e";
+import { copyText, disclosure } from "../../js/ui.js?v=42e43ace8e";
+import { createStage } from "./stage.js?v=42e43ace8e";
+import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=42e43ace8e";
 
 // The overlay's own display, from its media kit (spam-overlay-media/MANIFEST.md: real renderer output over a rebuilt board,
 // so every one is a composite and carries "Illustration"), re-encoded into overlay/media/ (WebP, pixels only). Per
@@ -19,11 +19,10 @@ import { loadRelease, formatSize, formatDay, recommended, alternative } from "./
 const MEDIA = {
   fight: { composite: true, w: 1600, h: 900, src: { fr: "fight-fr", en: "fight-en" }, sizes: [800, 1600] },
   shop: { composite: true, w: 1600, h: 900, src: { fr: "shop-fr", en: "shop-en" }, sizes: [800, 1600] },
-  after: { composite: true, w: 960, h: 480, src: { fr: "after-fr", en: "after-en" }, sizes: [960] },
 };
 const mediaUrl = (name, w) => new URL(`../media/${name}-${w}.webp`, import.meta.url).href;
 
-const FAQ = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+const FAQ = [1, 2, 3, 4, 5, 6, 7, 8];
 const ROOT = new URL("../../", import.meta.url);
 const thumb = (key) => new URL(`assets/thumbs/s/${key}.webp`, ROOT).href;
 
@@ -113,8 +112,8 @@ function drawDownload() {
   const kind = !ready ? "soon" : alt ? "both" : main.kind;
   variant($("inst-1t"), "ov.inst.1t", kind);
   variant($("inst-2t"), "ov.inst.2t", kind === "both" ? "setup" : kind);
-  const a7 = document.querySelector("#faq-a7 p");
-  if (a7) variant(a7, "ov.faq.a7", ready ? "ready" : "soon");
+  const a5 = document.querySelector("#faq-a5 p");
+  if (a5) variant(a5, "ov.faq.a5", ready ? "ready" : "soon");
 
   paintRetry();
 
@@ -158,7 +157,7 @@ for (const n of FAQ) {
   const id = `faq-a${n}`;
   const btn = h("button.faq-q", { type: "button", "aria-expanded": "false", "aria-controls": id },
     [h("span", { "data-i18n": `ov.faq.q${n}` }), icon("chevron", 16)]);
-  const ans = h("div.collapse.faq-a", { id, role: "region", "aria-labelledby": `faq-q${n}` }, h("div.collapse-in", h("p", { "data-i18n": `ov.faq.a${n}` })));
+  const ans = h("div.collapse.faq-a", { id, role: "region", "aria-labelledby": `faq-q${n}` }, h("div.collapse-in", h("p", { "data-i18n": `ov.faq.a${n}${n === 5 ? ".soon" : ""}` })));
   btn.id = `faq-q${n}`;
   btn.addEventListener("click", () => {
     const open = btn.getAttribute("aria-expanded") !== "true";
@@ -235,7 +234,7 @@ function drawShots() {
         if (media.composite) fig.querySelector("figcaption").prepend(h("span.tag.soft.shot-tag"), " ");
       }
       img.srcset = media.sizes.map((w) => `${mediaUrl(name, w)} ${w}w`).join(", ");
-      img.sizes = fig.classList.contains("big") ? "(min-width: 1024px) 744px, calc(100vw - 32px)" : "(min-width: 1024px) 352px, (min-width: 760px) 50vw, calc(100vw - 32px)";
+      img.sizes = "(min-width: 1024px) 548px, (min-width: 760px) 50vw, calc(100vw - 32px)";
       img.src = mediaUrl(name, media.sizes[0]);
       img.alt = t(`ov.alt.${key}`);
       a.href = mediaUrl(name, big);

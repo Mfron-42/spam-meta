@@ -80,11 +80,12 @@ main { display: block; }
 .hero-act { display: flex; flex-wrap: wrap; gap: 8px 12px; margin-top: 8px; }
 .hero-note { color: var(--muted); font: 600 14px/1.4 var(--text); }
 
-/* the stage: one picture, the game window with the overlay on it. A single sunken frame (the screen) holds the board (two
-   rows of game cards, no box of its own) and, docked on its right edge level with their row, the overlay's list, as the real
-   overlay docks its panel beside the board. (Revised 2026-10-18: the list used to float on the page ground beside a boxed
-   board and read as a second, detached piece; it now sits on the screen it annotates, and the board lost its own box, so
-   there is still only one container.) The tag and the pause button sit on the frame's top strip. */
+/* the stage: one picture, the game window with the overlay on it, as the live overlay (0.1.5) draws it: a quiet layer. One
+   sunken frame (the screen) holds the board (two rows of real, full-size game cards, no box of its own) and, on its right edge,
+   stand-ins for the game's END TURN disc and timer ring, because the overlay's marks are placed by them: the win chance
+   readout centred just above the disc, the end-turn dot left of the timer ring. At rest only the readout and ONE cyan dot
+   show (on the suggested spell line); hovering that line moves the dot to the best target, which carries its death chance and
+   the damage. The tag and the pause button sit on the frame's top strip. */
 .stage { position: relative; margin: 24px 0 0; }
 .stage-bar { position: absolute; left: 16px; right: 12px; top: 12px; z-index: 4; display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 44px; pointer-events: none; }
 .stage-bar > * { pointer-events: auto; }
@@ -97,44 +98,56 @@ main { display: block; }
 .stage-bar .stage-pp:active { background: var(--socket); }
 .stage-bar .stage-pp:disabled, .stage-bar .stage-pp:disabled:hover { background: var(--kit-shade); }
 .stage-pp .ico { width: 16px; height: 16px; }
-.stage-pp:disabled, .stage-pp:disabled:hover { opacity: .5; background: transparent; cursor: default; }
-/* the data could not load: one line centred on the board's own grid cell (the list fades out: it would show figures
-   for cards that are not there) */
-.board { grid-area: 1 / 1; }
-.olist { grid-area: 1 / 2; transition: opacity var(--t-fade) var(--curve); }
-.stage-fail { grid-area: 1 / 1; align-self: center; justify-self: center; position: relative; z-index: 3; max-width: calc(100% - 32px); margin: 0;
-  padding: 8px 12px; border-radius: 8px; background: var(--kit-shade); color: var(--ink-2); font: 600 14px/1.4 var(--text); text-align: center; }
-.stage.failed .olist { opacity: 0; }
-.stage-in { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; padding-right: 24px;
-  border-radius: 12px; border: 1px solid var(--line); box-shadow: var(--sunken);
+.stage-pp:disabled, .stage-pp:disabled:hover { opacity: .5; cursor: default; }
+.stage-in { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 216px; align-items: center; border-radius: 12px; border: 1px solid var(--line); box-shadow: var(--sunken);
   background: var(--socket) url("../media/arena-800.webp") center / cover no-repeat; }
 @media (min-width: 900px) { .stage-in { background-image: url("../media/arena-1600.webp"); } }
+.board { grid-area: 1 / 1; display: grid; gap: 32px; padding: 64px 0 32px 24px; }
+.dock { grid-area: 1 / 2; display: grid; justify-content: center; justify-items: start; gap: 8px; padding: 64px 24px 32px 0; opacity: 0; transition: opacity var(--t-fade) var(--curve); }
+.stage.ready .dock { opacity: 1; }
+/* the data could not load: one line centred on the board's own grid cell (the dock fades out: it would show figures for cards
+   that are not there) */
+.stage-fail { grid-area: 1 / 1; align-self: center; justify-self: center; position: relative; z-index: 3; max-width: calc(100% - 32px); margin: 0;
+  padding: 8px 12px; border-radius: 8px; background: var(--kit-shade); color: var(--ink-2); font: 600 14px/1.4 var(--text); text-align: center; }
+.stage.failed .dock { opacity: 0; }
 
-/* the board: their row on top, yours below; the overlay writes on the outer side of each row (above theirs, below yours) */
-/* 72px on top (48 + 24): the two-line label above a target card and the stage's tag share that strip */
-.board { display: grid; gap: 48px; padding: 72px 16px 48px 24px; }
-.row { display: grid; grid-template-columns: repeat(4, minmax(0, 136px)); gap: 16px; justify-content: center; }
+/* the board: their row on top, yours below. Each slot holds a real game card at the client's own ratio (1432 x 2048); the
+   frame under it keeps the size while the data loads */
+.row { display: grid; grid-template-columns: repeat(4, minmax(0, 152px)); gap: 16px; justify-content: center; }
 .slot { position: relative; aspect-ratio: 1432 / 2048; }
 .slot > .gc { position: absolute; inset: 0; }
 .slot .gc { opacity: 0; transition: opacity var(--t-fade) var(--curve); }
 .stage.ready .slot .gc { opacity: 1; }
-.slot-frame { position: absolute; inset: 0; border-radius: 8px; background: linear-gradient(180deg, var(--panel-hi), var(--socket)); }
+.slot-frame { position: absolute; inset: 0; border-radius: 8px; background: linear-gradient(180deg, var(--panel-hi), var(--socket)); transition: opacity var(--t-fade) var(--curve); }
 .stage.ready .slot-frame { opacity: 0; }
 
-/* the overlay's marks: the target ring (the one action colour), the ghost of the HP an outcome takes, the outlined labels */
+/* the overlay's marks: every one stays in the page and only its opacity changes */
 .mk { position: absolute; pointer-events: none; opacity: 0; transition: opacity var(--t-state) var(--curve); }
 .mk.on { opacity: 1; }
-.mk-ring { inset: -4px; border-radius: 12px; box-shadow: 0 0 0 3px var(--accent), 0 0 0 6px rgba(0, 0, 0, .7); }
-/* over the list-size card's HP bar (12% in from each side, 4.9% from the bottom, 6.3% tall: cards.css .gc.cp .gc-hp) */
-.mk-ghost { left: 12%; right: 12%; bottom: 4.9%; height: 6.3%; border-radius: 4px; overflow: hidden; }
-.mk-ghost i { position: absolute; inset: 0; transform-origin: right; transform: scaleX(var(--lost, 0)); transition: transform var(--t-fade) var(--curve);
-  background: repeating-linear-gradient(135deg, rgba(13, 10, 26, .85) 0 3px, rgba(13, 10, 26, .55) 3px 6px); }
-.mk-out { left: 50%; display: flex; flex-direction: column; align-items: center; gap: 4px; transform: translateX(-50%); white-space: nowrap; }
-.them .mk-out { bottom: calc(100% + 12px); }
-.you .mk-out { top: calc(100% + 16px); }
-.mk-out.edge-l { left: 0; transform: none; align-items: flex-start; }
-.mk-out.edge-r { left: auto; right: 0; transform: none; align-items: flex-end; }
-.mk-pip { left: 50%; bottom: calc(100% + 12px); width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px #000; }
+/* the hovered spell line: its row on the card, lifted one step (placed by stage.js as a share of the card) */
+.mk-row { left: var(--rx, 0%); top: var(--ry, 0%); width: var(--rw, 0%); height: var(--rh, 0%); border-radius: 4px; background: rgba(255, 255, 255, .16); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .5); }
+/* THE dot: the one cyan mark (the action colour), a black ring so it reads on any art */
+.mk-dot, .dot-s { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px #000; }
+.mk-dot { margin: -7px 0 0 -7px; }
+.dot-s { display: inline-block; flex: none; }
+.dot-spell { left: var(--rx, 0%); top: calc(var(--ry, 0%) + var(--rh, 0%) / 2); }
+.dot-target { left: 50%; top: 22%; }
+/* the best target's read-out: the death chance (skull and figure) with the damage range under a down triangle, red */
+.mk-out { left: 50%; top: 32%; display: grid; justify-items: center; gap: 4px; transform: translateX(-50%); white-space: nowrap; }
+.mk-out .ol-voice { display: inline-flex; align-items: baseline; gap: 8px; }
+.mk-out .ol-voice.small { font-size: 16px; }
+/* the stand-in HUD: the disc with its label and the ring of the timer; the end-turn dot sits between them, left of the ring.
+   The win chance readout is centred over the disc. */
+.ol-win { display: flex; justify-content: center; align-items: center; gap: 8px; width: 96px; color: var(--ink); white-space: nowrap; font: 400 24px/1 var(--display); letter-spacing: .01em;
+  text-shadow: 2px 0 0 #000, -2px 0 0 #000, 0 2px 0 #000, 0 -2px 0 #000, 2px 2px 0 #000, -2px 2px 0 #000, 2px -2px 0 #000, -2px -2px 0 #000, 0 3px 0 #000; }
+.ol-win b { font-weight: 400; }
+.ol-win .ico { width: 20px; height: 20px; color: var(--ink); stroke-width: 2.2; filter: drop-shadow(0 1px 0 #000); }
+.hud { position: relative; display: flex; align-items: center; gap: 24px; }
+.hud-end { display: grid; place-items: center; width: 96px; height: 96px; padding: 0 12px; border-radius: 50%; background: var(--panel); border: 2px solid var(--muted); box-shadow: var(--shadow);
+  color: var(--ink); font: 400 16px/1.1 var(--display); letter-spacing: .01em; text-align: center; }
+.hud-end { order: 1; }
+.hud-timer { order: 2; flex: none; width: 40px; height: 40px; border-radius: 50%; border: 4px solid var(--muted); box-shadow: var(--shadow); }
+.dot-end { left: 108px; top: 50%; margin: -7px 0 0 -7px; }
 
 /* the overlay's in-game voice: the display face in ink with a hard dark outline, readable on any part of the board.
    Stacked hard shadows, never a text stroke (DESIGN.md, The No-Outline-On-Crowds Rule). */
@@ -143,66 +156,15 @@ main { display: block; }
 .ol-voice b { font-weight: 400; font-size: 22px; }
 .ol-voice .ico { color: var(--loss); stroke-width: 2.4; filter: drop-shadow(0 1px 0 #000); }
 .ol-voice .ico.crown { color: var(--ink); }
-/* a death at 50% or more: the skull is solid (the overlay also blinks it; the page keeps still) */
+/* a death at 50% or more: the skull is solid */
 .ico.skull.solid { fill: color-mix(in srgb, currentColor 60%, transparent); }
-/* the HP the selected outcome leaves, one red figure */
 .ol-voice .lost { color: var(--loss); }
 .ol-voice .lost b { font-size: inherit; }
-.mk-out .ol-voice { display: inline-flex; align-items: baseline; gap: 8px; }
-.mk-out .ol-voice.small { font-size: 16px; }
 
 /* the pointer the illustration moves; it only ever moves by transform, on the one curve */
 .cursor { position: absolute; left: 0; top: 0; z-index: 3; width: 24px; height: 24px; pointer-events: none; fill: var(--ink); stroke: #000; stroke-width: 1.5; stroke-linejoin: round;
   transform: translate(var(--cx, 0), var(--cy, 0)); transition: transform var(--t-move) var(--curve), opacity var(--t-fade) var(--curve); opacity: 0; }
 .stage.ready .cursor { opacity: 1; }
-.wheel-hint { position: absolute; left: 0; top: 0; z-index: 3; display: inline-flex; align-items: center; height: 28px; padding: 0 8px; border-radius: 4px; background: var(--panel-hi); border: 1px solid var(--line);
-  color: var(--ink); font: 700 14px/1 var(--text); white-space: nowrap; pointer-events: none; opacity: 0;
-  transform: translate(var(--cx, 0), var(--cy, 0)); transition: transform var(--t-move) var(--curve), opacity var(--t-fade) var(--curve); }
-.wheel-hint.on { opacity: 1; }
-
-/* the overlay's list: the win gauge, then one of two panes (the coach at rest, the outcome tree on hover), cross-faded */
-/* docked on the screen: its top level with their row's cards (the board's 72px top inset), flat, the panel face */
-.olist { margin-top: 72px; display: grid; gap: 12px; padding: 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); }
-/* the standing win chance: the crown and the figure, always at the panel's top right (the overlay's own top-right readout) */
-.ol-win { display: inline-flex; align-items: center; gap: 8px; justify-self: end; color: var(--ink); font: 400 28px/1 var(--display); }
-.ol-win .ico { color: var(--ink); stroke-width: 2.2; }
-/* the signed change an action makes to the win chance: big, green up, red down. The absolute win chance stays small beside it. */
-.dv { font: 400 22px/1 var(--display); font-variant-numeric: tabular-nums; }
-.dv.up { color: var(--win); }
-.dv.down { color: var(--loss); }
-.ol-panes { display: grid; }
-.ol-pane { grid-area: 1 / 1; display: grid; gap: 8px; align-content: start; opacity: 0; visibility: hidden;
-  transition: opacity var(--t-fade) var(--curve), visibility 0s linear var(--t-fade); }
-.ol-pane.on { opacity: 1; visibility: visible; transition: opacity var(--t-fade) var(--curve), visibility 0s; }
-.ol-h { font: 400 18px/1.15 var(--display); letter-spacing: .01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ol-sub { color: var(--muted); font: 600 14px/1.4 var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ol-sub:empty { display: none; }
-.ol-rows { position: relative; display: grid; gap: 4px; }
-.ol-row { position: relative; z-index: 1; display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; gap: 8px; height: 48px; padding: 0 12px; border-radius: 8px;
-  background: var(--socket); box-shadow: var(--sunken); }
-.ol-row .p { color: var(--muted); font: 600 14px/1 var(--text); }
-/* a label may take two lines (the engine's labels can be long), never more */
-.ol-row .l { font: 700 14px/1.15 var(--text); color: var(--ink); overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-.ol-row.coach { grid-template-columns: minmax(0, 1fr) auto; }
-.ol-row.coach .p { display: none; }
-.ol-row .w { display: inline-flex; align-items: baseline; justify-content: flex-end; gap: 8px; min-width: 76px; }
-.ol-row .w b { color: var(--muted); font: 600 14px/1 var(--text); }
-.ol-row.best .l::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 8px; border-radius: 50%; background: var(--accent); vertical-align: 2px; box-shadow: 0 0 0 2px #000; }
-/* a card shown, not named (the overlay's own rule: "visual over text"): its art at 20 x 28 with the rarity as a pip on the lower
-   edge; the name stays for screen readers and as the title. In a one-line header it takes no height of its own, so the panel
-   never changes size between two panes. */
-.ct { position: relative; display: inline-block; flex: none; width: 20px; height: 28px; margin: 0 3px; vertical-align: middle; border-radius: 3px; overflow: hidden;
-  background: var(--socket); box-shadow: inset 0 0 0 1px var(--line), 0 0 0 1px #000; --rc: var(--r-common); }
-.ct.r-rare { --rc: var(--r-rare); } .ct.r-epic { --rc: var(--r-epic); } .ct.r-legendary { --rc: var(--r-legendary); } .ct.r-divine { --rc: var(--r-divine); }
-.ct-art { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
-.ct-pip { position: absolute; left: 50%; bottom: 2px; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: var(--rc); box-shadow: 0 0 0 1px var(--socket); }
-.ol-h .ct, .ol-sub .ct { margin-block: -5px; }
-/* the selected outcome (what the wheel moves): one lifted cell with the cyan ring, sliding from row to row */
-.ol-sel { position: absolute; left: 0; right: 0; top: 0; z-index: 2; height: 48px; border-radius: 8px; box-shadow: inset 0 0 0 2px var(--accent); pointer-events: none;
-  transform: translateY(calc(var(--sel, 0) * 52px)); transition: transform var(--t-fade) var(--curve); }
-.ol-rows.in .ol-row { animation: ov-rise var(--t-fade) var(--curve) both; animation-delay: calc(var(--i, 0) * 40ms); }
-.ol-basis { color: var(--muted); font: 600 14px/1.4 var(--text); }
-@keyframes ov-rise { from { opacity: 0; transform: translateY(4px); } }
 
 /* ---------------------------------------------------------------- what it shows */
 .feats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 48px; }
@@ -216,11 +178,6 @@ main { display: block; }
 .feat > p { grid-area: p; color: var(--ink-2); }
 .sample { grid-area: s; align-self: start; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 12px; border-radius: 8px; background: var(--socket); box-shadow: var(--sunken); white-space: nowrap; }
 .sample.ol-voice { font-size: 16px; }
-.mini-tree { display: grid; gap: 4px; padding: 8px; }
-.mini-tree > span { display: grid; grid-template-columns: 40px auto; align-items: baseline; gap: 8px; padding: 0 8px; }
-.mini-tree > span:nth-child(2) { border-radius: 4px; box-shadow: inset 0 0 0 2px var(--accent); }
-.mini-tree i { font: 600 14px/1.6 var(--text); font-style: normal; color: var(--muted); }
-.mini-tree b { font: 400 16px/1.6 var(--display); font-weight: 400; }
 kbd { display: inline-flex; align-items: center; height: 28px; padding: 0 8px; border-radius: 4px; background: var(--panel-hi); box-shadow: 0 2px 0 var(--socket); color: var(--ink); font: 700 14px/1 var(--text); white-space: nowrap; }
 .odds { display: grid; gap: 8px; }
 .odds-bar { display: flex; gap: 2px; width: 184px; height: 12px; padding: 2px; border-radius: 4px; background: #000; }
@@ -232,14 +189,13 @@ kbd { display: inline-flex; align-items: center; height: 28px; padding: 0 8px; b
 .odds-k i { width: 8px; height: 8px; border-radius: 50%; background: var(--rc); }
 .odds-k b { font-weight: 700; }
 
-/* one big picture (the fight) and, beside it from 1024px, the two others stacked in a 352px column, so the column ends
-   level with the big one; every frame takes its picture's own ratio (showcase.js sets it), nothing is cropped */
+/* the two pictures (the fight, the shop) side by side, one column on a phone; every frame takes its picture's own ratio
+   (showcase.js sets it), nothing is cropped */
 .shots { margin-top: 48px; }
 .shots h3 { margin-bottom: 16px; }
 .shots-legal { margin-top: 16px; color: var(--muted); font: 600 14px/1.4 var(--text); max-width: 72ch; }
-.shots-row { display: grid; grid-template-columns: minmax(0, 1fr) 352px; gap: 16px 24px; align-items: start; }
+.shots-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 24px; align-items: start; }
 .shot { margin: 0; display: grid; gap: 8px; }
-.shot.big { grid-row: span 2; }
 .shot figcaption { color: var(--ink-2); font: 600 14px/1.4 var(--text); }
 .shot figcaption .tag { margin-right: 4px; vertical-align: 1px; }
 .shot-frame { position: relative; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: var(--socket); box-shadow: var(--sunken); }
@@ -288,14 +244,13 @@ kbd { display: inline-flex; align-items: center; height: 28px; padding: 0 8px; b
 .steps.small { grid-template-columns: minmax(0, 1fr); gap: 16px; margin: 24px 0; }
 .steps.small h3 { font-size: 18px; margin: 12px 0 4px; }
 
-/* ---------------------------------------------------------------- privacy: five ruled lines at the reading measure; the first
-   (what it reads) carries the eye, the four others (never) the cross */
+/* ---------------------------------------------------------------- privacy: four ruled lines at the reading measure; the first
+   (what it reads) carries the eye, the three others (never) the cross */
 .priv { margin-top: 24px; max-width: 800px; }
 .checks li { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-top: 1px solid var(--line); color: var(--ink); }
 .checks li:last-child { border-bottom: 1px solid var(--line); }
 .checks .ico { flex: none; margin-top: 4px; color: var(--muted); }
 .checks li > span { display: inline; }
-.trust-foot { margin-top: 32px; font: 400 28px/1.15 var(--display); letter-spacing: .01em; }
 
 /* the coming-soon state of the download: a sunken strip, a clock, two lines; not a control, no hover */
 .soon { display: flex; gap: 12px; align-items: flex-start; max-width: 520px; padding: 16px; border-radius: 8px; background: var(--socket); box-shadow: var(--sunken); }
@@ -436,13 +391,10 @@ body[data-dl="loading"] .hero-note { visibility: hidden; }
 
 /* ---------------------------------------------------------------- responsive */
 @media (max-width: 1023px) {
-  /* the list moves under the board, still inside the screen */
+  /* the END TURN stand-in moves under the board, still inside the screen */
   .stage-in { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 16px 16px; }
-  .board { padding-left: 0; padding-right: 0; }
-  .olist { margin-top: 0; max-width: 480px; width: 100%; justify-self: center; }
-  .olist { grid-area: 2 / 1; }
-  .shots-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .shot.big { grid-column: 1 / -1; grid-row: auto; }
+  .board { padding: 64px 0 32px; }
+  .dock { grid-area: 2 / 1; padding: 0 0 16px; }
   .flist { grid-template-columns: minmax(0, 1fr); }
   .steps { grid-template-columns: minmax(0, 1fr); }
   .install { grid-template-columns: minmax(0, 1fr); }
@@ -458,8 +410,10 @@ body[data-dl="loading"] .hero-note { visibility: hidden; }
   .stage { margin-top: 24px; }
   .stage-bar { position: static; height: 44px; margin-bottom: 8px; }
   .stage-in { padding: 0 8px 8px; }
-  .board { gap: 40px; padding: 40px 0 48px; }
-  .row { gap: 8px; }
+  .board { gap: 16px; padding: 16px 0 24px; }
+  /* two cards a row on a phone: the stage puts the caster and the target in the second slot of their rows */
+  .row { grid-template-columns: repeat(2, minmax(0, 152px)); gap: 8px; }
+  .slot:nth-child(n+3) { display: none; }
   .ol-voice { font-size: 14px; }
   .ol-voice b { font-size: 16px; }
   .mk-out .ol-voice.small { font-size: 14px; }
@@ -473,7 +427,6 @@ body[data-dl="loading"] .hero-note { visibility: hidden; }
   .shots { margin-top: 24px; }
   .steps { margin-top: 16px; gap: 16px; }
   .priv { margin-top: 16px; }
-  .trust-foot { margin-top: 16px; }
   .keys-h { display: none; }
   .keys .keys-d { display: block; margin: 0; }
   .keys-c { grid-template-rows: 0fr; visibility: hidden; }
@@ -486,7 +439,6 @@ body[data-dl="loading"] .hero-note { visibility: hidden; }
   .soon { padding: 12px; }
   .dl-hash { grid-template-columns: minmax(0, 1fr); }
   .dl-hash .copy { justify-self: start; }
-  .trust-foot { font-size: 22px; }
   .keys h3 { font-size: 18px; }
   .row-head { grid-template-columns: minmax(0, 1fr); }
   .row-head .btn { justify-self: start; }
@@ -511,7 +463,6 @@ body[data-dl="loading"] .hero-note { visibility: hidden; }
 
 /* the kill switch: no travel, no stagger, no sliding selection (base.css shortens every duration as well) */
 @media (prefers-reduced-motion: reduce) {
-  .cursor, .wheel-hint, .ol-sel, .mk-ghost i { transition: none; }
-  .ol-rows.in .ol-row { animation: none; }
+  .cursor { transition: none; }
   .get > :not([hidden]) { animation: none; }
 }
