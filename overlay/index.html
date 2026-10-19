@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SPAM Overlay : sache ce qui va se passer avant de cliquer</title>
+<meta name="description" content="Un overlay de fan pour le jeu de cartes SPAM : les chances de chaque issue et ta chance de gagner, affichées sur tes propres cartes. Il conseille, c’est toi qui joues.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#15122c">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SPAM Overlay">
+<meta property="og:title" content="SPAM Overlay : sache ce qui va se passer avant de cliquer">
+<meta property="og:description" content="Les chances de chaque issue et ta chance de gagner, affichées autour de tes cartes. Il conseille, c’est toi qui joues. Outil de fan non officiel.">
+
+<link rel="preload" href="../fonts/lilita-one-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../fonts/nunito-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../data/cards.json?v=b72f78e0fe" as="fetch" crossorigin>
+<link rel="stylesheet" href="../css/base.css?v=b72f78e0fe">
+<link rel="stylesheet" href="../css/ambient.css?v=b72f78e0fe">
+<link rel="stylesheet" href="../css/cards.css?v=b72f78e0fe">
+<link rel="stylesheet" href="css/overlay.css?v=b72f78e0fe">
+<link rel="modulepreload" href="js/showcase.js?v=b72f78e0fe">
+</head>
+<body class="ov" data-dl="loading">
+<a class="skip" href="#main" data-i18n="head.skip">Aller au contenu</a>
+
+<header class="chrome ov-chrome">
+  <div class="wrap ov-chrome-in">
+    <a class="brand" href="#top" aria-label="SPAM Overlay, haut de la page" data-i18n-aria="ov.home">
+      <img class="brand-mark" src="../favicon.svg" alt="" width="32" height="32">
+      <span class="brand-name" translate="no">SPAM Overlay</span>
+    </a>
+    <nav class="ov-nav" aria-label="Sections de la page" data-i18n-aria="ov.nav">
+      <a href="#what" data-i18n="ov.nav.what">Ce qu’il montre</a>
+      <a href="#how" data-i18n="ov.nav.how">Comment ça marche</a>
+      <a href="#trust" data-i18n="ov.nav.trust">Vie privée</a>
+      <a href="#install" data-i18n="ov.nav.install">Installer</a>
+      <a href="#faq" data-i18n="ov.nav.faq">FAQ</a>
+    </nav>
+    <div class="tools">
+      <a class="btn ghost ov-metalink" href="../#tiers" title="Ouvrir SPAM Meta, le site des decks" data-i18n-title="ov.nav.meta"><span translate="no">SPAM Meta</span></a>
+      <div class="seg" id="lang-seg" role="group" aria-label="Langue" data-i18n-aria="head.lang">
+        <button type="button" data-v="fr" aria-pressed="true" lang="fr" title="Français">FR</button>
+        <button type="button" data-v="en" aria-pressed="false" lang="en" title="English">EN</button>
+      </div>
+    </div>
+  </div>
+  <!-- under 1100px the page sections move to a second, compact row (the row above has no room for them) -->
+  <div class="wrap ov-subnav-w">
+    <nav class="ov-subnav" id="ov-subnav" aria-label="Sections de la page" data-i18n-aria="ov.nav">
+      <a href="#what" data-i18n="ov.sub.what">Fonctions</a>
+      <a href="#how" data-i18n="ov.sub.how">Comment</a>
+      <a href="#trust" data-i18n="ov.sub.trust">Vie privée</a>
+      <a href="#install" data-i18n="ov.sub.install">Installer</a>
+      <a href="#faq" data-i18n="ov.nav.faq">FAQ</a>
+      <a href="#meta" translate="no">SPAM Meta</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+  <!-- hero: the promise, the one action, then the overlay in motion -->
+  <section class="wrap hero" id="top" aria-labelledby="hero-h">
+    <div class="hero-copy">
+      <h1 id="hero-h" data-i18n="ov.h1">Sache ce qui va se passer avant de cliquer.</h1>
+      <p class="hero-lede" data-i18n="ov.lede">Un overlay pour SPAM qui affiche, tout contre tes cartes, les chances de chaque issue et comment chacune change ta chance de gagner. Il conseille ; tu joues.</p>
+      <!-- the download is read from data/overlay-release.json (js/release.js): the button below shows only for a valid, available
+           release; every other state draws the note and no link to any installer (README, "The overlay page") -->
+      <div class="hero-act">
+        <a class="btn primary dl-btn" id="cta-dl" hidden rel="noopener">
+          <svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8 2v8.5M4.5 7.5 8 11l3.5-3.5M3 13.5h10"/></svg>
+          <span class="dl-label" data-i18n="ov.cta">Télécharger pour Windows</span>
+          <span class="dl-meta"><span class="dl-ver"></span><span class="dl-size"></span></span>
+        </a>
+        <a class="btn primary" id="cta-see" href="#what" data-i18n="ov.cta2">Voir ce qu’il montre</a>
+      </div>
+      <p class="hero-note" id="cta-note">
+        <svg class="ico i-soon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.2"/><path d="M8 4.6V8l2.3 1.5"/></svg>
+        <svg class="ico i-err" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.2"/><path d="M8 7.2v4.3M8 4.6v.1"/></svg>
+        <span id="cta-note-t" data-i18n="ov.ctaNote">Version de test pour Windows, pas encore disponible au téléchargement.</span>
+        <a class="link" id="cta-note-link" href="#install" hidden data-i18n="ov.dl.noteLink">Voir le détail</a>
+      </p>
+    </div>
+
+    <figure class="stage" id="stage">
+      <div class="stage-bar">
+        <span class="tag soft" data-i18n="ov.stage.tag">Illustration, chiffres fictifs</span>
+        <button class="icon-btn stage-pp" id="stage-pp" type="button" aria-pressed="false" title="Mettre l’animation en pause" aria-label="Mettre l’animation en pause">
+          <svg class="ico i-pause" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M5.5 3.5v9M10.5 3.5v9"/></svg>
+          <svg class="ico i-play" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M5 3.2v9.6L12.5 8z"/></svg>
+        </button>
+      </div>
+      <div class="stage-in" role="img" aria-label="Illustration de l’overlay sur un plateau de SPAM : le curseur survole une carte adverse, l’overlay montre ta chance de gagner, la chance de mort de la carte et la liste des issues, chacune commençant par le changement qu’elle apporte à ta chance de gagner. Chiffres fictifs." data-i18n-aria="ov.stage.aria">
+        <div class="board" aria-hidden="true">
+          <div class="row them" id="row-them"></div>
+          <div class="row you" id="row-you"></div>
+        </div>
+        <div class="olist" aria-hidden="true">
+          <div class="ol-win"><svg class="ico crown" viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M2 12.5 1.7 5.2 5.4 8 8 3.2 10.6 8l3.7-2.8L14 12.5z"/></svg><b id="g-now">58 %</b></div>
+          <div class="ol-panes">
+            <div class="ol-pane on" id="pane-coach">
+              <p class="ol-h" data-i18n="ov.l.coach">Meilleurs coups</p>
+              <ol class="ol-rows" id="coach-rows"></ol>
+              <p class="ol-basis" data-i18n="ov.l.basisCoach">Classés par victoire moyenne (gourmand).</p>
+            </div>
+            <div class="ol-pane" id="pane-tree">
+              <p class="ol-h" id="tree-h"></p>
+              <p class="ol-sub" id="tree-sub"></p>
+              <ol class="ol-rows tree" id="tree-rows"><li class="ol-sel" id="tree-sel"></li></ol>
+              <p class="ol-basis" data-i18n="ov.l.basis">Chances exactes. Victoire à ±5, sur 240 parties.</p>
+            </div>
+          </div>
+        </div>
+        <svg class="cursor" id="cursor" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="M5 2.5v17l4.6-4.4 3 6.4 3-1.4-3-6.3H19z"/></svg>
+        <span class="wheel-hint" id="wheel-hint" aria-hidden="true" data-i18n="ov.stage.wheel">Molette</span>
+      </div>
+    </figure>
+  </section>
+
+  <!-- what it shows -->
+  <section class="band" id="what" aria-labelledby="what-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 id="what-h" data-i18n="ov.what.h">Ce qu’il te montre pendant que tu joues</h2>
+        <p class="sec-lede" data-i18n="ov.what.lede">Tout est dessiné par-dessus la fenêtre du jeu, et le jeu lui-même n’est jamais touché. Les chances des issues sont exactes ; ta chance de gagner est une estimation, marquée ≈, que des parties simulées affinent.</p>
+      </div>
+
+      <div class="feats">
+        <div class="fgroup wide">
+          <h3 data-i18n="ov.grp.fight">En combat</h3>
+          <ul class="flist">
+            <li class="feat">
+              <div class="feat-t"><h4 data-i18n="ov.f.kill">Chance de kill au survol</h4></div>
+              <p data-i18n="ov.f.killT">Survole une carte : un crâne montre la chance de la tuer, plein et clignotant à partir de 50 %, en contour en dessous. Une mort par poison ou brûlure a un crâne avec une horloge.</p>
+              <span class="sample ol-voice" aria-hidden="true"><svg class="ico skull" viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M3 7a5 5 0 0 1 10 0v2.4l-1.5 1V13h-7v-2.6L3 9.4zM6 8.3v.1M10 8.3v.1M7.4 11v1.4M8.6 11v1.4"/></svg><b data-num="0.38">38 %</b></span>
+            </li>
+            <li class="feat">
+              <div class="feat-t"><h4 data-i18n="ov.f.tree">Arbre des issues</h4></div>
+              <p data-i18n="ov.f.treeT">Survole une carte pour ses issues : « Toutes les issues » d’abord, puis jusqu’à cinq branches, chacune avec sa chance et le changement qu’elle apporte à ta victoire. La molette les parcourt, Alt+Haut et Alt+Bas aussi, et le plateau montre les PV que chacune laisse.</p>
+              <span class="sample mini-tree" aria-hidden="true"><span><i data-num="0.46">46 %</i><b class="dv up" data-dlt="5">+5</b></span><span><i data-num="0.38">38 %</i><b class="dv up" data-dlt="16">+16</b></span><span><i data-num="0.16">16 %</i><b class="dv down" data-dlt="-9">−9</b></span></span>
+            </li>
+            <li class="feat">
+              <div class="feat-t"><h4 data-i18n="ov.f.gauge">Ta chance de gagner, toujours là</h4></div>
+              <p data-i18n="ov.f.gaugeT">Ta chance de gagner reste en haut à droite, avec sa couronne. Chaque coup et chaque issue commence par le changement qu’il apporte : en grand, signé, vert s’il aide, rouge s’il coûte.</p>
+              <span class="sample ol-voice" aria-hidden="true"><svg class="ico crown" viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M2 12.5 1.7 5.2 5.4 8 8 3.2 10.6 8l3.7-2.8L14 12.5z"/></svg><b data-num="0.58">58 %</b></span>
+            </li>
+            <li class="feat">
+              <div class="feat-t"><h4 data-i18n="ov.f.best">Meilleur sort, meilleure cible</h4></div>
+              <p data-i18n="ov.f.bestT">Au repos, le meilleur coup s’affiche en chiffre couronné sous la carte qui le lance, avec un point sur sa cible.</p>
+              <span class="sample ol-voice" aria-hidden="true"><svg class="ico crown" viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M2 12.5 1.7 5.2 5.4 8 8 3.2 10.6 8l3.7-2.8L14 12.5z"/></svg><b class="dv up" data-dlt="7">+7</b></span>
+            </li>
+            <li class="feat">
+              <div class="feat-t"><h4 data-i18n="ov.f.why">Le pourquoi du coach</h4></div>
+              <p data-i18n="ov.f.whyT">Chaque coup conseillé donne sa raison, en une ligne.</p>
+            </li>
+            <li class="feat">
+              <div class="feat-t"><h4 data-i18n="ov.f.safe">Prudent ou gourmand</h4></div>
+              <p data-i18n="ov.f.safeT">Gourmand classe les coups par victoire moyenne, prudent par leur pire issue. Alt+R pour basculer.</p>
+            </li>
+            <li class="feat">
+              <div class="feat-t"><h4 data-i18n="ov.f.threat">Menaces du prochain tour</h4></div>
+              <p data-i18n="ov.f.threatT">Une alerte quand leur tour peut gagner le combat, et la chance de mort de tes propres cartes dès 5 %.</p>
+              <span class="sample ol-voice" aria-hidden="true"><svg class="ico warn" viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M8 2.2 14.3 13H1.7zM8 6.5v3M8 11.3v.1"/></svg><span data-i18n="ov.f.threatS">Ils peuvent gagner au prochain tour</span> <b data-num="0.34">34 %</b></span>
+            </li>
+            <li class="feat">
+              <div class="feat-t"><h4 data-i18n="ov.f.vis">Des cartes montrées, pas nommées</h4></div>
+              <p data-i18n="ov.f.visT">Partout où une ligne désigne une carte ou un tox, l’overlay dessine son illustration et non son nom : l’œil la trouve d’un coup, dans toutes les langues, et la ligne reste courte.</p>
+            </li>
+          </ul>
+        </div>
+
+        <div class="fgroup">
+          <h3 data-i18n="ov.grp.shop">En boutique</h3>
+          <ul class="flist">
+            <li class="feat">
+              <div class="feat-t"><h4 data-i18n="ov.f.shop">Chances en boutique</h4></div>
+              <p data-i18n="ov.f.shopT">Le prochain tirage de l’adversaire, les chances de chaque rareté à ta chance actuelle, la chance que chaque offre soit apparue, et sous chaque tox la meilleure carte pour lui, avec ta victoire et son changement.</p>
+              <span class="sample odds" aria-hidden="true">
+                <span class="odds-bar"><i class="r-common" style="--w:52"></i><i class="r-rare" style="--w:30"></i><i class="r-epic" style="--w:13"></i><i class="r-legendary" style="--w:5"></i></span>
+                <span class="odds-k"><span class="r-common"><i></i><b data-num="0.52">52 %</b></span><span class="r-rare"><i></i><b data-num="0.30">30 %</b></span><span class="r-epic"><i></i><b data-num="0.13">13 %</b></span><span class="r-legendary"><i></i><b data-num="0.05">5 %</b></span></span>
+              </span>
+            </li>
+          </ul>
+        </div>
+        <div class="fgroup">
+          <h3 data-i18n="ov.grp.after">Après le combat</h3>
+          <ul class="flist">
+            <li class="feat">
+              <div class="feat-t"><h4 data-i18n="ov.f.after">Carte d’après-combat</h4></div>
+              <p data-i18n="ov.f.afterT">Le résultat, et ton bilan depuis l’ouverture de l’overlay.</p>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- the overlay's own display from its media kit (overlay/media/, showcase.js MEDIA); one big, two beside it -->
+      <div class="shots" id="shots" hidden>
+        <h3 data-i18n="ov.shots.h">Dans l’overlay</h3>
+        <div class="shots-row">
+          <figure class="shot big" data-media="fight"><div class="shot-frame"></div><figcaption><span data-i18n="ov.shot.fight">Survol d’une carte adverse : chance de kill, issues, victoire après chacune</span></figcaption></figure>
+          <figure class="shot" data-media="shop"><div class="shot-frame"></div><figcaption><span data-i18n="ov.shot.shop">La boutique et ses chances</span></figcaption></figure>
+          <figure class="shot" data-media="after"><div class="shot-frame"></div><figcaption><span data-i18n="ov.shot.after">Après le combat. Les lignes de décision clé viennent d’une partie enregistrée.</span></figcaption></figure>
+        </div>
+        <p class="shots-legal" data-i18n="ov.shots.legal">Outil de fan non officiel. L’arène et les illustrations de cartes appartiennent à l’éditeur du jeu ; les images sont reconstituées à partir de l’affichage de l’overlay, sans nom de joueur ni donnée de compte.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- how it works: a real sequence, so numbered -->
+  <section class="band" id="how" aria-labelledby="how-h">
+    <div class="wrap">
+      <h2 id="how-h" data-i18n="ov.how.h">Comment ça marche</h2>
+      <ol class="steps">
+        <li><span class="step-n" aria-hidden="true">1</span><div><h3 data-i18n="ov.how.1">Lance SPAM, puis l’overlay</h3><p data-i18n="ov.how.1t">Il se pose au-dessus de la fenêtre du jeu, transparent. Tes clics passent à travers : sa fenêtre n’en prend aucun.</p></div></li>
+        <li><span class="step-n" aria-hidden="true">2</span><div><h3 data-i18n="ov.how.2">Il lit la partie</h3><p data-i18n="ov.how.2t">Il lit ce que le serveur du jeu envoie à ton jeu, en écoute passive sur ton PC, ou la fenêtre du jeu quand ce n’est pas possible. Puis il joue chaque action dans un simulateur sur ton PC, jusqu’à 240 parties par action.</p></div></li>
+        <li><span class="step-n" aria-hidden="true">3</span><div><h3 data-i18n="ov.how.3">Survole, décide, joue</h3><p data-i18n="ov.how.3t">Survole une carte ou une offre de la boutique : les issues et ta victoire après s’affichent. Le clic reste le tien. Alt+O masque tout.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- privacy: what it reads, what it never reads or keeps, nothing sent, the game untouched (five plain lines) -->
+  <section class="band" id="trust" aria-labelledby="trust-h">
+    <div class="wrap">
+      <h2 id="trust-h" data-i18n="ov.trust.h">Vie privée</h2>
+      <ul class="checks priv">
+        <li class="reads"><svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M1.5 8s2.4-4.5 6.5-4.5S14.5 8 14.5 8 12.1 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></svg><span data-i18n="ov.priv.1">Ce que ton jeu reçoit du serveur : lu en écoute passive sur ton PC. Quand ce n’est pas possible, il lit la fenêtre du jeu à l’écran.</span></li>
+        <li><svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="5.6"/><path d="M4 12 12 4"/></svg><span data-i18n="ov.priv.2">Ce que ton jeu envoie : jamais lu ni gardé, ni tes données de connexion ni rien de ton trafic sortant.</span></li>
+        <li><svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="5.6"/><path d="M4 12 12 4"/></svg><span data-i18n="ov.priv.3">Rien n’est envoyé nulle part : tout est calculé sur ton PC.</span></li>
+        <li><svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="5.6"/><path d="M4 12 12 4"/></svg><span data-i18n="ov.priv.4">Le jeu n’est pas touché : aucune injection, ni le client ni ses fichiers ne sont modifiés, et sa mémoire n’est pas lue.</span></li>
+        <li><svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="5.6"/><path d="M4 12 12 4"/></svg><span data-i18n="ov.priv.5">Il ne clique ni ne tape à ta place : sa fenêtre ne prend aucun clic.</span></li>
+      </ul>
+      <p class="trust-foot" data-i18n="ov.trust.foot">Il conseille. Il ne joue jamais.</p>
+    </div>
+  </section>
+
+  <!-- install and first launch -->
+  <section class="band" id="install" aria-labelledby="install-h">
+    <div class="wrap install">
+      <div>
+        <h2 id="install-h" data-i18n="ov.inst.h">Installer et premier lancement</h2>
+        <ol class="steps small">
+          <li><span class="step-n" aria-hidden="true">1</span><div><h3 data-i18n="ov.inst.1">Télécharge SPAM Overlay</h3><p id="inst-1t" data-i18n="ov.inst.1t.soon">Un seul téléchargement, pour Windows, dès sa sortie.</p></div></li>
+          <li><span class="step-n" aria-hidden="true">2</span><div><h3 data-i18n="ov.inst.2">Ouvre-le : la configuration trouve ton jeu</h3><p id="inst-2t" data-i18n="ov.inst.2t.soon">Elle cherche dans tes bibliothèques Steam, puis prépare son moteur à partir de ta propre copie de SPAM, en priorité basse, en une à trois minutes. Le dossier du jeu est seulement lu, et rien n’est installé dans Windows.</p></div></li>
+          <li><span class="step-n" aria-hidden="true">3</span><div><h3 data-i18n="ov.inst.3">Lance SPAM</h3><p data-i18n="ov.inst.3t">L’overlay tourne en arrière-plan, près de l’horloge de Windows. Clic droit sur son icône pour les raccourcis, la configuration, l’aide et quitter.</p></div></li>
+          <li><span class="step-n" aria-hidden="true">4</span><div><h3 data-i18n="ov.inst.4">Entre en combat et survole une carte</h3><p data-i18n="ov.inst.4t">Les chances s’affichent autour de la carte.</p></div></li>
+        </ol>
+        <!-- the download, in the state data/overlay-release.json puts it in (showcase.js sets body[data-dl]): loading, soon (no public
+             release: a strip, no link), ready (the button, then the check-the-file details) or error (the file could not be read) -->
+        <div class="get" id="get" aria-live="polite">
+          <div class="soon dl-loading" id="dl-loading" role="status">
+            <svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.2"/><path d="M8 4.6V8l2.3 1.5"/></svg>
+            <div><p class="soon-h"><span class="sk" aria-hidden="true"></span><span class="sr" data-i18n="ov.dl.loading">Je regarde si une version est sortie</span></p><p class="soon-t"><span class="sk sk2" aria-hidden="true"></span></p></div>
+          </div>
+          <div class="soon dl-soon" id="dl-soon" hidden>
+            <svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.2"/><path d="M8 4.6V8l2.3 1.5"/></svg>
+            <div><p class="soon-h" data-i18n="ov.soon.h">Téléchargement bientôt</p><p class="soon-t" data-i18n="ov.soon.t">Il n’y a pas encore de version publique. Quand elle sortira, le téléchargement sera ici.</p></div>
+          </div>
+          <div class="soon dl-error" id="dl-error" hidden>
+            <svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.2"/><path d="M8 7.2v4.3M8 4.6v.1"/></svg>
+            <div>
+              <p class="soon-h" data-i18n="ov.dl.errH">Impossible de vérifier le téléchargement</p>
+              <p class="soon-t" data-i18n="ov.dl.errT">La page n’a pas pu lire l’état de la version. Aucun téléchargement n’est proposé tant qu’elle ne peut pas le vérifier.</p>
+              <button class="btn ghost dl-retry" id="dl-retry" type="button" data-i18n="ov.dl.retry">Réessayer</button>
+            </div>
+          </div>
+          <div class="panel dl-card" id="dl-ready" hidden>
+            <div class="hero-act dl-act">
+              <a class="btn primary dl-btn" id="dl-btn" rel="noopener">
+                <svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8 2v8.5M4.5 7.5 8 11l3.5-3.5M3 13.5h10"/></svg>
+                <span class="dl-label" data-i18n="ov.cta">Télécharger pour Windows</span>
+                <span class="dl-meta"><span class="dl-ver"></span><span class="dl-size"></span></span>
+              </a>
+            </div>
+            <p class="dl-facts" id="dl-facts"></p>
+            <!-- the other package, when the release has both (the installer is the main button): a text link, never a second button -->
+            <a class="link dl-alt" id="dl-alt" hidden rel="noopener">
+              <svg class="ico" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M8 2v8.5M4.5 7.5 8 11l3.5-3.5M3 13.5h10"/></svg>
+              <span class="dl-alt-t"></span><span class="dl-alt-size"></span>
+            </a>
+            <a class="link dl-release" id="dl-release" target="_blank" rel="noopener">
+              <span data-i18n="ov.dl.release">Page de la version</span>
+              <svg class="ico" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M9 3h4v4M13 3 7.5 8.5M11 9.5V13H3V5h3.5"/></svg>
+            </a>
+            <button class="tdisc dl-more" id="dl-more" type="button" aria-expanded="false" aria-controls="dl-detail">
+              <span data-i18n="ov.dl.more">Vérifier le fichier et l’avertissement Windows</span>
+              <svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M4 6l4 4 4-4"/></svg>
+            </button>
+            <div class="collapse" id="dl-detail"><div class="collapse-in dl-detail">
+              <section class="dl-block" aria-labelledby="dl-verify-h">
+                <h4 id="dl-verify-h" data-i18n="ov.dl.verifyH">Vérifier le fichier</h4>
+                <p data-i18n="ov.dl.verifyT">Dans PowerShell, depuis le dossier du fichier, lance la commande. Son résultat doit être identique à l’empreinte SHA-256. S’il diffère, n’ouvre pas le fichier.</p>
+                <!-- one block per package of the release (showcase.js drawDownload): its name, the command, the fingerprint and its copy button -->
+                <div class="dl-files" id="dl-files"></div>
+              </section>
+              <section class="dl-block" aria-labelledby="dl-smart-h">
+                <h4 id="dl-smart-h" data-i18n="ov.dl.smartH">Windows peut afficher un avertissement</h4>
+                <p id="dl-smart-1"></p>
+                <p id="dl-smart-2"></p>
+                <p id="dl-smart-3" hidden></p>
+              </section>
+              <a class="link dl-notes" id="dl-notes" target="_blank" rel="noopener" data-i18n="ov.dl.notes">Notes de version</a>
+            </div></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel keys">
+        <!-- the list is open from 760px; on a phone it folds behind its heading, a real disclosure -->
+        <h3 class="keys-h" data-i18n="ov.keys.h">Raccourcis</h3>
+        <h3 class="keys-d"><button class="keys-btn" id="keys-btn" type="button" aria-expanded="false" aria-controls="keys-list"><span data-i18n="ov.keys.h">Raccourcis</span><svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M4 6l4 4 4-4"/></svg></button></h3>
+        <div class="collapse keys-c" id="keys-list"><div class="collapse-in">
+        <dl>
+          <div><dt><kbd>Alt</kbd><kbd>E</kbd></dt><dd data-i18n="ov.keys.e">Ouvrir les détails de la carte survolée</dd></div>
+          <div><dt><kbd>Alt</kbd><kbd>O</kbd></dt><dd data-i18n="ov.keys.o">Afficher ou masquer l’overlay</dd></div>
+          <div><dt><kbd data-i18n="ov.keys.wheelK">Molette</kbd></dt><dd data-i18n="ov.keys.wheel">Parcourir les issues</dd></div>
+          <div><dt><kbd>Alt</kbd><kbd>R</kbd></dt><dd data-i18n="ov.keys.r">Prudent ou gourmand</dd></div>
+          <div><dt><kbd>Alt</kbd><kbd>L</kbd></dt><dd data-i18n="ov.keys.l">Mode léger : un chiffre par carte</dd></div>
+          <div><dt><kbd>Alt</kbd><kbd>G</kbd></dt><dd data-i18n="ov.keys.g">Recaler les notes sur les cartes, si elles sont décalées</dd></div>
+          <div><dt><kbd>Alt</kbd><kbd>PgUp</kbd><kbd>PgDn</kbd></dt><dd data-i18n="ov.keys.pg">Opacité</dd></div>
+        </dl>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="band" id="faq" aria-labelledby="faq-h">
+    <div class="wrap faq-wrap">
+      <h2 id="faq-h" data-i18n="ov.faq.h">Questions</h2>
+      <div class="faq" id="faq-list"></div>
+      <!-- on a phone the questions after the fourth fold behind this button; from 760px they are all open and it is gone -->
+      <div class="collapse faq-more" id="faq-more"><div class="collapse-in" id="faq-more-in"></div></div>
+      <button class="btn ghost disc faq-morebtn" id="faq-morebtn" type="button" aria-expanded="false" aria-controls="faq-more"><span></span><svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M4 6l4 4 4-4"/></svg></button>
+    </div>
+  </section>
+
+  <!-- the companion site -->
+  <section class="band meta-band" id="meta" aria-labelledby="meta-h">
+    <div class="wrap">
+      <div class="sec-head row-head">
+        <div>
+          <h2 id="meta-h"><span data-i18n="ov.meta.h">Avant le combat : SPAM Meta</span></h2>
+          <p class="sec-lede" data-i18n="ov.meta.lede">Le site compagnon : les meilleurs decks du patch, la force de chaque carte, et les decks que tu peux monter avec tes cartes. Même simulateur, mêmes IA.</p>
+        </div>
+        <a class="btn" href="../#tiers"><span data-i18n="ov.meta.open">Ouvrir SPAM Meta</span></a>
+      </div>
+      <div class="meta-grid" id="meta-grid">
+        <article class="mp mp-decks panel">
+          <div class="mp-t"><h3 data-i18n="ov.meta.decks">Classement des decks</h3><p class="note" id="mp-decks-t"></p><p class="note" id="mp-decks-hidden" hidden></p></div>
+          <div class="mp-decks-list" id="mp-decks"><div class="mp-deck skel-deck"></div><div class="mp-deck skel-deck"></div><div class="mp-deck skel-deck"></div></div>
+          <a class="mp-go" href="../#tiers"><span data-i18n="ov.meta.decksGo">Voir le classement des decks</span><svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M6 3.5 10.5 8 6 12.5"/></svg></a>
+        </article>
+        <article class="mp panel">
+          <div class="mp-t"><h3 data-i18n="ov.meta.cards">Classement des cartes</h3><p class="note" id="mp-cards-t"></p></div>
+          <div class="mp-icons" id="mp-cards"></div>
+          <a class="mp-go" href="../#card-tiers"><span data-i18n="ov.meta.cardsGo">Voir le classement des cartes</span><svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M6 3.5 10.5 8 6 12.5"/></svg></a>
+        </article>
+        <article class="mp panel">
+          <div class="mp-t"><h3 data-i18n="ov.meta.codex">Codex</h3><p class="note" id="mp-codex-t"></p></div>
+          <a class="mp-go" href="../#codex"><span data-i18n="ov.meta.codexGo">Ouvrir le Codex</span><svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M6 3.5 10.5 8 6 12.5"/></svg></a>
+        </article>
+        <article class="mp panel">
+          <div class="mp-t"><h3 data-i18n="ov.meta.mine">Mes decks</h3><p class="note" data-i18n="ov.meta.mineT">Coche les cartes que tu as : le site trouve les meilleurs decks que tu peux jouer.</p></div>
+          <a class="mp-go" href="../#decks"><span data-i18n="ov.meta.mineGo">Trouver mes decks</span><svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M6 3.5 10.5 8 6 12.5"/></svg></a>
+        </article>
+      </div>
+      <p class="note mp-err" id="mp-err" hidden data-i18n="ov.meta.err">Les aperçus n’ont pas pu se charger.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <p class="foot-ai"><b data-i18n="foot.ai">Ce site est généré par IA.</b></p>
+    <p><a class="link" href="../#tiers" data-i18n="ov.foot.meta">Le site des decks : SPAM Meta</a></p>
+    <p class="foot-legal" data-i18n="ov.foot.legal">Outil et site de fan non officiels, sans lien avec l’éditeur du jeu. Les noms, textes et illustrations du jeu appartiennent à leurs propriétaires.</p>
+  </div>
+</footer>
+
+<noscript><div class="wrap noscript"><p lang="fr">Cette page a besoin de JavaScript pour dessiner les cartes.</p><p lang="en">This page needs JavaScript to draw the cards.</p></div></noscript>
+
+<script type="module" src="js/showcase.js?v=b72f78e0fe"></script>
+</body>
+</html>

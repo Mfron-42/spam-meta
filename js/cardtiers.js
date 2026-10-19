@@ -8,15 +8,15 @@
 // here from tierlist.json and decks.json, the files the other tabs already read. No counter is shown per card.
 // A language change rebuilds the page from the same state (measurement, view, filters, rings, open panels).
 
-import { h, $, $$, icon, fmtInt, pct, pct1, sgn, reducedMotion } from "./util.js?v=a12dd2e24e";
-import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=a12dd2e24e";
-import { DB, loadCardTiers, loadTier, loadDecks } from "./data.js?v=a12dd2e24e";
-import { on, getLang } from "./store.js?v=a12dd2e24e";
-import { cardName, otherName, chip, L, ELEMENTS, RARITIES, elName, raName } from "./cards.js?v=a12dd2e24e";
-import { disclosure, filterChip, setChip } from "./ui.js?v=a12dd2e24e";
-import { t, tx, ord } from "./i18n.js?v=a12dd2e24e";
-import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, patchNotice, suggestedTalent } from "./patch.js?v=a12dd2e24e";
-import { textNodes, hideTip } from "./cardtext.js?v=a12dd2e24e";
+import { h, $, $$, icon, fmtInt, pct, pct1, sgn, reducedMotion } from "./util.js?v=b72f78e0fe";
+import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=b72f78e0fe";
+import { DB, loadCardTiers, loadTier, loadDecks } from "./data.js?v=b72f78e0fe";
+import { on, getLang } from "./store.js?v=b72f78e0fe";
+import { cardName, otherName, chip, L, ELEMENTS, RARITIES, elName, raName } from "./cards.js?v=b72f78e0fe";
+import { disclosure, filterChip, setChip, cascade, band } from "./ui.js?v=b72f78e0fe";
+import { t, tx, ord } from "./i18n.js?v=b72f78e0fe";
+import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, introLine, suggestedTalent } from "./patch.js?v=b72f78e0fe";
+import { textNodes, hideTip } from "./cardtext.js?v=b72f78e0fe";
 
 const AXK = { c: "ct.axC", r: "ct.axR" };
 const ax = (a) => t(AXK[a]);
@@ -43,6 +43,8 @@ export async function mount(el) {
   S.view = /details/.test(start) ? "details" : "list";
   wireOnce();
   build();
+  // the one load sequence of this tab: the first time it is shown, the tier rows on screen arrive in rank order
+  cascade(root, () => [...ui.list.children]);
   on("lang", () => { S.filtersOpen = ui.fbtn.getAttribute("aria-expanded") === "true"; build(); });
   // the tab is left: a pinned card closes, so it is not waiting there when the visitor comes back
   window.addEventListener("hashchange", () => hidePop(true));
@@ -96,7 +98,7 @@ function build() {
   ui.tbody = h("tbody");
   root.classList.toggle("ct-rings", S.rings);
   root.replaceChildren(
-    h("div.vhead.ct-head", [h("h1", t("ct.h1")), h("p.lede", t("ct.lede")), patchNotice()]),
+    h("div.vhead.ct-head", [h("h1", t("ct.h1")), ...introLine("card-tiers", h("p.lede", t("ct.lede")))]),
     caveat(),
     toolbar(),
     filtersRegion(),
@@ -121,7 +123,8 @@ function build() {
   sizeRows();
 }
 
-// the caveats: open on a desktop, folded under a one-line summary on a phone; the choice is remembered in the browser
+// the caveats: folded under a one-line summary (desktop and phone alike, so the tier rows come first); the visitor's choice
+// is remembered in the browser
 function caveat() {
   const f = T.facts;
   const ex = [];
@@ -138,12 +141,12 @@ function caveat() {
   ])));
   const btn = h("button.btn.ghost.disc.ct-cav-btn", { type: "button", "aria-controls": "ct-cav-body" }, [h("span", t("ct.hide")), icon("chevron")]);
   const lead = h("p.ct-cav-lead", t("ct.cavLead"));
-  const panel = h("section.panel.ct-cav", { "aria-labelledby": "ct-cav-h" }, [
+  const panel = h("section.ct-cav", { "aria-labelledby": "ct-cav-h" }, [
     h("div.ct-cav-top", [h("h2#ct-cav-h", t("ct.cavH")), btn]), lead, body,
   ]);
   let pref = null;
   try { pref = localStorage.getItem(CAVEAT_KEY); } catch (e) { /* storage blocked: the default applies */ }
-  const open = pref ? pref === "open" : !matchMedia("(max-width: 759px)").matches;
+  const open = pref === "open";
   if (!open) body.style.transition = "none";            // folded from the first frame, not animated on load
   let ready = false;
   disclosure(btn, body, { open, onToggle: (v) => {
@@ -165,10 +168,10 @@ function toolbar() {
     onclick: () => setView(v),
     onkeydown: (e) => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { e.preventDefault(); setView(S.view === "list" ? "details" : "list", true); } },
   }, label));
-  return h("div.ct-bar", [
+  return band(h("div.ct-bar", [
     h("div.seg.ct-seg", { role: "group", "aria-label": t("ct.measure") }, ui.axisBtns),
     h("div.ct-bar-r", [ui.fbtn, h("div.seg.ct-seg.ct-tabs", { role: "tablist", "aria-label": t("ct.view") }, ui.tabs)]),
-  ]);
+  ]));
 }
 
 function filtersRegion() {
@@ -197,9 +200,6 @@ function legend(o) {
   return [
     ...tx("ct.dot", { dot: h("span.ct-legend", h("i", { "aria-hidden": "true" })), other: t(o === "r" ? "ct.otherR" : "ct.otherC") }),
     h("span.ct-ring-only", tx("ct.ring", { ring: h("span.ct-legend", h("i.ring", { "aria-hidden": "true" })) })),
-    // the patch mark (patch.js): filled when the card's values changed in the last patch, hollow for talents or texts only
-    ...(DB.cards.some(changeOf) ? tx("pc.legend", { patch: DB.patch, d: h("span.ct-legend", h("i.pglyph", { "aria-hidden": "true" })),
-      h: h("span.ct-legend", h("i.pglyph.hollow", { "aria-hidden": "true" })) }) : []),
     t("ct.hint"),
   ];
 }
@@ -236,7 +236,8 @@ function icons() {
       h("img", { class: "ct-ic-art", loading: "lazy", decoding: "async", alt: "", width: 112, height: 160, src: thumb(x.c) }),
       h("i.ct-ic-orb.sp-el-" + x.c.element, { "aria-hidden": "true" }),
       h("i.ct-ic-dot", { "aria-hidden": "true" }),
-      changeOf(x.c) ? h("span.ct-ic-pm", glyph(x.c)) : null,      // the patch mark; its words are in the icon's label
+      // no patch mark on the icon (one marker less per card, owner 2026-10-18 "pas trop surchargé"): the change is in the
+      // icon's label, the hover preview, the pinned card and the Details row
     ]);
   }
   ui.order = {};
@@ -518,7 +519,7 @@ function suggestedBlock(c) {
 
 function showPop(b, pin) {
   const x = rows[+b.dataset.i];
-  if (cur && cur !== b) cur.setAttribute("aria-expanded", "false");
+  if (cur && cur !== b) { cur.setAttribute("aria-expanded", "false"); cur.classList.remove("pinned"); }
   cur = b;
   pinned = !!pin;
   const pop = ui.pop;
@@ -535,6 +536,7 @@ function showPop(b, pin) {
   if (pinned) { pop.removeAttribute("aria-hidden"); pop.setAttribute("role", "dialog"); pop.setAttribute("aria-label", cardName(x.c)); }
   else { pop.setAttribute("aria-hidden", "true"); pop.removeAttribute("role"); pop.removeAttribute("aria-label"); }
   b.setAttribute("aria-expanded", "true");
+  b.classList.toggle("pinned", pinned);            // only a pinned icon is ringed (selected); a hover preview is not
   if (pinned) say(summary(x));
   if (sheet.matches) { pop.style.left = pop.style.top = ""; pop.classList.add("on"); return; }     // a bottom sheet on a phone, placed by the stylesheet
   const r = b.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight;
@@ -566,7 +568,7 @@ function hidePop(force) {
   hideTip();
   ui.pop.classList.remove("on", "pinned");
   ui.pop.setAttribute("aria-hidden", "true");
-  if (cur) cur.setAttribute("aria-expanded", "false");
+  if (cur) { cur.setAttribute("aria-expanded", "false"); cur.classList.remove("pinned"); }
   cur = null;
 }
 function refocus(b) { if (!b) return; restoring = true; b.focus(); restoring = false; }

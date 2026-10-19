@@ -1,16 +1,18 @@
-/* SPAM Meta: the Card tier list tab (js/cardtiers.js). Tier rows with a coloured label block (the card tier scale of
-   DESIGN.md), card icons in a socket, the card numbers popover, the Details table. Every class is prefixed ct-. */
+/* SPAM Meta: the Card tier list tab (js/cardtiers.js). Tier rows on the ground: the tier letter in its tier colour (the card
+   tier scale of DESIGN.md) as the row's anchor, the card icons beside it, a hairline between rows, no panel and no socket;
+   the card numbers popover; the Details table. Every class is prefixed ct-. */
 
 .ct-head { margin-bottom: 0; }
 
 /* ---------------------------------------------------------------- caveat */
-.ct-cav { margin-top: 24px; background: var(--panel-hi); }
-.ct-cav-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+/* folded by default to one line (its heading, the one-line summary, a Details disclosure); no panel: it opens on the ground */
+.ct-cav { margin-top: 16px; }
+.ct-cav-top { display: flex; flex-wrap: wrap; align-items: center; gap: 0 16px; }
 .ct-cav-top h2 { font-size: 18px; }
-.ct-cav-btn { flex: none; margin-right: -16px; }
-.ct-cav-lead { display: none; margin-top: 4px; color: var(--ink-2); }
+.ct-cav-btn { flex: none; margin-left: -8px; height: 36px; padding: 0 12px; font-size: 16px; }
+.ct-cav-lead { display: none; color: var(--ink-2); }
 .ct-cav.folded .ct-cav-lead { display: block; }
-.ct-cav-list { display: grid; gap: 8px; padding: 12px 0 0 24px; list-style: disc; }
+.ct-cav-list { display: grid; gap: 8px; padding: 12px 0 8px 24px; list-style: disc; }
 .ct-cav-list li { color: var(--ink-2); max-width: 72ch; }
 .ct-cav-list li::marker { color: var(--muted); }
 .ct-cav-list b { color: var(--ink); }
@@ -47,8 +49,8 @@
 .chip i.ct-sw { width: 16px; height: 16px; border-radius: 4px; background: var(--tc); }
 
 /* ---------------------------------------------------------------- tier rows */
-.ct-view { margin-top: 8px; }
-.ct-list { overflow: clip; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+.ct-view { margin-top: 16px; }
+.ct-list { overflow: clip; }
 .ct-list:focus { outline: none; }
 .ct-row { display: grid; grid-template-columns: 88px minmax(0, 1fr); }
 /* a line above every row that follows a shown row, so a search that hides rows never doubles the panel's top edge */
@@ -56,14 +58,14 @@
 /* a search hides the cards that do not match and lets the rows shrink to what is left (sizeRows sets their height inline) */
 .ct-finding .ct-ic.dim { display: none; }
 .ct-finding .ct-cards { min-height: 0 !important; }
-.ct-tl { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px; background: var(--tc); color: var(--accent-ink); text-align: center; }
+.ct-tl { padding: 16px 8px 16px 0; color: var(--tc); }
 /* the letter and the count follow the scroll inside a tall row, so the tier stays named while its cards scroll by */
-.ct-tl-in { position: sticky; top: calc(var(--chrome-h) + 64px); display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.ct-tl-k { font: 400 28px/1 var(--display); letter-spacing: .01em; }
+.ct-tl-in { position: sticky; top: calc(var(--chrome-h) + 64px); display: grid; gap: 4px; justify-items: start; }
+.ct-tl-k { font: 400 40px/1 var(--display); letter-spacing: .01em; }
 .ct-tl-word { font: 400 18px/1.15 var(--display); }
-.ct-tl-n { font: 600 14px/1.2 var(--text); }
-.ct-tl.tc-nm { color: var(--ink-2); }
-.ct-cards { position: relative; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 12px; padding: 12px 16px; background: var(--socket); box-shadow: var(--sunken); }
+.ct-tl-n { color: var(--muted); font: 600 14px/1.2 var(--text); }
+.ct-tl.tc-nm { color: var(--muted); }
+.ct-cards { position: relative; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 12px; padding: 24px 0 16px 8px; }
 .ct-empty { position: absolute; left: 16px; right: 16px; top: 50%; margin: 0; transform: translateY(-50%); color: var(--muted); font: 600 14px/1.4 var(--text);
   opacity: 0; visibility: hidden; pointer-events: none; transition: opacity var(--t-fade) var(--curve), visibility 0s linear var(--t-fade); }
 .ct-cards.is-empty .ct-empty { opacity: 1; visibility: visible; transition: opacity var(--t-fade) var(--curve), visibility 0s; }
@@ -74,9 +76,9 @@
   transition: opacity var(--t-state) var(--curve), box-shadow var(--t-state) var(--curve); }
 .ct-ic-art { position: absolute; inset: 0; display: block; width: 100%; height: 100%; border-radius: 4px; object-fit: cover; object-position: top; }
 .ct-ic-art.broken { visibility: hidden; }
-.ct-ic:hover, .ct-ic[aria-expanded="true"] { box-shadow: var(--ring); }
+/* hover and pressed: the small cards' light and press (cards.css); pinned (its numbers open) keeps the ring: it is selected */
+.ct-ic.pinned { box-shadow: var(--ring); }
 .ct-ic:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--night), 0 0 0 4px var(--accent); }
-.ct-ic:active { box-shadow: var(--ring); background: var(--night); }
 .ct-ic.dim { opacity: .45; }
 .ct-ic.dim:hover, .ct-ic.dim:focus-visible, .ct-ic.dim[aria-expanded="true"] { opacity: 1; }
 .ct-ic-orb { position: absolute; left: -8px; top: -8px; width: 20px; height: 20px; background-size: contain; background-repeat: no-repeat; background-position: center; pointer-events: none; }
@@ -87,13 +89,6 @@
 /* the within-noise rings are off by default; the "Within noise too" toggle in Find and filter shows them */
 .ct-ic.diff.noise .ct-ic-dot { opacity: 0; }
 .ct-rings .ct-ic.diff.noise .ct-ic-dot { opacity: 1; }
-/* the patch mark (patch.js): a socket on the icon's top-right corner, the one free corner of the mini card */
-.ct-ic-pm { position: absolute; right: -6px; top: -6px; display: grid; place-items: center; width: 18px; height: 18px; border-radius: 4px; background: var(--socket);
-  box-shadow: inset 0 0 0 1px var(--edge), 0 0 0 2px var(--night); pointer-events: none; }
-.ct-ic-pm .pglyph { width: 7px; height: 7px; margin: 0; }
-.ct-ic-pm .pglyph.hollow { box-shadow: inset 0 0 0 1.5px var(--ink-2); }
-.ct-legend i.pglyph { width: 8px; height: 8px; margin: 0 3px; border-radius: 0; }
-.ct-legend i.pglyph.hollow { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ink-2); }
 .ct-ring-only { display: none; }
 .ct-rings .ct-ring-only { display: inline; }
 .chip i.ct-ring-ic { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 2px currentColor; }
@@ -168,8 +163,9 @@
 .ct-ax.off .ct-rb-i, .ct-ax.off .ct-rb-p { background: var(--muted); }
 .ct-kv { display: block; color: var(--muted); white-space: nowrap; }
 .ct-kv b { color: var(--ink); font: 400 16px/1.3 var(--display); letter-spacing: .01em; }
-.ct-ag { display: inline-flex; align-items: center; min-height: 24px; padding: 0 8px; border-radius: 4px; background: var(--socket); box-shadow: var(--sunken); color: var(--ink-2); font: 600 14px/1.3 var(--text); white-space: nowrap; }
-.ct-ag.apart { color: var(--ink); box-shadow: var(--sunken), inset 0 0 0 1px var(--edge); }
+/* the agreement of the two measurements, in words: "apart" (beyond noise) is the one that reads in ink and bold */
+.ct-ag { color: var(--ink-2); font: 600 14px/1.3 var(--text); white-space: nowrap; }
+.ct-ag.apart { color: var(--ink); font-weight: 700; }
 .ct-fig { display: block; color: var(--ink); font: 400 18px/1.15 var(--display); }
 .ct-cap { display: block; color: var(--muted); }
 .ct-dt-empty { display: grid; justify-items: start; gap: 12px; padding: 24px 0; color: var(--ink-2); }
@@ -177,7 +173,7 @@
 /* ---------------------------------------------------------------- tablet and phone */
 @media (min-width: 760px) {
   /* the measurement toggle stays under the header while the rows scroll */
-  .ct-bar { position: sticky; top: var(--chrome-h); z-index: 12; margin-inline: calc(-1 * var(--gut)); padding: 8px var(--gut); background: var(--night); }
+  .ct-bar { position: sticky; top: var(--chrome-h); z-index: 12; margin-inline: calc(-1 * var(--gut)); padding: 8px var(--gut); }
   /* a card reached by keyboard is never hidden under the sticky bar */
   .ct-ic, .ct-cardc { scroll-margin-top: 64px; }
 }
@@ -202,14 +198,12 @@
   .ct-bar-r { width: 100%; justify-content: space-between; }
   .ct-tabs { width: auto; flex: 0 1 auto; }
   .ct-seg button { flex: 1 1 0; padding: 0 12px; font-size: 16px; white-space: nowrap; }
-  .ct-cav { padding: 12px 16px; }
-  .ct-cav-btn { margin-right: -12px; padding: 0 12px; }
   .ct-row { grid-template-columns: 72px minmax(0, 1fr); }
-  .ct-tl { padding: 8px 4px; }
+  .ct-tl { padding: 16px 4px 16px 0; }
   .ct-tl-in { top: calc(var(--chrome-h) + 8px); }
-  .ct-tl-k { font-size: 22px; }
+  .ct-tl-k { font-size: 28px; }
   .ct-tl-word { font: 600 14px/1.15 var(--text); }
-  .ct-cards { padding: 12px; }
+  .ct-cards { padding: 16px 0 16px 4px; }
   .ct-ic { width: 44px; }
   .ct-ic-orb { left: -6px; top: -6px; width: 16px; height: 16px; }
   .ct-sort { flex: 1 1 100%; min-width: 0; }

@@ -1,14 +1,15 @@
 // Entry point: loads the core data, wires the header, the tabs and the delegated clicks, and mounts the five views.
 
-import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=a12dd2e24e";
-import { t, applyStatic, millions } from "./i18n.js?v=a12dd2e24e";
-import { copyText } from "./ui.js?v=a12dd2e24e";
-import { DB, loadCore } from "./data.js?v=a12dd2e24e";
-import { patchLine } from "./patch.js?v=a12dd2e24e";
-import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=a12dd2e24e";
-import { versioned, withQuery } from "./version.js?v=a12dd2e24e";
-import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=a12dd2e24e";
-import { holdTiles } from "./cardtilt.js?v=a12dd2e24e";
+import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=b72f78e0fe";
+import { t, applyStatic, millions } from "./i18n.js?v=b72f78e0fe";
+import { copyText } from "./ui.js?v=b72f78e0fe";
+import { DB, loadCore } from "./data.js?v=b72f78e0fe";
+import { patchLine } from "./patch.js?v=b72f78e0fe";
+import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=b72f78e0fe";
+import { versioned, withQuery } from "./version.js?v=b72f78e0fe";
+import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=b72f78e0fe";
+import { holdTiles } from "./cardtilt.js?v=b72f78e0fe";
+import { ambient } from "./ambient.js?v=b72f78e0fe";
 
 // Five tabs, one view each; the Deck builder (#builder) sits next to My decks.
 const TABS = ["tiers", "card-tiers", "codex", "decks", "builder"];
@@ -303,4 +304,5 @@ async function boot() {
 }
 
 applyStatic();               // the static markup in the page language before the data arrives
+ambient();                   // the night table's slow depth field behind every view (ambient.js, DESIGN.md "Ambient field")
 boot();

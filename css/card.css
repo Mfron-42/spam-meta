@@ -54,19 +54,13 @@ dialog.card-dlg, dialog.card-dlg.on { opacity: 1; transform: none; transition: n
 .cd-art .cell.ct .gc { pointer-events: none; }
 @media (hover: hover) and (pointer: fine) { .cd-art .cell.ct { cursor: grab; } }
 .cd-art .cell.ct.ct-drag { cursor: grabbing; }
-.ct-peek, .ct-back { position: absolute; inset: 0; visibility: hidden; pointer-events: none; }
-.cw.tilt-on .ct-peek, .cw.tilt-on .ct-back { visibility: visible; }
+.ct-back { position: absolute; inset: 0; visibility: hidden; pointer-events: none; }
+.cw.tilt-on .ct-back { visibility: visible; }
 /* in a turn every plane of the face hides its back, so the face is never seen mirrored through the S back */
-.cw.tilt-on .gc-in > *, .ct-back, .ct-sheet, .ct-slab { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
-.cw.tilt-on .ct-peek { transform-style: preserve-3d; }
-/* the card's back, facing the other way: the game's own back on the card frame, as in the open flight (cg-thumb) */
+.cw.tilt-on .gc-in > *, .cw.tilt-on .gc-in::before, .ct-back { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+/* the card's back, facing the other way: the game's own back on the card frame, as in the open flight (cg-thumb). The card
+   has no thickness (owner, 2026-10-18: "they must stay cards"): no slab, no edge, nothing between the face and the back. */
 .ct-back { transform: rotateY(180deg); }
-/* behind the face: five slabs of the card's edge (its thickness), then the S back 7% of the card width deeper, whose edge
-   shows past the slabs at a strong tilt; they face forward and hide their backs, so they are gone once the card is turned */
-.ct-slab, .ct-sheet { position: absolute; inset: 0; border-radius: calc(var(--u) * 7); }
-.ct-slab { background: var(--card-side); transform: translateZ(calc(var(--u) * -1.15 * var(--i))); }
-.ct-sheet { overflow: hidden; background: var(--panel); transform: translateZ(calc(var(--u) * -7)); }
-.ct-sheet img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }
 
 /* ---------------------------------------------------------------- the card: card left, kit right
    The card is the hero: a 320px column; the kit's narrow reading column starts level with the card's top. */
@@ -202,12 +196,7 @@ dialog.card-dlg, dialog.card-dlg.on { opacity: 1; transform: none; transition: n
 .cm-u { color: var(--muted); font: 600 14px/1 var(--text); letter-spacing: 0; }
 .cm-none { color: var(--muted); font: 600 14px/1.4 var(--text); }
 .cm-foot { display: grid; justify-items: start; }
-.cm-how { display: inline-flex; align-items: center; gap: 4px; height: 36px; margin-left: -12px; padding: 0 12px; border: 0; border-radius: 20px; background: transparent; color: var(--muted);
-  font: 600 14px/1 var(--text); cursor: pointer; transition: background var(--t-state) var(--curve), color var(--t-state) var(--curve); }
-.cm-how:hover { background: rgba(255, 255, 255, .1); color: var(--ink); }
-.cm-how:active { background: rgba(0, 0, 0, .35); }
-.cm-how .ico { transition: transform var(--t-move) var(--curve); }
-.cm-how[aria-expanded="true"] .ico { transform: rotate(180deg); }
+.cm-foot .tdisc { margin-left: -12px; }
 .cm-how-l { display: grid; gap: 4px; padding: 4px 0 0; color: var(--muted); font: 600 14px/1.4 var(--text); max-width: 68ch; }
 .cm-how-l b { color: var(--ink-2); }
 .cm-skel { padding-top: 4px; }

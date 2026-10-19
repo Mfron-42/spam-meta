@@ -2,7 +2,7 @@
 // and how many of its cards the visitor owns. Playbook tips and shop picks are pulled for now (tierlist.json carries no
 // `playbook`); they come back later for the top 10 decks only (SPEC.md).
 // A deck withheld by the maintainer arrives as a stub (`withheld`, no cards) and is drawn as four face-down cards with its
-// numbers and the pay-to-win note; it is never counted as a deck the visitor can build and the "Ready to play" filter hides
+// facts and one line of mystery; it is never counted as a deck the visitor can build and the "Ready to play" filter hides
 // it. A secret deck (`secret: true`, only its rank and tier) is drawn as four blank grey cards and the word "Secret", nothing
 // else. Ranks 1-10 are the finals; the decks after them are ranked by their win rate against the top 10 (`tier.ordering`).
 // Every deck keeps its rank in that full order, so a rank the data does not list is simply absent.
@@ -10,15 +10,15 @@
 // withheld and secret decks have no cards and hide while it is on.
 // A language change redraws the page and keeps what the visitor opened (the reading guide, deck details, the filter).
 
-import { h, icon, pm, pct, pct1, dec } from "./util.js?v=a12dd2e24e";
-import { DB, loadTier } from "./data.js?v=a12dd2e24e";
-import { on, isOwned, ownedCount } from "./store.js?v=a12dd2e24e";
-import { gameCard, cardBack, secretCard, strip, cardName } from "./cards.js?v=a12dd2e24e";
-import { disclosure, segmented, scrollToEl } from "./ui.js?v=a12dd2e24e";
-import { t, tx, millions } from "./i18n.js?v=a12dd2e24e";
-import { findRow, terms, namedCards } from "./search.js?v=a12dd2e24e";
-import { patchNotice, patchMark } from "./patch.js?v=a12dd2e24e";
-import { paintOwned } from "./decklist.js?v=a12dd2e24e";
+import { h, icon, pm, pct, pct1, dec } from "./util.js?v=b72f78e0fe";
+import { DB, loadTier } from "./data.js?v=b72f78e0fe";
+import { on, isOwned, ownedCount } from "./store.js?v=b72f78e0fe";
+import { gameCard, cardBack, secretCard, strip, cardName } from "./cards.js?v=b72f78e0fe";
+import { disclosure, segmented, scrollToEl, cascade } from "./ui.js?v=b72f78e0fe";
+import { t, tx, millions } from "./i18n.js?v=b72f78e0fe";
+import { findRow, terms, namedCards } from "./search.js?v=b72f78e0fe";
+import { introLine, patchMark } from "./patch.js?v=b72f78e0fe";
+import { paintOwned, evLine } from "./decklist.js?v=b72f78e0fe";
 
 let root, tier, decks = [], stubs = [], sections = [], jumpChips = new Map(), banner, detailBtns = [], readyBtn, readyOnly = false, spotted = false;
 let find;
@@ -28,6 +28,8 @@ export async function mount(el) {
   root = el;
   tier = await loadTier();
   render();
+  // the one load sequence of this tab: the first time it is shown, the decks on screen arrive in rank order
+  cascade(root, () => [...root.querySelectorAll(".tier-k, .deck:not([hidden])")]);
   on("owned", () => { updateBadges(); updateBanner(); applyShown(); });
   on("lang", () => render());
 }
@@ -44,14 +46,15 @@ function render() {
   detailBtns = [];
   spotted = false;
   if (!ownedCount()) readyOnly = false;
-  banner = h("div.callout.panel");
+  banner = h("div.callout");      // one line on the ground between two hairlines, no panel (DESIGN.md "Collection bar and callout")
   const guide = howToRead();
   const games = DB.meta && DB.meta.totals && DB.meta.totals.patch_games;
   const nodes = [
     h("div.vhead", [
       h("h1", t("tl.h1")),
-      h("p.lede", t("tl.lede", { patch: tier.patch, games: games ? millions(games) : "—" })),
-      patchNotice({ legend: true }),
+      // one short line (games and patch); the method and the patch notice wait behind "About the numbers"
+      ...introLine("tiers", h("p.lede.quiet", t("tl.lede", { patch: tier.patch, games: games ? millions(games) : "—" })),
+        { method: t("tl.method"), legend: true }),
     ]),
     findBar(),
     banner,
@@ -59,6 +62,8 @@ function render() {
     guide.region,
   ];
   for (const tr of tier.tiers) nodes.push(tierSection(tr));
+  // the way to the overlay: one quiet line after the last tier, no banner (it promises no download)
+  nodes.push(h("p.ov-tease", [h("span", t("tl.ovTease")), " ", h("a.link", { href: "overlay/" }, t("tl.ovLink"))]));
   root.replaceChildren(...nodes);
   updateBanner();
   updateBadges();
@@ -140,35 +145,50 @@ function tierSection(tr) {
   }
   const list = tier.decks.filter((d) => d.tier === tr.tier);
   const panels = list.map((d) => deckPanel(d));
+  // the tier letter is the anchor: a big letter in its own rail (it follows the scroll along its decks), no box around it;
+  // a hairline spine down the decks groups them, a hairline between two decks separates them (DESIGN.md "Deck tier list")
   const el = h("section.tier", { id: "tier-" + tr.tier, "aria-labelledby": "tier-h-" + tr.tier }, [
-    h("header.tier-head", [
-      h("div.tier-k", { "aria-hidden": "true" }, tr.tier),
-      h("div.tier-what", [h("h2", { id: "tier-h-" + tr.tier }, t("tl.tier", { tier: tr.tier })), h("p.muted", `${ranks} ${why}`)]),
+    h("div.tier-rail", h("h2.tier-k", { id: "tier-h-" + tr.tier }, [h("span.sr", t("tl.tier", { tier: "" })), tr.tier])),
+    h("div.tier-body", [
+      // the ranks only; why the tier starts here is one hover away (and in "How to read")
+      // (a one-rank tier says nothing its deck's "#1" does not; its line keeps its place, empty, for the tooltip)
+      h("p.tier-what", { title: why }, tr.rank_from === tr.rank_to ? "" : ranks),
+      h("div.decks", panels),
     ]),
-    h("div.decks", panels),
   ]);
   sections.push({ el, list });
   return el;
 }
 
 // ---------------------------------------------------------------- one deck
-function stat(label, tip, m, caption, defining) {
-  return h("div.stat", [
-    h("span.stat-k", [h("span.stat-l", { title: tip }, label), defining ? h("span.tag.soft", { title: t("tl.setsRankTip") }, t("tl.setsRank")) : null]),
-    h("div.stat-line", [h("b.stat-v", pct1(m.win_rate)), h("span.stat-pm", { title: t("tl.pmTip") }, pm(m.ci95))]),
-    h("span.stat-s", caption),
-  ]);
-}
-
-function stats(d) {
+/** The two measurements of a deck, the one that sets the rank first; `basis` lists their captions (games, field). */
+function measures(d) {
   const opp = (d.round_robin && d.round_robin.opponents) || opponents();
   // the finals set ranks 1-10 (that is the vs top 10 number); after them the rank follows vs top 10 too (tier.ordering)
   const byTop = d.finalist || (tier.ordering && tier.ordering.key === "vs_top");
-  return h("div.stats", [
-    stat(t("tl.vsTop"), t("tl.vsTopTip"), d.vs_top, t(d.finalist ? "tl.capFinalist" : "tl.capFinalists", { games: d.vs_top.games }), byTop),
-    stat(t("tl.vsGood"), t("tl.vsGoodTip", { opp }), d.vs_good, t("tl.capRR", { games: d.vs_good.games, opp }), !byTop),
+  const top = { all: "tl.allTop", label: t("tl.vsTop"), tip: t("tl.vsTopTip"), m: d.vs_top, cap: t(d.finalist ? "tl.capFinalist" : "tl.capFinalists", { games: d.vs_top.games }) };
+  const good = { all: "tl.allGood", label: t("tl.vsGood"), tip: t("tl.vsGoodTip", { opp }), m: d.vs_good, cap: t("tl.capRR", { games: d.vs_good.games, opp }) };
+  return byTop ? [top, good] : [good, top];
+}
+
+/**
+ * A deck's facts, drawn as every measured deck of the site is (decklist.js, My decks and the Deck builder): the evidence
+ * line (four bars, the stage, how reliable), the number that sets the rank with its field under it, then the other number
+ * as one quiet line. The basis of each (games and field) is its tooltip and the first line of the Matchups region.
+ */
+function facts(d) {
+  const [main, other] = measures(d);
+  return h("div.dfacts", [
+    evLine(d.finalist ? 4 : 3),
+    h("div.dr-fig", { title: `${main.tip} ${main.cap}.` }, [
+      h("span.fig-line", [h("b.stat-v", pct1(main.m.win_rate)), h("span.fig-pm", { title: t("tl.pmTip") }, pm(main.m.ci95))]),
+      h("span.stat-s", [main.label, h("span.sr", t("ui.sep") + t("tl.setsRank"))]),
+    ]),
+    h("p.fig-all", { title: `${other.tip} ${other.cap}.` }, t(other.all, { pct: pct1(other.m.win_rate) })),
   ]);
 }
+/** "vs top 10: 1,800 games vs the 9 other finalists." and the same for the second number: the basis of both figures. */
+const basis = (d) => h("p.note.basis", measures(d).map((x) => t("tl.basis", { label: x.label, caption: x.cap })).join(" "));
 
 function deckPanel(d) {
   if (d.secret) return secretPanel(d);
@@ -183,22 +203,21 @@ function deckPanel(d) {
   region.append(inner);
   const btn = h("button.btn.ghost.disc", { type: "button", "aria-controls": "dk-d-" + d.rank, "data-rank": String(d.rank) }, [t("tl.details"), icon("chevron")]);
   let built = false;
-  disclosure(btn, region, { open: openDetails.has(String(d.rank)), onToggle: (v) => { if (v && !built) { built = true; inner.append(...details(d)); } } });
+  disclosure(btn, region, { open: openDetails.has(String(d.rank)), onToggle: (v) => { if (v && !built) { built = true; inner.append(basis(d), ...details(d)); } } });
   detailBtns.push(btn);
 
   // a card the last patch changed carries the small patch mark on its slot, never on its face (patch.js)
   const slots = cs.map((c) => h("div.slot", [gameCard(c, { size: spotlight ? "full" : "list", eager: spotlight }), patchMark(c)]));
   const cardsEl = h("div.deck-cards" + (spotlight ? ".full" : ""), slots);
 
-  const el = h("article.deck.panel" + (spotlight ? ".spot" : ""), { id: "deck-" + d.rank, "aria-label": t("tl.rankAria", { rank: d.rank, cards: cs.map(cardName).join(", ") }) }, [
+  const el = h("article.deck" + (spotlight ? ".spot" : ""), { id: "deck-" + d.rank, "aria-label": t("tl.rankAria", { rank: d.rank, cards: cs.map(cardName).join(", ") }) }, [
     h("div.deck-head", [
       h("h3.rk", `#${d.rank}`),
-      d.finalist ? h("span.tag", t("tl.finalist")) : null,
       badge,
     ]),
     h("div.deck-body", [
       cardsEl,
-      h("div.deck-facts", stats(d)),
+      h("div.deck-facts", facts(d)),
     ]),
     btn, region,
   ]);
@@ -206,19 +225,17 @@ function deckPanel(d) {
   return el;
 }
 
-/** A withheld deck: four face-down cards (only their rarity is known), its numbers, and why the cards are not shown. */
+/** A withheld deck: four face-down cards (only their rarity is known), its facts like any deck, and one line of mystery. */
 function withheldPanel(d) {
-  const el = h("article.deck.panel.withheld", { id: "deck-" + d.rank, "aria-label": t("tl.downAria", { rank: d.rank }) }, [
+  const el = h("article.deck.withheld", { id: "deck-" + d.rank, "aria-label": t("tl.downAria", { rank: d.rank }) }, [
     h("div.deck-head", [
       h("h3.rk", `#${d.rank}`),
-      d.finalist ? h("span.tag", t("tl.finalist")) : null,
-      h("span.tag.soft", t("tl.downTag")),
+      h("span.deck-word.hush", t("tl.downLine")),
     ]),
     h("div.deck-body", [
       h("div.deck-cards", (d.rarities || []).map((r) => h("div.slot", cardBack(r)))),
-      h("div.deck-facts", stats(d)),
+      h("div.deck-facts", facts(d)),
     ]),
-    h("p.tip", tx("tl.withheldWhy")),
   ]);
   stubs.push(el);
   return el;
@@ -226,8 +243,8 @@ function withheldPanel(d) {
 
 /** A secret deck: its rank, four blank grey cards and the word "Secret". The data holds nothing else about it. */
 function secretPanel(d) {
-  const el = h("article.deck.panel.secret", { id: "deck-" + d.rank, "aria-label": t("tl.secretAria", { rank: d.rank }) }, [
-    h("div.deck-head", [h("h3.rk", `#${d.rank}`), h("span.tag.soft", t("tl.secret"))]),
+  const el = h("article.deck.secret", { id: "deck-" + d.rank, "aria-label": t("tl.secretAria", { rank: d.rank }) }, [
+    h("div.deck-head", [h("h3.rk", `#${d.rank}`), h("span.deck-word", t("tl.secret"))]),
     h("div.deck-body", [
       h("div.deck-cards", { "aria-hidden": "true" }, [0, 1, 2, 3].map(() => h("div.slot", secretCard()))),   // the panel's label says it
       h("div.deck-facts", h("p.muted", t("tl.secretLine"))),
@@ -246,9 +263,10 @@ const sameSet = (a, b) => a.length === b.length && a.every((x) => b.includes(x))
 
 function counterRow(c, worst) {
   const cards = c.cards.map((id) => DB.byId.get(id)).filter(Boolean);
+  // facts about the counter in quiet words, not boxes: its tier-list rank, and "could be luck" when it could
   const tags = [];
-  if (c.tier_rank) tags.push(h("span.tag", t("tl.counterRank", { rank: c.tier_rank })));
-  if (c.significant === false) tags.push(h("span.tag.soft", { title: t("tl.luckTip") }, t("tl.luck")));
+  if (c.tier_rank) tags.push(h("span.deck-word", t("tl.counterRank", { rank: c.tier_rank })));
+  if (c.significant === false) tags.push(h("span.deck-word.luck", { title: t("tl.luckTip") }, t("tl.luck")));
   return h("li.crow", [
     strip(cards),
     h("div.crow-t", [
@@ -343,7 +361,7 @@ function updateBanner() {
   const go = (label, tab) => h("a.btn.primary", { href: "#" + tab, "data-goto": tab }, [label, icon("arrow")]);
   if (!n) {
     banner.replaceChildren(
-      h("div.callout-t", [h("h2", t("tl.callH")), h("p", t("tl.callP"))]),
+      h("div.callout-t", h("h2", t("tl.callH"))),
       go(t("tl.callGo"), "codex"),
     );
     return;

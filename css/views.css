@@ -1,9 +1,18 @@
 /* SPAM Meta: the three views (Tier list, Codex, My decks) and the card dialog interior. */
 
-.view.enter { animation: view-in var(--t-fade) var(--curve); }
-@keyframes view-in { from { opacity: 0; } to { opacity: 1; } }
+/* a tab's view arrives as one block: a fade and 24px of travel, 280ms on the one curve (TASTE "Enter and exit") */
+.view.enter { animation: view-in var(--t-move) var(--curve); }
+@keyframes view-in { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
 .vhead { display: grid; gap: 8px; margin-bottom: 24px; }
 .lede { color: var(--ink-2); max-width: 64ch; font-size: 18px; line-height: 1.5; text-wrap: pretty; }
+/* the intro line (patch.js introLine): the lede, then the quiet "About the numbers" text disclosure at its end; what it opens
+   (the method, the patch notice) sits under the line, Soft Lavender 16, at the body measure */
+.vsub { display: flex; flex-wrap: wrap; align-items: center; gap: 0 16px; }
+.vsub > .lede { min-width: 0; }
+.lede.quiet { color: var(--muted); font-size: 16px; }
+.vsub .tdisc { margin-left: -12px; }       /* the glyph lines up with the text when the button wraps under the lede */
+.vinfo { display: grid; gap: 8px; padding: 4px 0 8px; color: var(--ink-2); }
+.vinfo > p { max-width: 68ch; text-wrap: pretty; }
 
 /* ---------------------------------------------------------------- collection bar (Codex and My decks) */
 .cbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 32px; align-items: center; background: var(--panel-hi); }
@@ -28,11 +37,6 @@
 .keep.nostore .keep-t { color: var(--ink); font: 400 16px/1.55 var(--text); }
 .keep.nostore .keep-t .ico { color: var(--muted); }
 .keep-copy { white-space: nowrap; }
-.copy-ls { display: inline-grid; }
-.copy-ls > .copy-l { grid-area: 1 / 1; text-align: start; }
-.copy .l-done, .copy.done .l-rest { visibility: hidden; }
-.copy.done .l-done { visibility: visible; }
-.copy:disabled, .copy:disabled:hover, .copy:disabled:active { opacity: .5; cursor: default; background: transparent; color: var(--ink-2); transform: none; }
 
 /* in-app browser notice: one flat row with a dismiss button; hiding fades it, then the row closes */
 .inapp .collapse-in { padding-bottom: 16px; }
@@ -46,7 +50,7 @@
 
 /* ---------------------------------------------------------------- Codex toolbar */
 #view-codex .tb-top { margin-top: 24px; }
-.tb-top { display: grid; grid-template-columns: minmax(0, 1fr) 232px; gap: 12px; padding: 8px 0; background: var(--night); }
+.tb-top { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 232px; gap: 12px; padding: 8px 0; }
 #view-codex .tb-filters { margin-top: 4px; }
 #view-codex .tb-result { margin: 12px 0 20px; }
 @media (min-width: 760px) {
@@ -119,38 +123,51 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .jump-gap { flex: 1 1 0; }
 .chip.ready { gap: 6px; }
 
-.tier { display: grid; gap: 24px; margin-top: 48px; scroll-margin-top: 80px; }
-.tier-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: center; }
-.tier-k { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 8px; background: var(--socket); box-shadow: var(--sunken); font: 400 40px/1 var(--display); }
-.tier-what { display: grid; gap: 2px; min-width: 0; }
-.tier-what p { max-width: 80ch; font-size: 14px; line-height: 1.45; }
-.decks { display: grid; gap: 24px; }
+/* A tier: the letter in its own rail, the decks to its right along a hairline spine. No box anywhere: the letter is the
+   anchor, the spine groups the tier, a hairline separates two decks, whitespace separates two tiers (DESIGN.md). */
+.tier { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 0 24px; margin-top: 48px; scroll-margin-top: 80px; }
+.tier-rail { min-width: 0; }
+.tier-k { position: sticky; top: calc(var(--chrome-h) + 24px); font: 400 40px/1 var(--display); letter-spacing: .01em; color: var(--ink); }
+.tier-body { display: grid; gap: 8px; min-width: 0; padding-left: 24px; border-left: 1px solid var(--line); }
+.tier-what { padding-top: 4px; max-width: 80ch; color: var(--muted); font: 600 14px/1.4 var(--text); }
+.decks { display: grid; }
 
-.deck { display: grid; gap: 16px; }
-.deck-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; min-height: 36px; }
+.deck { display: grid; gap: 16px; padding: 24px 0 16px; }
+/* a hairline above every deck that follows a shown deck, so a search that hides decks never doubles a line */
+.deck:not([hidden]) ~ .deck { border-top: 1px solid var(--line); }
+.deck-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; min-height: 36px; }
 .rk { font: 400 28px/1 var(--display); color: var(--muted); }
-.deck-head .obadge { margin-left: auto; }
-.deck-body { display: grid; grid-template-columns: minmax(0, 680px) minmax(0, 1fr); gap: 16px 32px; align-items: start; }
+/* a fact about a deck in words, never a box: "Finalist", "Cards hidden", "Secret", a counter's rank */
+.deck-word { color: var(--muted); font: 600 14px/1.4 var(--text); white-space: nowrap; }
+.deck-word.luck { color: var(--ink-2); cursor: help; text-decoration: underline dotted var(--edge); text-underline-offset: 4px; }
+.deck-head .obadge { margin-left: auto; align-self: center; }
+.deck-body { display: grid; grid-template-columns: minmax(0, 640px) minmax(0, 1fr); gap: 16px 48px; align-items: start; }
 .deck-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; padding: 8px 8px 12px; }
 .slot { min-width: 0; }
 .deck-facts { display: grid; gap: 16px; align-content: start; }
-.stats { display: grid; gap: 12px; }
-/* the withheld deck's "Why hidden?" paragraph */
-.tip { color: var(--ink-2); font-size: 16px; line-height: 1.55; max-width: 84ch; }
-.tip b { color: var(--ink); }
-.deck.spot { padding: 24px 24px 16px; }
+/* a deck's facts, the pattern of every measured deck (decklist.js): the evidence line (bars, stage, how reliable), the number
+   that sets the rank (Headline 28) with its field under it, then the other number as one quiet line (Dusk Lavender 14, 400) */
+.dfacts { display: grid; gap: 8px; justify-items: start; align-content: start; padding-top: 8px; }
+.dfacts .dr-fig { cursor: help; }
+.fig-line { display: flex; align-items: baseline; gap: 8px; }
+.fig-pm { color: var(--muted); font: 600 14px/1 var(--text); }
+.fig-all { color: var(--muted); font: 400 14px/1.4 var(--text); cursor: help; }
+.basis { margin-bottom: 8px; }
 .deck.spot .deck-body { grid-template-columns: minmax(0, 1fr); }
 .deck.spot .deck-cards { gap: 24px; padding: 12px 12px 16px; }
-.deck.spot .deck-facts { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px 24px; align-items: start; }
-.deck.spot .stats { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-column: 1 / -1; }
+/* the withheld deck's one line: the mystery, said quietly beside its rank */
+.deck-word.hush { color: var(--ink-2); font-weight: 400; white-space: normal; }
+/* the way to the overlay: one line after the last tier, on the ground, no box */
+.ov-tease { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--line); color: var(--muted); }
+.ov-tease .link { font-weight: 700; }
 .deck > .disc { justify-self: start; margin-left: -16px; }
 .deck.withheld .deck-cards { opacity: .9; }
 .deck.secret .deck-cards { opacity: .9; }
 .vhead .dnote { margin-top: 4px; }
 
-.obadge { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-height: 36px; padding: 4px 14px; border-radius: 20px; background: var(--socket); box-shadow: var(--sunken);
-  color: var(--ink-2); font: 600 14px/1.3 var(--text); }
-.obadge.full { box-shadow: var(--sunken), inset 0 0 0 1.5px var(--accent); color: var(--ink); }
+/* how many of a deck's cards the visitor owns: words and chips on the ground, no pill; all four owned adds the cyan check */
+.obadge { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-height: 36px; color: var(--ink-2); font: 600 14px/1.3 var(--text); }
+.obadge.full { color: var(--ink); }
 .obadge.full .ico { color: var(--accent); }
 
 .dgrid { display: grid; grid-template-columns: minmax(0, 1fr); border-top: 1px solid var(--line); margin-top: 8px; }
@@ -239,17 +256,16 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .pglyph { display: inline-block; flex: none; width: 8px; height: 8px; margin: 0 2px; transform: rotate(45deg); background: var(--ink-2); }
 .pglyph.hollow { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ink-2); }
 .tag.ptag { gap: 8px; }
-/* on a card of a deck: a 28px socket overhanging the card's bottom-left corner, off the art's sprites (orb, gold, gem) */
+/* on a card of a deck: the bare glyph on the card's bottom-left corner, off the art's sprites (orb, gold, gem), with a 2px
+   night halo; no socket around it (a boxed glyph read as a button). Its 28px box is only the hover area of its title. */
 .slot { position: relative; }
-.pmark { position: absolute; left: -8px; bottom: -8px; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 4px;
-  background: var(--socket); box-shadow: inset 0 0 0 1px var(--edge), 0 0 0 2px var(--night); pointer-events: auto; cursor: help; }
-.pmark .pglyph { width: 10px; height: 10px; margin: 0; }
+.pmark { position: absolute; left: -8px; bottom: -8px; display: grid; place-items: center; width: 28px; height: 28px; pointer-events: auto; cursor: help; }
+.pmark .pglyph { width: 10px; height: 10px; margin: 0; box-shadow: 0 0 0 2px var(--night); }
+.pmark .pglyph.hollow { background: var(--night); box-shadow: inset 0 0 0 1.5px var(--ink-2), 0 0 0 2px var(--night); }
 .slot.miss .pmark { opacity: .45; }
-/* the patch notice of the ranking views: one flat row, the shape of the browser notice, hugging its sentence */
-.pnotice { display: flex; align-items: flex-start; gap: 12px; justify-self: start; max-width: 100%; margin-top: 8px; padding: 10px 16px; border-radius: 12px;
-  background: var(--panel); border: 1px solid var(--line); color: var(--ink); text-wrap: pretty; }
-.pnotice .ico { height: 1lh; color: var(--muted); }
-.pnotice > span { min-width: 0; max-width: 68ch; }
+/* the patch notice of the ranking views: plain text inside the intro line's "About the numbers" region (owner, 2026-10-18:
+   too much text above the list), Soft Lavender 16 at the body measure */
+.pnotice { max-width: 68ch; color: var(--ink-2); text-wrap: pretty; }
 .pnotice-key { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); white-space: nowrap; }
 
 /* ---------------------------------------------------------------- About and collection code */
@@ -280,7 +296,7 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 /* ---------------------------------------------------------------- tablet and phone */
 @media (max-width: 1040px) {
   .deck-body { grid-template-columns: minmax(0, 1fr); }
-  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dfacts { padding-top: 0; }
   .dr { grid-template-columns: 48px minmax(0, 1fr); }
   .dr-info { grid-column: 2; }
   .dr .deck-cards { grid-column: 2; max-width: 640px; }
@@ -298,16 +314,20 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
   .gc-ab.long, .gc-pa.long, .gc-ab.xlong, .gc-pa.xlong { font-size: max(8.5px, calc(var(--u) * 4.4)); }
   .deck-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 12px; max-width: 360px; }
   .deck.spot .deck-cards { gap: 16px 12px; max-width: 420px; }
-  .deck.spot .deck-facts, .deck.spot .stats { grid-template-columns: minmax(0, 1fr); }
-  .stats { grid-template-columns: minmax(0, 1fr); }
-  .deck.spot { padding: 16px; }
+  /* the withheld deck's four backs stay on one row: four "?" do not need a screen and a half */
+  .deck.withheld .deck-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .deck.withheld .gc-r { visibility: hidden; }        /* too small to read there; the gem and the edge colour keep the rarity */
   .drs { padding: 0 16px; }
   .dr { grid-template-columns: minmax(0, 1fr); padding: 16px 0; }
   .dr-info, .dr .deck-cards { grid-column: 1; }
   .dr-rank { grid-row: auto; }
   .dr .deck-cards { max-width: 360px; }
-  .tier-head { gap: 12px; }
-  .tier-k { width: 48px; height: 48px; font-size: 28px; }
+  /* a phone: the letter heads its tier on one line with its ranks, the decks run full width under it, no spine */
+  .tier { grid-template-columns: auto minmax(0, 1fr); gap: 0 16px; align-items: baseline; }
+  .tier-k { position: static; }
+  .tier-body { display: contents; }
+  .tier-what { padding-top: 0; }
+  .decks { grid-column: 1 / -1; margin-top: 8px; }
   .jump .expand { margin-left: 0; }
   .crow { grid-template-columns: minmax(0, 1fr); }
   .tb-bulk .btn { flex: 1 1 auto; }

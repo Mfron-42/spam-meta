@@ -1,17 +1,17 @@
 // Codex tab: every released card as a game card, with search, filters, sort and the Owned toggle on every card.
 // A language change rebuilds the tab from the same state (search, filters, sort, open panels).
 
-import { h, icon, norm, fmtInt } from "./util.js?v=a12dd2e24e";
-import { searchField, terms as searchTerms, hasAll } from "./search.js?v=a12dd2e24e";
-import { DB } from "./data.js?v=a12dd2e24e";
-import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js?v=a12dd2e24e";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=a12dd2e24e";
-import { cardTile, ownToggle, setOwnedView, cardName, ELEMENTS, RARITIES, elName, raName, unsize } from "./cards.js?v=a12dd2e24e";
-import { disclosure, flip, segmented, filterChip, setChip } from "./ui.js?v=a12dd2e24e";
-import { toast, openCollection } from "./dialogs.js?v=a12dd2e24e";
-import { cardText } from "./cardtext.js?v=a12dd2e24e";
-import { t, STRINGS } from "./i18n.js?v=a12dd2e24e";
-import { GAME_PATCH } from "./patch.js?v=a12dd2e24e";
+import { h, icon, norm, fmtInt } from "./util.js?v=b72f78e0fe";
+import { searchField, terms as searchTerms, hasAll } from "./search.js?v=b72f78e0fe";
+import { DB } from "./data.js?v=b72f78e0fe";
+import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js?v=b72f78e0fe";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=b72f78e0fe";
+import { cardTile, ownToggle, setOwnedView, cardName, ELEMENTS, RARITIES, elName, raName, unsize } from "./cards.js?v=b72f78e0fe";
+import { disclosure, flip, segmented, filterChip, setChip, band } from "./ui.js?v=b72f78e0fe";
+import { toast, openCollection } from "./dialogs.js?v=b72f78e0fe";
+import { cardText } from "./cardtext.js?v=b72f78e0fe";
+import { t, STRINGS } from "./i18n.js?v=b72f78e0fe";
+import { GAME_PATCH } from "./patch.js?v=b72f78e0fe";
 
 // ---- traits, derived from the English texts and numbers of the data (no hand-made tags); names are "trait.<id>"
 const anyText = (c, rx) => c.abilities.some((a) => rx.test(a.description_en)) || c.passives.some((p) => rx.test(p.description_en));
@@ -225,7 +225,7 @@ function build() {
     ]),
     inAppNotice(),
     cbar,
-    h("div.tb-top", [search, sortField, ui.fbtn]), filters, bar,
+    band(h("div.tb-top", [search, sortField, ui.fbtn])), filters, bar,
     grid, ui.empty,
   ].filter(Boolean));
   apply(true);

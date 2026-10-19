@@ -3,10 +3,11 @@
 // filled when a value, an ability or a passive changed (the class "mechanical"), hollow when only talents or texts did.
 // The data carries codes and positions; every word comes from i18n.js ("pc.*").
 
-import { h, icon, fmtDate } from "./util.js?v=a12dd2e24e";
-import { DB } from "./data.js?v=a12dd2e24e";
-import { L } from "./cards.js?v=a12dd2e24e";
-import { t } from "./i18n.js?v=a12dd2e24e";
+import { h, icon, fmtDate } from "./util.js?v=b72f78e0fe";
+import { DB } from "./data.js?v=b72f78e0fe";
+import { L } from "./cards.js?v=b72f78e0fe";
+import { t } from "./i18n.js?v=b72f78e0fe";
+import { disclosure } from "./ui.js?v=b72f78e0fe";
 
 // Three patches can differ, and each label names the one it is about (SPEC.md, "Patch labels"):
 // - the GAME patch, the client players run today (below; the lab reads it from the game files);
@@ -82,7 +83,25 @@ export function patchNotice({ legend = false } = {}) {
   if (!rankingsBehindGame()) return null;
   const key = h("span.pnotice-key", [h("i.pglyph", { "aria-hidden": "true" }), t("pc.noticeKey", { patch: DB.patch })]);
   const date = fmtDate(GAME_PATCH.date, "long", false);
-  return h("p.pnotice", { role: "note" }, [icon("info"), h("span", [t("pc.notice", { game: GAME_PATCH.patch, date }), legend ? [" ", key] : null])]);
+  return h("p.pnotice", { role: "note" }, [t("pc.notice", { game: GAME_PATCH.patch, date }), legend ? [" ", key] : null]);
+}
+
+// which views have their "About the numbers" open: kept across a redraw (a language change)
+const infoOpen = new Set();
+
+/**
+ * A ranking view's intro line (DESIGN.md "Intro line"): the one short `lede`, then, when there is something more to say (the
+ * patch notice, the view's `method` sentence), a quiet "About the numbers" text disclosure at its end that opens those lines
+ * under it. Returns the nodes to put under the h1: the line, and the region when there is one. `key` names the view.
+ */
+export function introLine(key, lede, { method = null, legend = false } = {}) {
+  const parts = [method ? h("p", method) : null, patchNotice({ legend })].filter(Boolean);
+  if (!parts.length) return [h("div.vsub", lede)];
+  const id = "info-" + key;
+  const btn = h("button.tdisc", { type: "button", "aria-controls": id }, [icon("info"), h("span", t("pc.info")), icon("chevron")]);
+  const region = h("div.vinfo-wrap", { id }, h("div.collapse-in", h("div.vinfo", parts)));
+  disclosure(btn, region, { open: infoOpen.has(key), onToggle: (v) => { if (v) infoOpen.add(key); else infoOpen.delete(key); } });
+  return [h("div.vsub", [lede, btn]), region];
 }
 
 /** The suggested talent of a card (cards.json `suggested_talent`): the talent object and its position, or null. */

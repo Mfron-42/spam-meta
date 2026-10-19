@@ -2,12 +2,12 @@
 // cards, the evidence level, the win rate, the tier tag), the paging, the "How reliable?" legend and the owned badge. Rows arrive already sorted by the rank key of docs/DATA.md (level
 // descending, then rank_score), so a filter that keeps their order keeps the canonical ranking.
 
-import { h, icon, pct } from "./util.js?v=a12dd2e24e";
-import { DB, deckKey } from "./data.js?v=a12dd2e24e";
-import { isOwned, ownedCount } from "./store.js?v=a12dd2e24e";
-import { gameCard, chip } from "./cards.js?v=a12dd2e24e";
-import { disclosure } from "./ui.js?v=a12dd2e24e";
-import { t } from "./i18n.js?v=a12dd2e24e";
+import { h, icon, pct } from "./util.js?v=b72f78e0fe";
+import { DB, deckKey } from "./data.js?v=b72f78e0fe";
+import { isOwned, ownedCount } from "./store.js?v=b72f78e0fe";
+import { gameCard, chip } from "./cards.js?v=b72f78e0fe";
+import { disclosure } from "./ui.js?v=b72f78e0fe";
+import { t } from "./i18n.js?v=b72f78e0fe";
 
 // ---------------------------------------------------------------- evidence, in plain words
 // level -> funnel stage; the numbers of each stage come from meta.json `methodology.pipeline`
@@ -30,6 +30,10 @@ function levelText(level) {
 function meter(level) {
   return h("span.meter", { role: "img", "aria-label": t("md.meter", { l: level }) }, [1, 2, 3, 4].map((i) => h("i", { class: i <= level ? "on" : "" })));
 }
+
+/** The evidence line of a deck: the four bars, the stage it was measured in ("Finals") and how reliable that is. Every
+ * measured deck carries it (My decks, the Deck builder, the Deck tier list), so a deck reads the same everywhere. */
+export const evLine = (level) => h("div.ev", [meter(level), h("b", t(`stage.${STAGE[level]}.title`)), h("span.muted", t("ev." + level))]);
 
 /** The tier-list entry with the same 4 cards, or null (the tier list did not load, or the deck is not in the top 30). */
 const tierDeckOf = (r) => (DB.tierBySet ? DB.tierBySet.get(deckKey(r.cards.filter(Boolean).map((c) => c.id))) || null : null);
@@ -66,7 +70,7 @@ export function deckRow(r, rankLabel, { cards = r.cards, tag = null, note = null
     h("div.dr-rank", [h("h3.rk", rankLabel)]),
     h("div.deck-cards", cards.map((c) => h("div.slot", { class: hits && !hits.includes(c) ? "miss" : null }, gameCard(c, { size: "list" })))),
     h("div.dr-info", [
-      h("div.ev", [meter(r.level), h("b", t(`stage.${STAGE[r.level]}.title`)), h("span.muted", t("ev." + r.level))]),
+      evLine(r.level),
       h("div.dr-fig", [h("b.stat-v", pct(r.rate)), h("span.stat-s", t("md.rateCap"))]),
       h("p.dr-t", evidenceText(r)),
       note,

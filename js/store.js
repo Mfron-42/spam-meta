@@ -99,13 +99,17 @@ function guessLang() {
   return /^fr\b/i.test(first) ? "fr" : "en";
 }
 let lang = read(K_NAMES);
-if (lang !== "fr" && lang !== "en") lang = guessLang();
+const chosen = lang === "fr" || lang === "en";
+if (!chosen) lang = guessLang();
 
 export const getLang = () => lang;
-export function setLang(next) {
+/** Whether the visitor ever picked a language (else the page follows the browser's, or its own default). */
+export const langChosen = () => chosen;
+/** `keep: false` changes the page language without saving it as the visitor's choice (a page default, a ?lang= link). */
+export function setLang(next, { keep = true } = {}) {
   if (next !== "fr" && next !== "en") return;
   lang = next;
-  write(K_NAMES, next);
+  if (keep) write(K_NAMES, next);
   paintLang();
   emit("lang", next);
 }

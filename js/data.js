@@ -1,13 +1,15 @@
 // Loads the generated JSON once and builds the lookups every view needs. Every request carries the publish version
 // (version.js), so a new publish never mixes with data an earlier visit cached.
 
-import { versioned, withQuery } from "./version.js?v=a12dd2e24e";
+import { versioned, withQuery } from "./version.js?v=b72f78e0fe";
 
 const cache = new Map();
+// data paths are resolved from this module, not from the page, so a page in a sub-folder (site/overlay/) reads the same files
+const ROOT = new URL("../", import.meta.url);
 
 async function getJSON(path) {
   if (!cache.has(path)) {
-    cache.set(path, fetch(versioned(path)).then((r) => {
+    cache.set(path, fetch(versioned(new URL(path, ROOT).href)).then((r) => {
       if (!r.ok) throw new Error(`${path}: HTTP ${r.status}`);
       return r.json();
     }).catch((e) => { cache.delete(path); throw e; }));

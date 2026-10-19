@@ -1,7 +1,7 @@
 // Shared interface pieces: the disclosure (collapsible region), FLIP reordering, segmented control, filter chip, and the
 // small "go to a tab" helper used by the Owned <-> My decks links.
 
-import { h, icon, reducedMotion } from "./util.js?v=a12dd2e24e";
+import { h, icon, reducedMotion } from "./util.js?v=b72f78e0fe";
 
 export const CURVE = "cubic-bezier(.4, 0, .2, 1)";
 
@@ -42,6 +42,49 @@ export function flip(container, mutate) {
     const dx = r0.left - r1.left, dy = r0.top - r1.top;
     if (dx || dy) el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], { duration: 280, easing: CURVE });
   }
+}
+
+/**
+ * The one load sequence of a view (TASTE "Motion grammar"): the first time `view` is shown, the items `items()` returns that
+ * are on screen arrive in their reading order, each with a fade and 24px of travel (280 ms), 40 ms apart, 600 ms at most.
+ * Items off screen are not touched (no fade-in on scroll); nothing is unmounted or resized; reduced motion: nothing.
+ */
+export function cascade(view, items) {
+  if (reducedMotion() || !("IntersectionObserver" in window)) return;
+  const io = new IntersectionObserver((entries) => {
+    if (!entries.some((e) => e.isIntersecting)) return;
+    io.disconnect();
+    const vh = innerHeight;
+    const on = items().filter((el) => { const r = el.getBoundingClientRect(); return r.height && r.bottom > 0 && r.top < vh; }).slice(0, 9);
+    on.forEach((el, i) => el.animate([{ opacity: 0, transform: "translateY(24px)" }, { opacity: 1, transform: "none" }],
+      { duration: 280, delay: i * 40, easing: CURVE, fill: "backwards" }));
+  });
+  io.observe(view);
+}
+
+/**
+ * A sticky toolbar's band (class .band, base.css): transparent while the bar sits in the page, a full-width night band with a
+ * hairline once it sticks under the header, so the ambient field never shows a cut-out box behind it. One observer per bar,
+ * nothing on scroll; it follows the header height (one row from 1200px, two below).
+ */
+export function band(bar) {
+  bar.classList.add("band");
+  if (!("IntersectionObserver" in window)) return bar;
+  let io = null;
+  const qs = ["(max-width: 1199px)", "(min-width: 760px)"].map((q) => matchMedia(q));
+  const arm = () => {
+    if (io) io.disconnect();
+    if (!bar.isConnected) { qs.forEach((m) => m.removeEventListener("change", rearm)); return; }   // the view was redrawn
+    const top = parseFloat(getComputedStyle(bar).top);
+    if (!isFinite(top) || getComputedStyle(bar).position !== "sticky") { bar.classList.remove("stuck"); return; }   // not sticky here
+    io = new IntersectionObserver(([e]) => bar.classList.toggle("stuck", e.intersectionRatio < 1 && e.boundingClientRect.top <= top + 1),
+      { rootMargin: `-${top + 1}px 0px 0px 0px`, threshold: [1] });
+    io.observe(bar);
+  };
+  const rearm = () => requestAnimationFrame(arm);
+  qs.forEach((m) => m.addEventListener("change", rearm));
+  rearm();
+  return bar;
 }
 
 /** Segmented control: sunken track, raised active segment. options: [[value, label]]. */

@@ -10,7 +10,6 @@ div.gc { cursor: default; }
 .gc-face { position: absolute; inset: 0; overflow: hidden; border-radius: calc(var(--u) * 7); border: calc(var(--u) * 1.4) solid var(--card-edge); background: var(--card-edge); box-shadow: var(--shadow);
   transition: box-shadow var(--t-state) var(--curve); }
 .gc-face.noart { background: linear-gradient(180deg, var(--panel-hi), var(--socket)); }
-button.gc:hover .gc-face { box-shadow: var(--shadow), 0 0 0 2px var(--accent); }
 button.gc:focus-visible { outline: none; }
 button.gc:focus-visible .gc-face { box-shadow: var(--shadow), 0 0 0 2px var(--night), 0 0 0 4px var(--accent); }
 .gc-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
@@ -49,26 +48,39 @@ button.gc:focus-visible .gc-face { box-shadow: var(--shadow), 0 0 0 2px var(--ni
 .gc.cp .gc-orb { width: calc(var(--u) * 24); height: calc(var(--u) * 24); }
 
 /* ---------------------------------------------------------------- cards in hand (site/js/cardtilt.js)
-   The 3D hover of every card tile and of the card view's big card (DESIGN.md "Card in hand"). A tile's card keeps its box
-   (the button a click lands on) and its layers sit in one inner layer, .gc-in, which takes no pointer events, so the hit
-   area never moves. While a card is held, the turned element carries .tilt-on: a 3D context, and the depth variables the
-   engine writes each frame (in % of the card width: --ax/--ay the sunk art, --fx/--fy the risen name, bars and HP, --oz the
-   orb, gold hexagon and gem standing forward; --tx/--ty the pointer, --th the hover's strength). At rest none of it exists. */
+   The 3D hover of every game card that opens the card view and of the card view's big card (DESIGN.md "Card in hand"). A
+   card keeps its box (the button a click lands on) and its layers sit in one inner layer, .gc-in, which takes no pointer
+   events, so the hit area never moves. While a card is held, the turned element carries .tilt-on: a 3D context, and the
+   depth variables the engine writes each frame (in % of the card width: --ax/--ay the sunk art, --fx/--fy the risen name,
+   bars and HP, --oz the orb, gold hexagon and gem standing forward; --tx/--ty the tilt, --lx/--ly the pointer's side, --th
+   the hover's strength, a fraction of it for the other cards of the hand). At rest none of it exists. The card stays a thin
+   card: no edge or slab is drawn behind it, its depth is the light and the shadow. */
 .gc-in { position: absolute; inset: 0; display: block; pointer-events: none; }
 .tilt-on { transform-style: preserve-3d; transform-origin: 50% 50%; will-change: transform; }
 .tilt-on .gc, .tilt-on .gc-in { transform-style: preserve-3d; }
 /* the face is flat (clipped to its round corners), so the depths inside it are drawn as the shifts they would make */
-.tilt-on .gc-art { transform: translate(calc(var(--ax) * var(--u)), calc(var(--ay) * var(--u))) scale(calc(1 + .1 * var(--th))); }
+.tilt-on .gc-art { transform: translate(calc(var(--ax) * var(--u)), calc(var(--ay) * var(--u))) scale(calc(1 + .03 * var(--th))); }
 .tilt-on .gc-name, .tilt-on .gc-abs, .tilt-on .gc-hp { translate: calc(var(--fx) * var(--u)) calc(var(--fy) * var(--u)); }
 .tilt-on .gc-orb, .tilt-on .gc-gold, .tilt-on .gc-gem { translate: 0 0 calc(var(--oz) * var(--u)); }
-/* the light: a soft sheen of ink that follows the pointer across the face */
+/* the light: a soft sheen of ink on the pointer's side of the face; the other cards of the hand catch only a trace of it */
 .gc-face::after { content: ""; position: absolute; left: -50%; top: -50%; width: 200%; height: 200%; opacity: 0; pointer-events: none;
   background: radial-gradient(closest-side, var(--card-light), transparent 48%); }
-.tilt-on .gc-face::after { opacity: var(--th); translate: calc(var(--tx) * 25%) calc(var(--ty) * 25%); }
-/* a tile's thin edge behind its face, seen along the far side at a tilt */
-.gc-in.tilt-on::before { content: ""; position: absolute; inset: 0; border-radius: calc(var(--u) * 7); background: var(--card-side); transform: translateZ(calc(var(--u) * -2.5)); }
-/* the hovered tile stands over its neighbours (their text and owned toggles) only while it is held */
-.cell.tilt-hot { z-index: 4; }
+.tilt-on .gc-face::after { opacity: calc(var(--th) * var(--th) * .8); translate: calc(var(--lx) * 25%) calc(var(--ly) * 25%); }
+/* the depth: a soft shadow under the card that deepens with the hover and slips away from the pointer (opacity and
+   translate only; the shadow itself is drawn once). Without the engine (reduced motion) a hover still deepens it.
+   A box-shadow is never painted inside its own box, so that box must stay hidden under the face wherever the shadow
+   slips: it sits 4u inside the face (radius 3u) and the spread gives the 4u back, so the shadow keeps the card's outline
+   while the slip (3u at most) never uncovers the box's empty inside (owner, 2026-10-18: it read as a second, misplaced
+   contour around a held card). */
+.gc-in::before { content: ""; position: absolute; inset: calc(var(--u) * 4); border-radius: calc(var(--u) * 3);
+  box-shadow: 0 calc(var(--u) * 5) calc(var(--u) * 12) calc(var(--u) * 4) rgba(0, 0, 0, .5);
+  opacity: 0; pointer-events: none; transition: opacity var(--t-fade) var(--curve); }
+@media (hover: hover) { button.gc:hover .gc-in:not(.tilt-on)::before { opacity: 1; } }
+.gc-in.tilt-on::before, .tilt-on .gc-in::before { opacity: var(--th); transition: none; translate: calc(var(--lx) * var(--th) * var(--u) * -3) calc(var(--ly) * var(--th) * var(--u) * -3); }
+/* pressed: the card gives a little under the press (immediate, no transition), as a raised button drops */
+button.gc:active .gc-in { scale: .98; }
+/* the card under the pointer stands over its neighbours (their text and owned toggles) only while it is held */
+.cell.tilt-hot, .slot.tilt-hot { z-index: 4; }
 
 /* ---------------------------------------------------------------- mini card and card chip */
 .mc { position: relative; display: block; flex: none; width: 48px; aspect-ratio: 1432 / 2048; padding: 0; border: 2px solid var(--card-edge); border-radius: 6px; background: var(--card-edge); cursor: pointer;
@@ -77,7 +89,12 @@ button.gc:focus-visible .gc-face { box-shadow: var(--shadow), 0 0 0 2px var(--ni
 .mc-art.broken, .cc-art.broken { visibility: hidden; }
 .mc.noart { background: linear-gradient(180deg, var(--panel-hi), var(--socket)); }
 .mc-orb { position: absolute; left: -7px; top: -7px; width: 20px; height: 20px; background-size: contain; background-repeat: no-repeat; background-position: center; }
-.mc:hover { box-shadow: var(--ring); }
+/* a small card answers the pointer as the big ones do, without a cyan border: a soft light across its art; pressed, it gives
+   a little (immediate). Keyboard focus keeps the double ring. Shared by the mini card and the Card tier list icon. */
+.mc::after, .ct-ic::after { content: ""; position: absolute; inset: 0; border-radius: 4px; pointer-events: none; opacity: 0;
+  background: radial-gradient(120% 90% at 30% 12%, var(--card-light), transparent 62%); transition: opacity var(--t-state) var(--curve); }
+@media (hover: hover) { .mc:hover::after, .ct-ic:hover::after { opacity: .6; } }
+.mc:active, .ct-ic:active { scale: .96; }
 .mc:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--night), 0 0 0 4px var(--accent); }
 .strip { display: inline-flex; gap: 8px; padding: 7px 0 0 7px; flex: none; }
 

@@ -3,17 +3,17 @@
 // drawn as a full-screen card view (card.css); its enter and exit (the card flying from its tile) are played by
 // cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=a12dd2e24e";
-import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=a12dd2e24e";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=a12dd2e24e";
-import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=a12dd2e24e";
-import { encode, decode } from "./code.js?v=a12dd2e24e";
-import { copyText, disclosure } from "./ui.js?v=a12dd2e24e";
-import { t, tx, millions } from "./i18n.js?v=a12dd2e24e";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine } from "./patch.js?v=a12dd2e24e";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=a12dd2e24e";
-import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=a12dd2e24e";
-import { attachTilt } from "./cardtilt.js?v=a12dd2e24e";
+import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=b72f78e0fe";
+import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=b72f78e0fe";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=b72f78e0fe";
+import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=b72f78e0fe";
+import { encode, decode } from "./code.js?v=b72f78e0fe";
+import { copyText, disclosure } from "./ui.js?v=b72f78e0fe";
+import { t, tx, millions } from "./i18n.js?v=b72f78e0fe";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine } from "./patch.js?v=b72f78e0fe";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=b72f78e0fe";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=b72f78e0fe";
+import { attachTilt } from "./cardtilt.js?v=b72f78e0fe";
 
 let openDlg = null, pushed = false;
 
@@ -377,7 +377,7 @@ function counterLists(c, sec) {
         : h("p.cm-none", t("card.noClear")),
     ]);
   };
-  const btn = h("button.cm-how", { type: "button", "aria-controls": "cm-how" }, [h("span", t("cm.how")), icon("chevron")]);
+  const btn = h("button.tdisc", { type: "button", "aria-controls": "cm-how" }, [h("span", t("cm.how")), icon("chevron")]);
   const how = h("div", { id: "cm-how" }, h("div.collapse-in", h("ul.cm-how-l", [
     h("li", tx("cm.howWith", { games: d.synergy.n_games })),
     h("li", tx("cm.howVs", { games: d.counters.n_games })),

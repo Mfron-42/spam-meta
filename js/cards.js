@@ -2,10 +2,10 @@
 // Cards are built like the game client builds them, from its own sprites (CSS classes sp-*), so the page carries no
 // per-card sprite <img>; only the art is an <img>, and it is lazy.
 
-import { h, icon, reEscape } from "./util.js?v=a12dd2e24e";
-import { DB } from "./data.js?v=a12dd2e24e";
-import { getLang, isOwned, setOwned } from "./store.js?v=a12dd2e24e";
-import { t } from "./i18n.js?v=a12dd2e24e";
+import { h, icon, reEscape } from "./util.js?v=b72f78e0fe";
+import { DB } from "./data.js?v=b72f78e0fe";
+import { getLang, isOwned, setOwned } from "./store.js?v=b72f78e0fe";
+import { t } from "./i18n.js?v=b72f78e0fe";
 
 // element and rarity ids in game order; their names are UI strings ("el.fire", "ra.common")
 export const ELEMENTS = ["fire", "water", "earth", "nature", "light", "shadow", "divine"];
@@ -13,8 +13,10 @@ export const RARITIES = ["common", "rare", "epic", "legendary", "divine"];
 export const elName = (id) => t("el." + id);
 export const raName = (id) => t("ra." + id);
 
-const ART = (key) => `assets/cards/art/${key}.webp`;
-const THUMB = (size, key) => `assets/thumbs/${size}/${key}.webp`;
+// resolved from this module, not from the page, so a page in a sub-folder (the overlay page, site/overlay/) draws the same cards
+const ROOT = new URL("../", import.meta.url);
+const ART = (key) => new URL(`assets/cards/art/${key}.webp`, ROOT).href;
+export const THUMB = (size, key) => new URL(`assets/thumbs/${size}/${key}.webp`, ROOT).href;
 
 // ---- language
 export const L = (obj, field) => obj[`${field}_${getLang()}`] ?? obj[`${field}_en`] ?? "";
@@ -75,12 +77,14 @@ export function gameCard(c, { size = "full", interactive = true, eager = false }
     compact ? null : h("span.gc-abs", { lang }, rows),
     h("span.gc-hp", compact ? String(c.hp) : `${c.hp}/${c.hp}`),
   ]);
-  const kids = [
+  // the card's layers sit in one inner layer (.gc-in) that the 3D hover turns (cardtilt.js), while the card's own box, the
+  // button a click lands on, never moves
+  const kids = h("span.gc-in", [
     face,
     h("i.gc-orb.sp-el-" + c.element),
     h("span.gc-gold", h("span", String(c.gold_income))),
     h("i.gc-gem.sp-gem-" + c.rarity),
-  ];
+  ]);
   const cls = "gc" + (compact ? " cp" : "");
   // a plain card (the card dialog's) says what its face shows, since nothing else on the page repeats it
   if (!interactive) return sized(h("div", { class: cls, role: "img", "aria-label": t("card.face", { name, element: elName(c.element), rarity: raName(c.rarity), hp: c.hp, gold: c.gold_income }) }, kids));
@@ -95,10 +99,7 @@ export function gameCard(c, { size = "full", interactive = true, eager = false }
  * search excerpt), or none. A plain tile (`interactive` false: the card view's) is not a button and says what its face shows.
  */
 export function cardTile(c, { toggle = null, cap = null, interactive = true, eager = false } = {}) {
-  // the card's layers sit in one inner layer (.gc-in) that the 3D hover turns (cardtilt.js), while the card's own box, the
-  // button a click lands on, never moves
   const card = gameCard(c, { size: "full", interactive, eager });
-  card.replaceChildren(h("span.gc-in", [...card.childNodes]));
   return h("div.cell", { "data-key": c.key }, [h("div.cw", [card, toggle]), cap]);
 }
 
