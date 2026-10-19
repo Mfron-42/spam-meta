@@ -1,23 +1,23 @@
 {
   "available": true,
-  "version": "0.1.1",
+  "version": "0.1.2",
   "released": "2026-10-19",
-  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.1",
-  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.1",
+  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.2",
+  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.2",
   "assets": [
     {
       "kind": "setup",
-      "name": "SPAM-Overlay-Setup-0.1.1.exe",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.1/SPAM-Overlay-Setup-0.1.1.exe",
-      "size_bytes": 161805256,
-      "sha256": "c7bac33b80f2a3b2d453030408728d2c10297af2af815f93535e7849d9a57288"
+      "name": "SPAM-Overlay-Setup-0.1.2.exe",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.2/SPAM-Overlay-Setup-0.1.2.exe",
+      "size_bytes": 161783469,
+      "sha256": "10acbf187d35fcd030fd15f7aa5cf6d3578cdea348e899a9d5e416b5f2748435"
     },
     {
       "kind": "zip",
-      "name": "spam-overlay-0.1.1-win64.zip",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.1/spam-overlay-0.1.1-win64.zip",
-      "size_bytes": 237818434,
-      "sha256": "bc13e3c7cef6be1ae69499711de58a7d172ccb707f38d0584b8aaa3577099a80"
+      "name": "spam-overlay-0.1.2-win64.zip",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.2/spam-overlay-0.1.2-win64.zip",
+      "size_bytes": 237787287,
+      "sha256": "08798648ca469296d2cbc0b59c85fffcb1dc3a6444f62627e4ebb6aa15d9c700"
     }
   ]
 }
