@@ -1,23 +1,27 @@
 {
   "available": true,
-  "version": "0.1.6",
-  "released": "2026-10-19",
-  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.6",
-  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.6",
+  "version": "0.1.7",
+  "released": "2026-10-20",
+  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.7",
+  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.7",
+  "notes": {
+    "en": "- \"Check for updates\" now installs the update. When a newer version is out, press \"Update and restart\": the overlay downloads the installer, checks it against the published size and SHA-256, installs it over this copy and starts again by itself. Your settings, engine and logs are kept. If a match is on, the update waits for it to end, or you can install right away.\n- Install this one by hand. Copies on 0.1.6 or older cannot update themselves: download and run the 0.1.7 installer once. From 0.1.7 on, updates install themselves.",
+    "fr": "- \u00ab Rechercher une mise \u00e0 jour \u00bb installe maintenant la mise \u00e0 jour. Quand une version plus r\u00e9cente existe, appuyez sur \u00ab Mettre \u00e0 jour et red\u00e9marrer \u00bb : l'overlay t\u00e9l\u00e9charge l'installateur, le v\u00e9rifie d'apr\u00e8s la taille et le SHA-256 publi\u00e9s, l'installe par-dessus cette copie et se relance tout seul. Vos r\u00e9glages, le moteur et les journaux sont gard\u00e9s. Si une partie est en cours, la mise \u00e0 jour attend qu'elle se termine, ou vous pouvez installer tout de suite.\n- Installez celle-ci \u00e0 la main. Les copies en 0.1.6 ou plus ancien ne peuvent pas se mettre \u00e0 jour seules : t\u00e9l\u00e9chargez et lancez une fois l'installateur de la 0.1.7. \u00c0 partir de la 0.1.7, les mises \u00e0 jour s'installent toutes seules."
+  },
   "assets": [
     {
       "kind": "setup",
-      "name": "SPAM-Overlay-Setup-0.1.6.exe",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.6/SPAM-Overlay-Setup-0.1.6.exe",
-      "size_bytes": 161797920,
-      "sha256": "45619b2432d9997b5daa6e61df582db7e070197dae604ee745be924c52c73343"
+      "name": "SPAM-Overlay-Setup-0.1.7.exe",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.7/SPAM-Overlay-Setup-0.1.7.exe",
+      "size_bytes": 161763405,
+      "sha256": "b3716e54733e2fc8d5a1f1a2e888d582f6e9f5e430bb59befff8dfee8150c7f6"
     },
     {
       "kind": "zip",
-      "name": "spam-overlay-0.1.6-win64.zip",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.6/spam-overlay-0.1.6-win64.zip",
-      "size_bytes": 237797603,
-      "sha256": "15a9875b75d4fe9e4df77a4dce7efa3401ad2d8007693e2a7c76270e068390f2"
+      "name": "spam-overlay-0.1.7-win64.zip",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.7/spam-overlay-0.1.7-win64.zip",
+      "size_bytes": 237818255,
+      "sha256": "8252d8ea627c67a07e1afeef242ae12c7a8654bdfed3e3c1f50ad0dfc2abff44"
     }
   ]
 }

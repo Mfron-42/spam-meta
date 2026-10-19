@@ -10,8 +10,8 @@
 // {one, other} chosen by Intl.PluralRules on the parameter `count`, else `n` (French: 0 to 1.99 are "one"). `**bold**` is honoured by tx()
 // only. French copy uses plain spaces before : ; ? ! - they become no-break spaces when the table loads.
 
-import { h, fmtInt, dec } from "./util.js?v=53d2f3ce26";
-import { getLang } from "./store.js?v=53d2f3ce26";
+import { h, fmtInt, dec } from "./util.js?v=98cd5a38c0";
+import { getLang } from "./store.js?v=98cd5a38c0";
 
 const EN = {
   // ---- document and header
@@ -679,7 +679,7 @@ const EN = {
   "ov.trust.h": "Privacy",
   "ov.priv.1": "What your game receives from the server: read passively on your PC. When that is not possible, it reads the game window on your screen.",
   "ov.priv.2": "What your game sends: never read or kept, neither your login data nor any of your outgoing traffic.",
-  "ov.priv.3": "Nothing is sent anywhere: everything is computed on your PC.",
+  "ov.priv.3": "Nothing from your game is sent: everything is computed on your PC. The overlay goes online only when you press its update buttons.",
   "ov.priv.4": "The game is untouched: no injection, no change to the client or its files, and its memory is not read.",
   "ov.inst.h": "Install and first launch",
   "ov.inst.1": "Download SPAM Overlay",
@@ -705,7 +705,7 @@ const EN = {
   "ov.faq.q2": "Where do the numbers come from?",
   "ov.faq.a2": "From a simulator of the game and a search AI, the same ones that rank the decks on SPAM Meta. Odds are exact or sampled. A win chance starts as an estimate, marked ≈, and games played to the end refine it, with their margin of error.",
   "ov.faq.q3": "Does it send my data anywhere?",
-  "ov.faq.a3": "No. Everything is computed on your PC and nothing is sent.",
+  "ov.faq.a3": "No. Everything is computed on your PC and nothing from your game is sent. The overlay goes online only when you press “Check for updates” or “Update and restart”, to read the release information and download the installer from GitHub.",
   "ov.faq.q4": "Will it slow my PC down?",
   "ov.faq.a4": "The simulator runs at low priority, on two cores, with a memory cap, and it stops after two minutes without a decision.",
   "ov.faq.q5": "Can I install it?",
@@ -1389,7 +1389,7 @@ const FR = {
   "ov.trust.h": "Vie privée",
   "ov.priv.1": "Ce que ton jeu reçoit du serveur : lu en écoute passive sur ton PC. Quand ce n’est pas possible, il lit la fenêtre du jeu à l’écran.",
   "ov.priv.2": "Ce que ton jeu envoie : jamais lu ni gardé, ni tes données de connexion ni rien de ton trafic sortant.",
-  "ov.priv.3": "Rien n’est envoyé nulle part : tout est calculé sur ton PC.",
+  "ov.priv.3": "Rien de ton jeu n’est envoyé : tout est calculé sur ton PC. L’overlay ne va en ligne que lorsque tu appuies sur ses boutons de mise à jour.",
   "ov.priv.4": "Le jeu n’est pas touché : aucune injection, ni le client ni ses fichiers ne sont modifiés, et sa mémoire n’est pas lue.",
   "ov.inst.h": "Installer et premier lancement",
   "ov.inst.1": "Télécharge SPAM Overlay",
@@ -1415,7 +1415,7 @@ const FR = {
   "ov.faq.q2": "D’où viennent les chiffres ?",
   "ov.faq.a2": "D’un simulateur du jeu et d’une IA de recherche, ceux qui classent les decks de SPAM Meta. Les chances sont exactes ou échantillonnées. Une chance de victoire est d’abord une estimation, marquée ≈, que des parties jouées jusqu’au bout affinent, avec leur marge d’erreur.",
   "ov.faq.q3": "Est-ce qu’il envoie mes données ?",
-  "ov.faq.a3": "Non. Tout est calculé sur ton PC, rien n’est envoyé.",
+  "ov.faq.a3": "Non. Tout est calculé sur ton PC, rien de ton jeu n’est envoyé. L’overlay ne va en ligne que lorsque tu appuies sur « Rechercher une mise à jour » ou « Mettre à jour et redémarrer », pour lire les informations de version et télécharger l’installateur depuis GitHub.",
   "ov.faq.q4": "Est-ce que ça ralentit mon PC ?",
   "ov.faq.a4": "Le simulateur tourne en priorité basse, sur deux cœurs, avec un plafond de mémoire, et s’arrête après deux minutes sans décision.",
   "ov.faq.q5": "Est-ce que je peux l’installer ?",

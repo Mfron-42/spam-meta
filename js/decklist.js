@@ -2,12 +2,12 @@
 // cards, the evidence level, the win rate, the tier tag), the paging, the "How reliable?" legend and the owned badge. Rows arrive already sorted by the rank key of docs/DATA.md (level
 // descending, then rank_score), so a filter that keeps their order keeps the canonical ranking.
 
-import { h, icon, pct } from "./util.js?v=53d2f3ce26";
-import { DB, deckKey } from "./data.js?v=53d2f3ce26";
-import { isOwned, ownedCount } from "./store.js?v=53d2f3ce26";
-import { gameCard, chip } from "./cards.js?v=53d2f3ce26";
-import { disclosure } from "./ui.js?v=53d2f3ce26";
-import { t } from "./i18n.js?v=53d2f3ce26";
+import { h, icon, pct } from "./util.js?v=98cd5a38c0";
+import { DB, deckKey } from "./data.js?v=98cd5a38c0";
+import { isOwned, ownedCount } from "./store.js?v=98cd5a38c0";
+import { gameCard, chip } from "./cards.js?v=98cd5a38c0";
+import { disclosure } from "./ui.js?v=98cd5a38c0";
+import { t } from "./i18n.js?v=98cd5a38c0";
 
 // ---------------------------------------------------------------- evidence, in plain words
 // level -> funnel stage; the numbers of each stage come from meta.json `methodology.pipeline`
