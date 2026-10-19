@@ -4,15 +4,15 @@
 // tier tag (joined by card set, never by position). The card search of the Deck tier list (search.js) keeps only the decks
 // of both lists that hold a matching card; the query survives a redraw (a card ticked, a language change).
 
-import { h, icon, fmtInt } from "./util.js?v=b72f78e0fe";
-import { DB, loadDecks, loadTier } from "./data.js?v=b72f78e0fe";
-import { on, isOwned, ownedCount } from "./store.js?v=b72f78e0fe";
-import { deckRow, missingLine, paged, legend } from "./decklist.js?v=b72f78e0fe";
-import { findRow, terms, namedCards } from "./search.js?v=b72f78e0fe";
-import { openCollection } from "./dialogs.js?v=b72f78e0fe";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=b72f78e0fe";
-import { t } from "./i18n.js?v=b72f78e0fe";
-import { introLine } from "./patch.js?v=b72f78e0fe";
+import { h, icon, fmtInt } from "./util.js?v=cac8069866";
+import { DB, loadDecks, loadTier } from "./data.js?v=cac8069866";
+import { on, isOwned, ownedCount } from "./store.js?v=cac8069866";
+import { deckRow, missingLine, paged, legend } from "./decklist.js?v=cac8069866";
+import { findRow, terms, namedCards } from "./search.js?v=cac8069866";
+import { openCollection } from "./dialogs.js?v=cac8069866";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=cac8069866";
+import { t } from "./i18n.js?v=cac8069866";
+import { introLine } from "./patch.js?v=cac8069866";
 
 let root, D, listeners = new Set();
 let result = { build: [], near: [] };

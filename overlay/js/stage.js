@@ -13,9 +13,9 @@
 // only its opacity changes. The loop runs only while the stage is on screen and the tab is visible, stops on the pause button,
 // and never starts with reduced motion (the stage then holds one informative frame).
 
-import { t, tx } from "../../js/i18n.js?v=b72f78e0fe";
-import { h, pct, reducedMotion } from "../../js/util.js?v=b72f78e0fe";
-import { gameCard, cardName, L, THUMB } from "../../js/cards.js?v=b72f78e0fe";
+import { t, tx } from "../../js/i18n.js?v=cac8069866";
+import { h, pct, reducedMotion } from "../../js/util.js?v=cac8069866";
+import { gameCard, cardName, L, THUMB } from "../../js/cards.js?v=cac8069866";
 
 const NOW = 0.58;
 const r10 = (x) => Math.max(10, Math.round(x / 10) * 10);
