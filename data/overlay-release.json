@@ -1,27 +1,27 @@
 {
   "available": true,
-  "version": "0.1.11",
+  "version": "0.1.12",
   "released": "2026-10-20",
-  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.11",
-  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.11",
+  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.12",
+  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.12",
   "notes": {
-    "en": "- A Display section in the launcher. On the \"It is running\" page, and in the tray menu, you now choose whether the overlay shows in streams and recordings, how many hints it shows (all, figures without the \"do this\" dot, or only the win chance), and you see at a glance whether the network feed is on, and why not if it is off. No more editing a file to show the overlay to a friend who streams.\n- In a stream, share the whole screen. Discord's window share shows only the game window, so the overlay is not in it; sharing the whole screen shows it. The overlay still hides itself from screen copies while it reads the match from the screen, and the page says so.",
-    "fr": "- Une section Affichage dans le lanceur. Sur la page \u00ab SPAM Overlay est lanc\u00e9 \u00bb, et dans le menu de la zone de notification, vous choisissez maintenant si l'overlay appara\u00eet dans les streams et enregistrements, combien de conseils il affiche (tous, les chiffres sans le point \u00ab \u00e0 faire \u00bb, ou seulement la chance de victoire), et vous voyez d'un coup d'\u0153il si la lecture r\u00e9seau est active, et pourquoi elle ne l'est pas. Plus besoin de modifier un fichier pour montrer l'overlay \u00e0 un ami qui streame.\n- En stream, partagez tout l'\u00e9cran. Le partage de fen\u00eatre de Discord n'affiche que la fen\u00eatre du jeu, donc l'overlay n'y est pas ; partager tout l'\u00e9cran le montre. L'overlay reste cach\u00e9 des copies d'\u00e9cran pendant qu'il lit la partie \u00e0 l'\u00e9cran, et la page le dit."
+    "en": "- Hovering a victim now shows its damage and death chance right away, without waiting for the AI's advice. The damage range and the skull come from the game's own rules, not from the AI, but the overlay used to wait for the AI's ranking before it knew which moves existed, so a card you pointed at could stay blank for a second or more, and for several seconds on a busy PC. It now starts from the list of legal moves: the figures appear as soon as the position is read, and a quiet bar holds their place until then instead of nothing. The win chance and the \"do this\" dot still come from the AI and appear when its advice is ready, and no figure is ever guessed.\n- The AI's advice no longer gets cancelled by a quick hover. Resting the cursor on a move before the AI had answered used to stop its first answer; the hover now waits for it.\n- The log says why a hover drew nothing. `data\\logs\\overlay.log` now has one short line per hovered card with the reason (their turn, no board yet, no spell open, a preview still on its way, and so on), and how long each hovered move took to get its first preview. It holds no player name and is never sent anywhere.",
+    "fr": "- Survoler une victime montre maintenant tout de suite ses d\u00e9g\u00e2ts et sa chance de mort, sans attendre le conseil de l'IA. La fourchette de d\u00e9g\u00e2ts et la t\u00eate de mort viennent des r\u00e8gles du jeu, pas de l'IA, mais l'overlay attendait le classement de l'IA pour savoir quels coups existaient : une carte point\u00e9e pouvait rester vide plus d'une seconde, et plusieurs secondes sur un PC charg\u00e9. Il part maintenant de la liste des coups l\u00e9gaux : les chiffres apparaissent d\u00e8s que la position est lue, et une barre discr\u00e8te tient leur place en attendant, au lieu de rien. La chance de victoire et le point \u00ab faites ceci \u00bb viennent toujours de l'IA et apparaissent quand son conseil est pr\u00eat ; aucun chiffre n'est jamais devin\u00e9.\n- Le conseil de l'IA n'est plus annul\u00e9 par un survol rapide. Poser le curseur sur un coup avant que l'IA ait r\u00e9pondu arr\u00eatait sa premi\u00e8re r\u00e9ponse ; le survol l'attend maintenant.\n- Le journal dit pourquoi un survol n'a rien dessin\u00e9. `data\\logs\\overlay.log` contient maintenant une courte ligne par carte survol\u00e9e avec la raison (leur tour, pas encore de plateau, aucun sort ouvert, un aper\u00e7u encore en route, etc.) et le temps qu'a pris chaque coup survol\u00e9 pour avoir son premier aper\u00e7u. Il ne contient aucun nom de joueur et n'est jamais envoy\u00e9 nulle part."
   },
   "assets": [
     {
       "kind": "setup",
-      "name": "SPAM-Overlay-Setup-0.1.11.exe",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.11/SPAM-Overlay-Setup-0.1.11.exe",
-      "size_bytes": 161815662,
-      "sha256": "1073c3665ebe2158d92b7703e2489391d2f255fc35bdb445eb52535764d1bdb9"
+      "name": "SPAM-Overlay-Setup-0.1.12.exe",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.12/SPAM-Overlay-Setup-0.1.12.exe",
+      "size_bytes": 161821563,
+      "sha256": "efefc00278525225a65a63f8518d57c9041d1fbccb2af49d3edf76cf660e19e4"
     },
     {
       "kind": "zip",
-      "name": "spam-overlay-0.1.11-win64.zip",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.11/spam-overlay-0.1.11-win64.zip",
-      "size_bytes": 237824759,
-      "sha256": "519cf22656c02eaf1777cd06a9ae6ecfcfd412ed7346474bc91793095bc7efc8"
+      "name": "spam-overlay-0.1.12-win64.zip",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.12/spam-overlay-0.1.12-win64.zip",
+      "size_bytes": 237829071,
+      "sha256": "e107f3eb8e1d9f3031bb50d023dc726a9fdceae11f6bfcd2e48b25c816d3d35b"
     }
   ]
 }
