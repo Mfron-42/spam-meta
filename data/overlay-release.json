@@ -1,27 +1,27 @@
 {
   "available": true,
-  "version": "0.1.14",
+  "version": "0.1.15",
   "released": "2026-10-20",
-  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.14",
-  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.14",
+  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.15",
+  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.15",
   "notes": {
-    "en": "- One figure for your win chance: \"~54%\". No more \"net 71% \u00b7 <9% 41 games\". The figure comes from the AI's test games when it has some, else from its value net. Rest the cursor on it to see what it rests on: the test games and their count, the value net's reading, and why no \"do this\" dot shows when none does.\n- While the AI recalculates, the last figure stays, greyed, with a light sweeping across it, until the new one lands. No more hourglass or empty bar.\n- Less on screen. No win chance in the shop (each choice keeps its own \"+X wr\"), no \"Their turn\" or \"Analysing\" note, no \"no line stands out\" note at rest.\n- The shop's figures leave as soon as the shop closes, half a second sooner than before, and the overlay fades out faster when a match ends or the game leaves the screen.",
-    "fr": "- Un seul chiffre pour votre chance de victoire : \u00ab ~54 % \u00bb. Fini \u00ab r\u00e9seau 71 % \u00b7 <9 % 41 parties \u00bb. Le chiffre vient des parties d'essai de l'IA quand elle en a, sinon de son r\u00e9seau de valeur. Posez le curseur dessus pour voir sur quoi il repose : les parties d'essai et leur nombre, la lecture du r\u00e9seau, et pourquoi aucun point \u00ab faites ceci \u00bb ne s'affiche quand il n'y en a pas.\n- Pendant que l'IA recalcule, le dernier chiffre reste, gris\u00e9, avec un reflet qui le balaie, jusqu'\u00e0 ce que le nouveau arrive. Plus de sablier ni de barre vide.\n- Moins de choses \u00e0 l'\u00e9cran. Plus de chance de victoire dans la boutique (chaque choix garde son \u00ab +X wr \u00bb), plus de mention \u00ab Leur tour \u00bb ni \u00ab Analyse en cours \u00bb, plus de mention \u00ab aucun coup ne se d\u00e9tache \u00bb au repos.\n- Les chiffres de la boutique disparaissent d\u00e8s qu'elle se ferme, une demi-seconde plus t\u00f4t qu'avant, et l'overlay s'efface plus vite \u00e0 la fin d'un match ou quand le jeu quitte l'\u00e9cran."
+    "en": "- \"Install Npcap for me\". When Npcap is missing, the setup's Match reading step and the Network line of \"It is running\" now have one button that downloads Npcap's official installer from npcap.com, checks that it is the genuine file signed by Nmap Software, and starts it. Windows asks for permission, then Npcap's own installer opens: click through it to Finish. Once Npcap answers, the overlay reads the match from the game's traffic without a restart. If the download cannot go through, the line under the button offers npcap.com to install it yourself. Npcap is still never shipped with the overlay.",
+    "fr": "- \u00ab Installer Npcap pour moi \u00bb. Quand Npcap manque, l'\u00e9tape Lecture de la partie et la ligne R\u00e9seau de \u00ab SPAM Overlay est lanc\u00e9 \u00bb ont maintenant un bouton qui t\u00e9l\u00e9charge l'installateur officiel de Npcap sur npcap.com, v\u00e9rifie que c'est bien le fichier authentique sign\u00e9 par Nmap Software, et le lance. Windows demande l'autorisation, puis l'installateur de Npcap s'ouvre : suivez-le jusqu'\u00e0 \u00ab Finish \u00bb. D\u00e8s que Npcap r\u00e9pond, l'overlay lit la partie dans le trafic du jeu, sans red\u00e9marrage. Si le t\u00e9l\u00e9chargement n'aboutit pas, la ligne sous le bouton propose npcap.com pour l'installer vous-m\u00eame. Npcap n'est toujours jamais fourni avec l'overlay."
   },
   "assets": [
     {
       "kind": "setup",
-      "name": "SPAM-Overlay-Setup-0.1.14.exe",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.14/SPAM-Overlay-Setup-0.1.14.exe",
-      "size_bytes": 161822774,
-      "sha256": "c00cd8005d6d05a540f49c03f26737557ed1dab708e5f240c1b781573eccb4a2"
+      "name": "SPAM-Overlay-Setup-0.1.15.exe",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.15/SPAM-Overlay-Setup-0.1.15.exe",
+      "size_bytes": 161799014,
+      "sha256": "d6b03d7a8db3d9d498e0b846af9752cea543eb317113a6f16b5abded1ff3f188"
     },
     {
       "kind": "zip",
-      "name": "spam-overlay-0.1.14-win64.zip",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.14/spam-overlay-0.1.14-win64.zip",
-      "size_bytes": 237835422,
-      "sha256": "8f711ccfead35ae44adf93be05c198a9a4bfae8c61cd48e44135bbe29c9d0180"
+      "name": "spam-overlay-0.1.15-win64.zip",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.15/spam-overlay-0.1.15-win64.zip",
+      "size_bytes": 237848272,
+      "sha256": "4f6e2c038407bef27428132c9833dfb447d1ac077abb50779b2eb84937bb4f09"
     }
   ]
 }

@@ -3,17 +3,17 @@
 // drawn as a full-screen card view (card.css); its enter and exit (the card flying from its tile) are played by
 // cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=7983aed0fb";
-import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=7983aed0fb";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=7983aed0fb";
-import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=7983aed0fb";
-import { encode, decode } from "./code.js?v=7983aed0fb";
-import { copyText, disclosure } from "./ui.js?v=7983aed0fb";
-import { t, tx, millions } from "./i18n.js?v=7983aed0fb";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine } from "./patch.js?v=7983aed0fb";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=7983aed0fb";
-import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=7983aed0fb";
-import { attachTilt } from "./cardtilt.js?v=7983aed0fb";
+import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=fff2cd1886";
+import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=fff2cd1886";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=fff2cd1886";
+import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=fff2cd1886";
+import { encode, decode } from "./code.js?v=fff2cd1886";
+import { copyText, disclosure } from "./ui.js?v=fff2cd1886";
+import { t, tx, millions } from "./i18n.js?v=fff2cd1886";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine } from "./patch.js?v=fff2cd1886";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=fff2cd1886";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=fff2cd1886";
+import { attachTilt } from "./cardtilt.js?v=fff2cd1886";
 
 let openDlg = null, pushed = false;
 

@@ -6,14 +6,14 @@
 // The picks live in memory only (the address holds a tab and, while a card dialog is open, a card key; SPEC.md); the card
 // dialog's "Decks with this card" sets them through pick().
 
-import { h, icon, fmtInt } from "./util.js?v=7983aed0fb";
-import { DB, loadDecks, loadTier } from "./data.js?v=7983aed0fb";
-import { on, isOwned, ownedCount } from "./store.js?v=7983aed0fb";
-import { cardName, chip } from "./cards.js?v=7983aed0fb";
-import { t } from "./i18n.js?v=7983aed0fb";
-import { introLine } from "./patch.js?v=7983aed0fb";
-import { searchField, announcer, terms, namedCards } from "./search.js?v=7983aed0fb";
-import { deckRow, paged, legend, paintOwned } from "./decklist.js?v=7983aed0fb";
+import { h, icon, fmtInt } from "./util.js?v=fff2cd1886";
+import { DB, loadDecks, loadTier } from "./data.js?v=fff2cd1886";
+import { on, isOwned, ownedCount } from "./store.js?v=fff2cd1886";
+import { cardName, chip } from "./cards.js?v=fff2cd1886";
+import { t } from "./i18n.js?v=fff2cd1886";
+import { introLine } from "./patch.js?v=fff2cd1886";
+import { searchField, announcer, terms, namedCards } from "./search.js?v=fff2cd1886";
+import { deckRow, paged, legend, paintOwned } from "./decklist.js?v=fff2cd1886";
 
 const MAX = 4;           // four picks are a whole deck
 const PAGE = 10;         // results shown, then ten more on request
