@@ -1,27 +1,27 @@
 {
   "available": true,
-  "version": "0.1.12",
+  "version": "0.1.13",
   "released": "2026-10-20",
-  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.12",
-  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.12",
+  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.13",
+  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.13",
   "notes": {
-    "en": "- Hovering a victim now shows its damage and death chance right away, without waiting for the AI's advice. The damage range and the skull come from the game's own rules, not from the AI, but the overlay used to wait for the AI's ranking before it knew which moves existed, so a card you pointed at could stay blank for a second or more, and for several seconds on a busy PC. It now starts from the list of legal moves: the figures appear as soon as the position is read, and a quiet bar holds their place until then instead of nothing. The win chance and the \"do this\" dot still come from the AI and appear when its advice is ready, and no figure is ever guessed.\n- The AI's advice no longer gets cancelled by a quick hover. Resting the cursor on a move before the AI had answered used to stop its first answer; the hover now waits for it.\n- The log says why a hover drew nothing. `data\\logs\\overlay.log` now has one short line per hovered card with the reason (their turn, no board yet, no spell open, a preview still on its way, and so on), and how long each hovered move took to get its first preview. It holds no player name and is never sent anywhere.",
-    "fr": "- Survoler une victime montre maintenant tout de suite ses d\u00e9g\u00e2ts et sa chance de mort, sans attendre le conseil de l'IA. La fourchette de d\u00e9g\u00e2ts et la t\u00eate de mort viennent des r\u00e8gles du jeu, pas de l'IA, mais l'overlay attendait le classement de l'IA pour savoir quels coups existaient : une carte point\u00e9e pouvait rester vide plus d'une seconde, et plusieurs secondes sur un PC charg\u00e9. Il part maintenant de la liste des coups l\u00e9gaux : les chiffres apparaissent d\u00e8s que la position est lue, et une barre discr\u00e8te tient leur place en attendant, au lieu de rien. La chance de victoire et le point \u00ab faites ceci \u00bb viennent toujours de l'IA et apparaissent quand son conseil est pr\u00eat ; aucun chiffre n'est jamais devin\u00e9.\n- Le conseil de l'IA n'est plus annul\u00e9 par un survol rapide. Poser le curseur sur un coup avant que l'IA ait r\u00e9pondu arr\u00eatait sa premi\u00e8re r\u00e9ponse ; le survol l'attend maintenant.\n- Le journal dit pourquoi un survol n'a rien dessin\u00e9. `data\\logs\\overlay.log` contient maintenant une courte ligne par carte survol\u00e9e avec la raison (leur tour, pas encore de plateau, aucun sort ouvert, un aper\u00e7u encore en route, etc.) et le temps qu'a pris chaque coup survol\u00e9 pour avoir son premier aper\u00e7u. Il ne contient aucun nom de joueur et n'est jamais envoy\u00e9 nulle part."
+    "en": "- The shop no longer says which card to put a tox on, for now. The AI often picked a card where the tox would replace one of the card's own passives, the very ones a combo depends on (Hippocampe Nimb\u00e9's Reset and Brut, for one). Until the AI places tox well, the shop advice only says which choice to make: the tox to buy, the roll or skip, with the dot on it and its win-rate change. No card art, no \"put it on\", no \"replacing\" anywhere in the shop. The figure above a tox is the one the AI already scored for it: it assumes the tox goes on the card the AI would pick, which is no longer shown, so place it where it fits your deck.",
+    "fr": "- La boutique n'indique plus, pour l'instant, sur quelle carte poser un tox. L'IA choisissait souvent une carte o\u00f9 le tox remplacerait l'un des passifs propres de la carte, ceux dont d\u00e9pend un combo (le Reset et le Brut de l'Hippocampe Nimb\u00e9, par exemple). Tant que l'IA ne place pas bien les tox, le conseil de la boutique dit seulement quel choix faire : le tox \u00e0 acheter, la relance ou passer, avec le point dessus et sa variation de chance de victoire. Plus d'image de carte, plus de \u00ab \u00e0 poser sur \u00bb, plus de \u00ab \u00e0 la place de \u00bb dans la boutique. Le chiffre au-dessus d'un tox est celui que l'IA lui donnait d\u00e9j\u00e0 : il suppose que le tox va sur la carte que l'IA choisirait, qui n'est plus affich\u00e9e ; posez-le l\u00e0 o\u00f9 il sert votre deck."
   },
   "assets": [
     {
       "kind": "setup",
-      "name": "SPAM-Overlay-Setup-0.1.12.exe",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.12/SPAM-Overlay-Setup-0.1.12.exe",
-      "size_bytes": 161821563,
-      "sha256": "efefc00278525225a65a63f8518d57c9041d1fbccb2af49d3edf76cf660e19e4"
+      "name": "SPAM-Overlay-Setup-0.1.13.exe",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.13/SPAM-Overlay-Setup-0.1.13.exe",
+      "size_bytes": 161806505,
+      "sha256": "25b2eb0224a1564cc2b653b02ccebe76cbcac409a9f66f77f0a1453e429e0d96"
     },
     {
       "kind": "zip",
-      "name": "spam-overlay-0.1.12-win64.zip",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.12/spam-overlay-0.1.12-win64.zip",
-      "size_bytes": 237829071,
-      "sha256": "e107f3eb8e1d9f3031bb50d023dc726a9fdceae11f6bfcd2e48b25c816d3d35b"
+      "name": "spam-overlay-0.1.13-win64.zip",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.13/spam-overlay-0.1.13-win64.zip",
+      "size_bytes": 237830253,
+      "sha256": "8646854b7845f8359bd4848452b79778fd616c8db2865bbca6069cea28c5018d"
     }
   ]
 }
