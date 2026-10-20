@@ -1,6 +1,6 @@
 // Small DOM and formatting helpers shared by every module. Numbers follow the page language (store.js).
 
-import { getLang } from "./store.js?v=40095474d7";
+import { getLang } from "./store.js?v=7983aed0fb";
 
 /** Create an element: h("div.cls#id", {attr: v, onclick}, child, [children], "text"). Text is always set as text. */
 export function h(tag, props, ...kids) {
