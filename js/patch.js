@@ -3,11 +3,11 @@
 // filled when a value, an ability or a passive changed (the class "mechanical"), hollow when only talents or texts did.
 // The data carries codes and positions; every word comes from i18n.js ("pc.*").
 
-import { h, icon, fmtDate } from "./util.js?v=6c55cce066";
-import { DB } from "./data.js?v=6c55cce066";
-import { L } from "./cards.js?v=6c55cce066";
-import { t } from "./i18n.js?v=6c55cce066";
-import { disclosure } from "./ui.js?v=6c55cce066";
+import { h, icon, fmtDate } from "./util.js?v=f3d499e334";
+import { DB } from "./data.js?v=f3d499e334";
+import { L } from "./cards.js?v=f3d499e334";
+import { t } from "./i18n.js?v=f3d499e334";
+import { disclosure } from "./ui.js?v=f3d499e334";
 
 // Three patches can differ, and each label names the one it is about (SPEC.md, "Patch labels"):
 // - the GAME patch, the client players run today (below; the lab reads it from the game files);
