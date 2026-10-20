@@ -1,27 +1,27 @@
 {
   "available": true,
-  "version": "0.1.15",
+  "version": "0.1.16",
   "released": "2026-10-20",
-  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.15",
-  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.15",
+  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.16",
+  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.16",
   "notes": {
-    "en": "- \"Install Npcap for me\". When Npcap is missing, the setup's Match reading step and the Network line of \"It is running\" now have one button that downloads Npcap's official installer from npcap.com, checks that it is the genuine file signed by Nmap Software, and starts it. Windows asks for permission, then Npcap's own installer opens: click through it to Finish. Once Npcap answers, the overlay reads the match from the game's traffic without a restart. If the download cannot go through, the line under the button offers npcap.com to install it yourself. Npcap is still never shipped with the overlay.",
-    "fr": "- \u00ab Installer Npcap pour moi \u00bb. Quand Npcap manque, l'\u00e9tape Lecture de la partie et la ligne R\u00e9seau de \u00ab SPAM Overlay est lanc\u00e9 \u00bb ont maintenant un bouton qui t\u00e9l\u00e9charge l'installateur officiel de Npcap sur npcap.com, v\u00e9rifie que c'est bien le fichier authentique sign\u00e9 par Nmap Software, et le lance. Windows demande l'autorisation, puis l'installateur de Npcap s'ouvre : suivez-le jusqu'\u00e0 \u00ab Finish \u00bb. D\u00e8s que Npcap r\u00e9pond, l'overlay lit la partie dans le trafic du jeu, sans red\u00e9marrage. Si le t\u00e9l\u00e9chargement n'aboutit pas, la ligne sous le bouton propose npcap.com pour l'installer vous-m\u00eame. Npcap n'est toujours jamais fourni avec l'overlay."
+    "en": "- Your win chance stays on screen during the opponent's turn, and it updates after each of their actions: the overlay reads their moves from the game's network messages and asks the AI's value net what the board is worth for you. While their action resolves and the new figure is computed, the last one stays, greyed, with a light that sweeps across it a few times.\n- It is always an estimate (\"~\"): during their turn there is no time for the AI's test games, only its value net. When the overlay is not sure of the board (it joined the match late, or missed a message), it shows no figure, as before.",
+    "fr": "- Votre chance de victoire reste \u00e0 l'\u00e9cran pendant le tour de l'adversaire, et elle se met \u00e0 jour apr\u00e8s chacune de ses actions : l'overlay lit ses coups dans les messages r\u00e9seau du jeu et demande au r\u00e9seau de valeur de l'IA ce que vaut le plateau pour vous. Pendant que son action se r\u00e9sout et que le nouveau chiffre se calcule, le dernier reste, gris\u00e9, avec un reflet qui le balaie quelques fois.\n- C'est toujours une estimation (\u00ab ~ \u00bb) : pendant son tour il n'y a pas le temps pour les parties d'essai de l'IA, seulement son r\u00e9seau de valeur. Quand l'overlay n'est pas s\u00fbr du plateau (il a rejoint le match en cours, ou a manqu\u00e9 un message), il n'affiche aucun chiffre, comme avant."
   },
   "assets": [
     {
       "kind": "setup",
-      "name": "SPAM-Overlay-Setup-0.1.15.exe",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.15/SPAM-Overlay-Setup-0.1.15.exe",
-      "size_bytes": 161799014,
-      "sha256": "d6b03d7a8db3d9d498e0b846af9752cea543eb317113a6f16b5abded1ff3f188"
+      "name": "SPAM-Overlay-Setup-0.1.16.exe",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.16/SPAM-Overlay-Setup-0.1.16.exe",
+      "size_bytes": 161820296,
+      "sha256": "eb5d584341a37e13de1ba7506b51c1d0b532729b684a3e1260ec1b89754d9ac1"
     },
     {
       "kind": "zip",
-      "name": "spam-overlay-0.1.15-win64.zip",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.15/spam-overlay-0.1.15-win64.zip",
-      "size_bytes": 237848272,
-      "sha256": "4f6e2c038407bef27428132c9833dfb447d1ac077abb50779b2eb84937bb4f09"
+      "name": "spam-overlay-0.1.16-win64.zip",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.16/spam-overlay-0.1.16-win64.zip",
+      "size_bytes": 237854546,
+      "sha256": "364749f186c35f9f996ff2d2e884c7f0ff60b1e772473a12945e942e285703a7"
     }
   ]
 }
