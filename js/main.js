@@ -1,15 +1,15 @@
 // Entry point: loads the core data, wires the header, the tabs and the delegated clicks, and mounts the five views.
 
-import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=e78f206df2";
-import { t, applyStatic, millions } from "./i18n.js?v=e78f206df2";
-import { copyText } from "./ui.js?v=e78f206df2";
-import { DB, loadCore } from "./data.js?v=e78f206df2";
-import { patchLine } from "./patch.js?v=e78f206df2";
-import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=e78f206df2";
-import { versioned, withQuery } from "./version.js?v=e78f206df2";
-import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=e78f206df2";
-import { holdTiles } from "./cardtilt.js?v=e78f206df2";
-import { ambient } from "./ambient.js?v=e78f206df2";
+import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=8920b009f5";
+import { t, applyStatic, millions } from "./i18n.js?v=8920b009f5";
+import { copyText } from "./ui.js?v=8920b009f5";
+import { DB, loadCore } from "./data.js?v=8920b009f5";
+import { patchLine } from "./patch.js?v=8920b009f5";
+import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=8920b009f5";
+import { versioned, withQuery } from "./version.js?v=8920b009f5";
+import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=8920b009f5";
+import { holdTiles } from "./cardtilt.js?v=8920b009f5";
+import { ambient } from "./ambient.js?v=8920b009f5";
 
 // Five tabs, one view each; the Deck builder (#builder) sits next to My decks.
 const TABS = ["tiers", "card-tiers", "codex", "decks", "builder"];

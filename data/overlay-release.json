@@ -1,27 +1,27 @@
 {
   "available": true,
-  "version": "0.1.9",
+  "version": "0.1.10",
   "released": "2026-10-20",
-  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.9",
-  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.9",
+  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.10",
+  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.10",
   "notes": {
-    "en": "- Advice keeps working through a Windows clock change. When Windows adjusted its clock during a match, the overlay gave advice on positions that were still changing, so it blinked and changed its mind more often. It now times everything on one steady clock.\n- The screen-read mode recovers after a refusal. Without Npcap, one board the engine could not read used to stop the analysis until the overlay was restarted. Now only that one board goes without advice, and the next one is analysed again.\n- The AI tries every spell you can cast before it suggests ending your turn. Its test games now cover the best line of every card that has a spell ready, and ending the turn, not only the three lines the value net liked best.\n- Newer versions of the AI's nets. The same nets, adjusted so that they read your matches exactly as they read their training games.\n- A local log of the advice. The overlay now keeps what it advised in its own `data\\logs` folder on your PC, with the positions of your last five matches. It holds no player name and is never sent anywhere.\n- Update from 0.1.7 or 0.1.8 with one click. Press \"Update and restart\" in the setup window's update card.",
-    "fr": "- Les conseils tiennent quand Windows change son heure. Quand Windows ajustait son horloge pendant une partie, l'overlay conseillait sur des positions encore en mouvement : il clignotait et changeait d'avis plus souvent. Il mesure maintenant tout sur une seule horloge stable.\n- Le mode lecture d'\u00e9cran repart apr\u00e8s un refus. Sans Npcap, un seul plateau que le moteur ne savait pas lire arr\u00eatait l'analyse jusqu'au red\u00e9marrage de l'overlay. D\u00e9sormais seul ce plateau reste sans conseil, et le suivant est de nouveau analys\u00e9.\n- L'IA essaie chaque sort que vous pouvez lancer avant de conseiller de finir votre tour. Ses parties d'essai couvrent maintenant la meilleure ligne de chaque carte qui a un sort pr\u00eat, et la fin du tour, plus seulement les trois lignes pr\u00e9f\u00e9r\u00e9es du r\u00e9seau de valeur.\n- De nouvelles versions des r\u00e9seaux de l'IA. Les m\u00eames r\u00e9seaux, ajust\u00e9s pour lire vos parties exactement comme leurs parties d'entra\u00eenement.\n- Un journal local des conseils. L'overlay garde maintenant ce qu'il a conseill\u00e9 dans son propre dossier `data\\logs` sur votre PC, avec les positions de vos cinq derni\u00e8res parties. Il ne contient aucun nom de joueur et n'est jamais envoy\u00e9 nulle part.\n- Mise \u00e0 jour depuis la 0.1.7 ou la 0.1.8 en un clic. Appuyez sur \u00ab Mettre \u00e0 jour et red\u00e9marrer \u00bb dans la carte de mise \u00e0 jour de la fen\u00eatre de configuration."
+    "en": "- The overlay starts again by itself after \"Update and restart\". In 0.1.8 and 0.1.9, the copy started after an in-app update stopped half way: the tray icon was there, but no previews and no advice until the overlay was closed and opened again. The start after an update now goes all the way, and the update helper checks that it did (it starts the overlay once more if not, and writes what happened in the overlay's log).\n- No more console windows during an update or a removal. The update and the clean-up after \"Remove\" or an uninstall used to open black console windows for a moment (a PowerShell window, and a \"ping\" window that came back every second during the clean-up). They now run with no window at all.\n- If your overlay updated itself to 0.1.8 or 0.1.9 and shows nothing: quit it from its tray icon (or close it in the Task Manager), then start SPAM Overlay from the Start menu. Updating to 0.1.10 with \"Update and restart\" needs no extra step: the new version is the one that starts.",
+    "fr": "- L'overlay red\u00e9marre bien tout seul apr\u00e8s \u00ab Mettre \u00e0 jour et red\u00e9marrer \u00bb. En 0.1.8 et 0.1.9, la copie relanc\u00e9e apr\u00e8s une mise \u00e0 jour depuis l'application s'arr\u00eatait \u00e0 mi-chemin : l'ic\u00f4ne \u00e9tait dans la barre des t\u00e2ches, mais ni aper\u00e7us ni conseils tant que l'overlay n'avait pas \u00e9t\u00e9 ferm\u00e9 puis rouvert. Le d\u00e9marrage apr\u00e8s une mise \u00e0 jour va maintenant jusqu'au bout, et l'assistant de mise \u00e0 jour le v\u00e9rifie (il relance l'overlay une fois sinon, et note ce qui s'est pass\u00e9 dans le journal de l'overlay).\n- Plus de fen\u00eatres de console pendant une mise \u00e0 jour ou une suppression. La mise \u00e0 jour et le nettoyage apr\u00e8s \u00ab Supprimer \u00bb ou une d\u00e9sinstallation ouvraient un instant des fen\u00eatres de console noires (une fen\u00eatre PowerShell, et une fen\u00eatre \u00ab ping \u00bb qui revenait chaque seconde pendant le nettoyage). Ils tournent maintenant sans aucune fen\u00eatre.\n- Si votre overlay s'est mis \u00e0 jour tout seul en 0.1.8 ou 0.1.9 et n'affiche rien : quittez-le depuis son ic\u00f4ne (ou fermez-le dans le Gestionnaire des t\u00e2ches), puis lancez SPAM Overlay depuis le menu D\u00e9marrer. La mise \u00e0 jour vers la 0.1.10 avec \u00ab Mettre \u00e0 jour et red\u00e9marrer \u00bb ne demande rien de plus : c'est la nouvelle version qui d\u00e9marre."
   },
   "assets": [
     {
       "kind": "setup",
-      "name": "SPAM-Overlay-Setup-0.1.9.exe",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.9/SPAM-Overlay-Setup-0.1.9.exe",
-      "size_bytes": 161784290,
-      "sha256": "8cb45ead690ac188c1744a1e35c6b992548d2d44b3834ebe31f2fc65b7f6c25d"
+      "name": "SPAM-Overlay-Setup-0.1.10.exe",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.10/SPAM-Overlay-Setup-0.1.10.exe",
+      "size_bytes": 161806384,
+      "sha256": "3fc7af779267499b7ed600e183c0344876b59aee03ad9026592f6f085a2f9af9"
     },
     {
       "kind": "zip",
-      "name": "spam-overlay-0.1.9-win64.zip",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.9/spam-overlay-0.1.9-win64.zip",
-      "size_bytes": 237813033,
-      "sha256": "1a1a9fb9f0a627feb522dc5275e6053a48ff84e0eb5c02c6f8c5fcfda300a9e9"
+      "name": "spam-overlay-0.1.10-win64.zip",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.10/spam-overlay-0.1.10-win64.zip",
+      "size_bytes": 237817478,
+      "sha256": "69f317622e252a07ffa3f023a2bcc2567abc17fa423a8a6ce54d41bfc3d2f65b"
     }
   ]
 }

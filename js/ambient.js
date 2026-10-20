@@ -1,6 +1,6 @@
 // ambient.js: the night table behind a page: light pools, paint that flows slowly in two corners, dust with a few px of
 // pointer parallax (load css/ambient.css; assets/ambient/ holds the still picture used where WebGL is not available).
-//   import { ambient } from "./ambient.js?v=e78f206df2";
+//   import { ambient } from "./ambient.js?v=8920b009f5";
 //   const amb = ambient({ root = document.body, depth = [0, 10], idleMs = 60000, fps = 30, res = .5, seed = 7, paint = true });
 //   amb.pause(); amb.resume(); amb.still(true | false); amb.destroy();   // amb.el is the field's node
 // The paint is painted every frame by a small fragment shader (washes with wet edges and dry-brush sweeps, made of noise
