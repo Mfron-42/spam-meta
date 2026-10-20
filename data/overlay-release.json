@@ -1,27 +1,27 @@
 {
   "available": true,
-  "version": "0.1.7",
+  "version": "0.1.8",
   "released": "2026-10-20",
-  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.7",
-  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.7",
+  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.8",
+  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.8",
   "notes": {
-    "en": "- \"Check for updates\" now installs the update. When a newer version is out, press \"Update and restart\": the overlay downloads the installer, checks it against the published size and SHA-256, installs it over this copy and starts again by itself. Your settings, engine and logs are kept. If a match is on, the update waits for it to end, or you can install right away.\n- Install this one by hand. Copies on 0.1.6 or older cannot update themselves: download and run the 0.1.7 installer once. From 0.1.7 on, updates install themselves.",
-    "fr": "- \u00ab Rechercher une mise \u00e0 jour \u00bb installe maintenant la mise \u00e0 jour. Quand une version plus r\u00e9cente existe, appuyez sur \u00ab Mettre \u00e0 jour et red\u00e9marrer \u00bb : l'overlay t\u00e9l\u00e9charge l'installateur, le v\u00e9rifie d'apr\u00e8s la taille et le SHA-256 publi\u00e9s, l'installe par-dessus cette copie et se relance tout seul. Vos r\u00e9glages, le moteur et les journaux sont gard\u00e9s. Si une partie est en cours, la mise \u00e0 jour attend qu'elle se termine, ou vous pouvez installer tout de suite.\n- Installez celle-ci \u00e0 la main. Les copies en 0.1.6 ou plus ancien ne peuvent pas se mettre \u00e0 jour seules : t\u00e9l\u00e9chargez et lancez une fois l'installateur de la 0.1.7. \u00c0 partir de la 0.1.7, les mises \u00e0 jour s'installent toutes seules."
+    "en": "- A lost position no longer shows a flat 0% or a suggestion to end your turn. A win chance is never printed more precisely than the games behind it allow: \"<8%\" instead of \"0%\". When the AI's own test games and the value net are far apart, the overlay shows both (\"net 71% \u00b7 <9% 41 games\") instead of the games alone. And when no move stands out in those games, there is no \"do this\" dot and a short line says so.\n- The dot no longer follows your cursor when you hover a target. Choosing a target for a spell, the dot stays on the AI's pick; the figure you see for the target under your cursor is shown as that target's preview, and the win chance at rest stays the recommended one's.\n- The AI's test games are not a verdict on your game. They are played by our AI on both sides, and on decks it does not know they read close to 0.\n- Update from 0.1.7 with one click. Press \"Update and restart\" in the setup window's update card.",
+    "fr": "- Une position perdue n'affiche plus un 0 % sec ni le conseil de finir votre tour. Une chance de victoire n'est jamais \u00e9crite plus pr\u00e9cis\u00e9ment que ne le permettent les parties qui la fondent : \u00ab <8 % \u00bb au lieu de \u00ab 0 % \u00bb. Quand les parties d'essai de l'IA et le r\u00e9seau de valeur sont tr\u00e8s \u00e9loign\u00e9s, l'overlay montre les deux (\u00ab r\u00e9seau 71 % \u00b7 <9 % 41 parties \u00bb) plut\u00f4t que les parties seules. Et quand aucun coup ne se d\u00e9tache dans ces parties, il n'y a pas de point \u00ab faites ceci \u00bb et une courte ligne le dit.\n- Le point ne suit plus votre curseur quand vous survolez une cible. Au choix de la cible d'un sort, le point reste sur le choix de l'IA ; le chiffre de la cible sous votre curseur est montr\u00e9 comme l'aper\u00e7u de cette cible, et la chance de victoire au repos reste celle du coup conseill\u00e9.\n- Les parties d'essai de l'IA ne sont pas un verdict sur votre partie. Elles sont jou\u00e9es par notre IA des deux c\u00f4t\u00e9s, et sur les decks qu'elle ne conna\u00eet pas elles tombent pr\u00e8s de 0.\n- Mise \u00e0 jour depuis la 0.1.7 en un clic. Appuyez sur \u00ab Mettre \u00e0 jour et red\u00e9marrer \u00bb dans la carte de mise \u00e0 jour de la fen\u00eatre de configuration."
   },
   "assets": [
     {
       "kind": "setup",
-      "name": "SPAM-Overlay-Setup-0.1.7.exe",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.7/SPAM-Overlay-Setup-0.1.7.exe",
-      "size_bytes": 161763405,
-      "sha256": "b3716e54733e2fc8d5a1f1a2e888d582f6e9f5e430bb59befff8dfee8150c7f6"
+      "name": "SPAM-Overlay-Setup-0.1.8.exe",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.8/SPAM-Overlay-Setup-0.1.8.exe",
+      "size_bytes": 161786215,
+      "sha256": "243dd7f99be453bf36a4a109e0f819d4fb29dba41b26294d848b6881be019f35"
     },
     {
       "kind": "zip",
-      "name": "spam-overlay-0.1.7-win64.zip",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.7/spam-overlay-0.1.7-win64.zip",
-      "size_bytes": 237818255,
-      "sha256": "8252d8ea627c67a07e1afeef242ae12c7a8654bdfed3e3c1f50ad0dfc2abff44"
+      "name": "spam-overlay-0.1.8-win64.zip",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.8/spam-overlay-0.1.8-win64.zip",
+      "size_bytes": 237823748,
+      "sha256": "d827e9008ae4d401a8b7f8efc5918add77a2b025bac91ab606b70be252d1092c"
     }
   ]
 }
