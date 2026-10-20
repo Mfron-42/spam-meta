@@ -1,27 +1,27 @@
 {
   "available": true,
-  "version": "0.1.10",
+  "version": "0.1.11",
   "released": "2026-10-20",
-  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.10",
-  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.10",
+  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.11",
+  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.11",
   "notes": {
-    "en": "- The overlay starts again by itself after \"Update and restart\". In 0.1.8 and 0.1.9, the copy started after an in-app update stopped half way: the tray icon was there, but no previews and no advice until the overlay was closed and opened again. The start after an update now goes all the way, and the update helper checks that it did (it starts the overlay once more if not, and writes what happened in the overlay's log).\n- No more console windows during an update or a removal. The update and the clean-up after \"Remove\" or an uninstall used to open black console windows for a moment (a PowerShell window, and a \"ping\" window that came back every second during the clean-up). They now run with no window at all.\n- If your overlay updated itself to 0.1.8 or 0.1.9 and shows nothing: quit it from its tray icon (or close it in the Task Manager), then start SPAM Overlay from the Start menu. Updating to 0.1.10 with \"Update and restart\" needs no extra step: the new version is the one that starts.",
-    "fr": "- L'overlay red\u00e9marre bien tout seul apr\u00e8s \u00ab Mettre \u00e0 jour et red\u00e9marrer \u00bb. En 0.1.8 et 0.1.9, la copie relanc\u00e9e apr\u00e8s une mise \u00e0 jour depuis l'application s'arr\u00eatait \u00e0 mi-chemin : l'ic\u00f4ne \u00e9tait dans la barre des t\u00e2ches, mais ni aper\u00e7us ni conseils tant que l'overlay n'avait pas \u00e9t\u00e9 ferm\u00e9 puis rouvert. Le d\u00e9marrage apr\u00e8s une mise \u00e0 jour va maintenant jusqu'au bout, et l'assistant de mise \u00e0 jour le v\u00e9rifie (il relance l'overlay une fois sinon, et note ce qui s'est pass\u00e9 dans le journal de l'overlay).\n- Plus de fen\u00eatres de console pendant une mise \u00e0 jour ou une suppression. La mise \u00e0 jour et le nettoyage apr\u00e8s \u00ab Supprimer \u00bb ou une d\u00e9sinstallation ouvraient un instant des fen\u00eatres de console noires (une fen\u00eatre PowerShell, et une fen\u00eatre \u00ab ping \u00bb qui revenait chaque seconde pendant le nettoyage). Ils tournent maintenant sans aucune fen\u00eatre.\n- Si votre overlay s'est mis \u00e0 jour tout seul en 0.1.8 ou 0.1.9 et n'affiche rien : quittez-le depuis son ic\u00f4ne (ou fermez-le dans le Gestionnaire des t\u00e2ches), puis lancez SPAM Overlay depuis le menu D\u00e9marrer. La mise \u00e0 jour vers la 0.1.10 avec \u00ab Mettre \u00e0 jour et red\u00e9marrer \u00bb ne demande rien de plus : c'est la nouvelle version qui d\u00e9marre."
+    "en": "- A Display section in the launcher. On the \"It is running\" page, and in the tray menu, you now choose whether the overlay shows in streams and recordings, how many hints it shows (all, figures without the \"do this\" dot, or only the win chance), and you see at a glance whether the network feed is on, and why not if it is off. No more editing a file to show the overlay to a friend who streams.\n- In a stream, share the whole screen. Discord's window share shows only the game window, so the overlay is not in it; sharing the whole screen shows it. The overlay still hides itself from screen copies while it reads the match from the screen, and the page says so.",
+    "fr": "- Une section Affichage dans le lanceur. Sur la page \u00ab SPAM Overlay est lanc\u00e9 \u00bb, et dans le menu de la zone de notification, vous choisissez maintenant si l'overlay appara\u00eet dans les streams et enregistrements, combien de conseils il affiche (tous, les chiffres sans le point \u00ab \u00e0 faire \u00bb, ou seulement la chance de victoire), et vous voyez d'un coup d'\u0153il si la lecture r\u00e9seau est active, et pourquoi elle ne l'est pas. Plus besoin de modifier un fichier pour montrer l'overlay \u00e0 un ami qui streame.\n- En stream, partagez tout l'\u00e9cran. Le partage de fen\u00eatre de Discord n'affiche que la fen\u00eatre du jeu, donc l'overlay n'y est pas ; partager tout l'\u00e9cran le montre. L'overlay reste cach\u00e9 des copies d'\u00e9cran pendant qu'il lit la partie \u00e0 l'\u00e9cran, et la page le dit."
   },
   "assets": [
     {
       "kind": "setup",
-      "name": "SPAM-Overlay-Setup-0.1.10.exe",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.10/SPAM-Overlay-Setup-0.1.10.exe",
-      "size_bytes": 161806384,
-      "sha256": "3fc7af779267499b7ed600e183c0344876b59aee03ad9026592f6f085a2f9af9"
+      "name": "SPAM-Overlay-Setup-0.1.11.exe",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.11/SPAM-Overlay-Setup-0.1.11.exe",
+      "size_bytes": 161815662,
+      "sha256": "1073c3665ebe2158d92b7703e2489391d2f255fc35bdb445eb52535764d1bdb9"
     },
     {
       "kind": "zip",
-      "name": "spam-overlay-0.1.10-win64.zip",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.10/spam-overlay-0.1.10-win64.zip",
-      "size_bytes": 237817478,
-      "sha256": "69f317622e252a07ffa3f023a2bcc2567abc17fa423a8a6ce54d41bfc3d2f65b"
+      "name": "spam-overlay-0.1.11-win64.zip",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.11/spam-overlay-0.1.11-win64.zip",
+      "size_bytes": 237824759,
+      "sha256": "519cf22656c02eaf1777cd06a9ae6ecfcfd412ed7346474bc91793095bc7efc8"
     }
   ]
 }
