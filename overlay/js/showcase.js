@@ -2,23 +2,25 @@
 // own modules (store, i18n, data, cards), so it draws the same game cards from the same data, speaks the same two languages
 // and shares the visitor's language choice with SPAM Meta. Its strings are the "ov." keys of js/i18n.js.
 
-import { setLang, langChosen, on, getLang } from "../../js/store.js?v=f3d499e334";
-import { t, applyStatic } from "../../js/i18n.js?v=f3d499e334";
-import { h, pct, pct1, icon } from "../../js/util.js?v=f3d499e334";
-import { DB, loadCore, loadTier, loadCardTiers } from "../../js/data.js?v=f3d499e334";
-import { gameCard, cardName } from "../../js/cards.js?v=f3d499e334";
-import { ambient } from "../../js/ambient.js?v=f3d499e334";
-import { copyText, disclosure } from "../../js/ui.js?v=f3d499e334";
-import { createStage } from "./stage.js?v=f3d499e334";
-import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=f3d499e334";
+import { setLang, langChosen, on, getLang } from "../../js/store.js?v=e78f206df2";
+import { t, applyStatic } from "../../js/i18n.js?v=e78f206df2";
+import { h, pct, pct1, icon } from "../../js/util.js?v=e78f206df2";
+import { DB, loadCore, loadTier, loadCardTiers } from "../../js/data.js?v=e78f206df2";
+import { gameCard, cardName } from "../../js/cards.js?v=e78f206df2";
+import { ambient } from "../../js/ambient.js?v=e78f206df2";
+import { copyText, disclosure } from "../../js/ui.js?v=e78f206df2";
+import { createStage } from "./stage.js?v=e78f206df2";
+import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=e78f206df2";
 
-// The overlay's own display, from its media kit (spam-overlay-media/MANIFEST.md: real renderer output over a rebuilt board,
-// so every one is a composite and carries "Illustration"), re-encoded into overlay/media/ (WebP, pixels only). Per
-// language when the kit has both, else the one it has. `w`/`h`: the file's own size (set on the img so nothing jumps);
-// `full`: the larger file the frame opens. `src` null: not in yet, the frame shows its empty state.
+// The overlay's own display: four crops of the real renderer's output over a stand-in board with made-up figures (tools/overlay_media/:
+// shoot.js drives the overlay build's UX harness, crop.py writes these files), so every one is a composite and carries
+// "Illustration, made-up numbers". Pixels only (WebP). One file per language. `w`/`h`: the largest file's own size (set on the img
+// so nothing jumps); the frame opens the largest. `src` null: not in yet, the frame shows its empty state.
 const MEDIA = {
-  fight: { composite: true, w: 1600, h: 900, src: { fr: "fight-fr", en: "fight-en" }, sizes: [800, 1600] },
-  shop: { composite: true, w: 1600, h: 900, src: { fr: "shop-fr", en: "shop-en" }, sizes: [800, 1600] },
+  dmg: { composite: true, w: 1600, h: 1200, src: { fr: "dmg-fr", en: "dmg-en" }, sizes: [800, 1600] },
+  death: { composite: true, w: 1280, h: 960, src: { fr: "death-fr", en: "death-en" }, sizes: [640, 1280] },
+  odds: { composite: true, w: 792, h: 594, src: { fr: "odds-fr", en: "odds-en" }, sizes: [396, 792] },
+  win: { composite: true, w: 1600, h: 1200, src: { fr: "win-fr", en: "win-en" }, sizes: [800, 1600] },
 };
 const mediaUrl = (name, w) => new URL(`../media/${name}-${w}.webp`, import.meta.url).href;
 
@@ -213,10 +215,8 @@ subnav.addEventListener("scroll", subnavEdges, { passive: true });
 window.addEventListener("resize", subnavEdges);
 subnavEdges();
 
-// ---- screenshots: the real file when it is in, else the frame's empty state; the block stays hidden while none is in
-// (a sales page does not show a row of missing proof)
+// ---- the four feature pictures: the real file when it is in, else the frame's empty state
 function drawShots() {
-  document.getElementById("shots").hidden = !Object.values(MEDIA).some((m) => m.src);
   for (const fig of document.querySelectorAll(".shot[data-media]")) {
     const key = fig.dataset.media, media = MEDIA[key], frame = fig.querySelector(".shot-frame");
     if (media && media.src) {
@@ -234,7 +234,7 @@ function drawShots() {
         if (media.composite) fig.querySelector("figcaption").prepend(h("span.tag.soft.shot-tag"), " ");
       }
       img.srcset = media.sizes.map((w) => `${mediaUrl(name, w)} ${w}w`).join(", ");
-      img.sizes = "(min-width: 1024px) 548px, (min-width: 760px) 50vw, calc(100vw - 32px)";
+      img.sizes = "(min-width: 1184px) 536px, (min-width: 760px) calc(50vw - 56px), calc(100vw - 32px)";
       img.src = mediaUrl(name, media.sizes[0]);
       img.alt = t(`ov.alt.${key}`);
       a.href = mediaUrl(name, big);

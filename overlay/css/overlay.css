@@ -179,22 +179,17 @@ main { display: block; }
 .sample { grid-area: s; align-self: start; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 12px; border-radius: 8px; background: var(--socket); box-shadow: var(--sunken); white-space: nowrap; }
 .sample.ol-voice { font-size: 16px; }
 kbd { display: inline-flex; align-items: center; height: 28px; padding: 0 8px; border-radius: 4px; background: var(--panel-hi); box-shadow: 0 2px 0 var(--socket); color: var(--ink); font: 700 14px/1 var(--text); white-space: nowrap; }
-.odds { display: grid; gap: 8px; }
-.odds-bar { display: flex; gap: 2px; width: 184px; height: 12px; padding: 2px; border-radius: 4px; background: #000; }
-.odds-bar i { flex: var(--w) 1 0; border-radius: 2px; }
-.r-common { --rc: var(--r-common); } .r-rare { --rc: var(--r-rare); } .r-epic { --rc: var(--r-epic); } .r-legendary { --rc: var(--r-legendary); }
-.odds-bar i { background: var(--rc); }
-.odds-k { display: flex; gap: 12px; font: 600 14px/1 var(--text); color: var(--ink-2); }
-.odds-k > span { display: inline-flex; align-items: center; gap: 4px; }
-.odds-k i { width: 8px; height: 8px; border-radius: 50%; background: var(--rc); }
-.odds-k b { font-weight: 700; }
 
-/* the two pictures (the fight, the shop) side by side, one column on a phone; every frame takes its picture's own ratio
-   (showcase.js sets it), nothing is cropped */
-.shots { margin-top: 48px; }
-.shots h3 { margin-bottom: 16px; }
-.shots-legal { margin-top: 16px; color: var(--muted); font: 600 14px/1.4 var(--text); max-width: 72ch; }
-.shots-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 24px; align-items: start; }
+/* the four headline features (damage, death, shop odds, win change): each a picture, then its name and two sentences, then what the
+   made-up figures in the picture say; two by two from 760px, one column on a phone. Every frame takes its picture's own ratio
+   (showcase.js sets it), nothing is cropped. The picture comes first so the four frames line up whatever the text length. */
+.keyf { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px 48px; align-items: start; }
+.kf { align-content: start; gap: 12px; }
+.kf-text { display: grid; gap: 4px; margin-top: 4px; }
+.kf-text h3 { font-size: 22px; text-wrap: balance; }
+.kf-text p { color: var(--ink-2); max-width: 60ch; text-wrap: pretty; }
+.shots-legal { margin-top: 24px; color: var(--muted); font: 600 14px/1.4 var(--text); max-width: 72ch; }
+.keyf + .shots-legal + .feats { margin-top: 48px; }
 .shot { margin: 0; display: grid; gap: 8px; }
 .shot figcaption { color: var(--ink-2); font: 600 14px/1.4 var(--text); }
 .shot figcaption .tag { margin-right: 4px; vertical-align: 1px; }
@@ -424,7 +419,8 @@ body[data-dl="loading"] .hero-note { visibility: hidden; }
   .feat > p { flex: 1 0 100%; order: 2; }
   .sample { flex: none; min-height: 36px; padding: 4px 8px; }
   .fgroup h3 { padding-bottom: 8px; }
-  .shots { margin-top: 24px; }
+  .keyf { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .keyf + .shots-legal + .feats { margin-top: 32px; }
   .steps { margin-top: 16px; gap: 16px; }
   .priv { margin-top: 16px; }
   .keys-h { display: none; }
@@ -435,7 +431,6 @@ body[data-dl="loading"] .hero-note { visibility: hidden; }
   .faq-more { grid-template-rows: 0fr; visibility: hidden; }
   .faq-more.open { grid-template-rows: 1fr; visibility: visible; }
   .faq-morebtn { display: inline-flex; margin: 8px 0 0 -16px; }
-  .shots-row { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .soon { padding: 12px; }
   .dl-hash { grid-template-columns: minmax(0, 1fr); }
   .dl-hash .copy { justify-self: start; }
