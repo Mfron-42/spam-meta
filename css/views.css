@@ -13,6 +13,13 @@
 .vsub .tdisc { margin-left: -12px; }       /* the glyph lines up with the text when the button wraps under the lede */
 .vinfo { display: grid; gap: 8px; padding: 4px 0 8px; color: var(--ink-2); }
 .vinfo > p { max-width: 68ch; text-wrap: pretty; }
+/* the placeholder of a ranking view while its rankings are computed (pending.js; DESIGN.md "Pending view"): a sunken strip
+   with a clock and the status (a fact, not a control: no hover, press or focus), then the one action, the way to the Codex */
+.pending { display: grid; justify-items: start; gap: 24px; }
+.pending-s { display: flex; align-items: center; gap: 12px; max-width: 520px; padding: 16px; border-radius: 8px;
+  background: var(--socket); box-shadow: var(--sunken); color: var(--ink); font: 400 18px/1.15 var(--display); letter-spacing: .01em; }
+.pending-s .ico { width: 24px; height: 24px; color: var(--muted); }
+@media (max-width: 640px) { .pending { gap: 16px; } .pending-s { padding: 12px; } }
 
 /* ---------------------------------------------------------------- collection bar (Codex and My decks) */
 .cbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 32px; align-items: center; background: var(--panel-hi); }

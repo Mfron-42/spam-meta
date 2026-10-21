@@ -1,6 +1,6 @@
 // Small DOM and formatting helpers shared by every module. Numbers follow the page language (store.js).
 
-import { getLang } from "./store.js?v=b61bde9ecf";
+import { getLang } from "./store.js?v=4bef3888cf";
 
 /** Create an element: h("div.cls#id", {attr: v, onclick}, child, [children], "text"). Text is always set as text. */
 export function h(tag, props, ...kids) {
@@ -94,6 +94,7 @@ const ICONS = {
   copy: "M5.5 5.5h7v8h-7zM3.5 10.5v-8h7",
   arrow: "M3 8h10M9 4l4 4-4 4",
   back: "M13 8H3M7 4L3 8l4 4",
+  clock: "M8 14.5a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13zM8 4.5V8l2.5 1.5",
 };
 export function icon(name, size = 16) {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");

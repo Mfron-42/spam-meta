@@ -3,15 +3,16 @@
 // card texts are game data (cards.json `*_fr` / `*_en`).
 //
 // Add a string: give it a key in BOTH tables (the same key, dotted by view: "tl." deck tier list, "ct." card tier list,
-// "cx." codex, "md." my decks, "fd." deck builder, "card." card dialog, "about.", "code." collection code, "keep." keeping the collection
+// "cx." codex, "md." my decks, "fd." deck builder, "pend." the placeholder of a ranking view being computed, "card." card dialog,
+// "about.", "code." collection code, "keep." keeping the collection
 // (keep.js), "foot.", "head."). Placeholders are
 // {name}; an integer parameter is formatted for the language (1,148,832 / 1 148 832), any other value is printed as given,
 // so callers format decimals and percentages with util.js (dec, pct, pct1). A value that depends on a count is an object
 // {one, other} chosen by Intl.PluralRules on the parameter `count`, else `n` (French: 0 to 1.99 are "one"). `**bold**` is honoured by tx()
 // only. French copy uses plain spaces before : ; ? ! - they become no-break spaces when the table loads.
 
-import { h, fmtInt, dec } from "./util.js?v=b61bde9ecf";
-import { getLang } from "./store.js?v=b61bde9ecf";
+import { h, fmtInt, dec } from "./util.js?v=4bef3888cf";
+import { getLang } from "./store.js?v=4bef3888cf";
 
 const EN = {
   // ---- document and header
@@ -172,6 +173,9 @@ const EN = {
   "pc.noticeKey": "changed in {patch}",
   "pc.info": "About the numbers",
   "pc.line": "Game patch {game}, card data {cards}, rankings {rank}",
+  "pc.lineCards": "Game patch {game}, card data {cards}",
+  "pend.status": "Patch {patch}: being computed",
+  "pend.go": "Open the Codex",
   "pc.mechanical": "Changed in {patch}",
   "pc.talent": "Talents changed in {patch}",
   "pc.text": "Text changed in {patch}",
@@ -514,6 +518,7 @@ const EN = {
   "about.lead": "**This site is AI-generated**, its data and analysis included.",
   "about.whatH": "What it is",
   "about.what": "A fan guide to the card game SPAM: the best decks and cards of the patch, every card, and the best decks you can build from yours.",
+  "about.whatCards": "A fan guide to the card game SPAM: every card, read from the game files. The rankings of patch {patch} are being computed.",
   "about.howH": "How the rankings were made",
   "about.how": "**In short:** AIs played each deck against many others, thousands of times, in an offline copy of the game. The decks that win most rank highest.",
   "about.total": "{decks} decks measured for patch {patch}, over {games} simulated matches. Draws count as half a win; no talents.",
@@ -897,6 +902,9 @@ const FR = {
   "pc.noticeKey": "modifiée en {patch}",
   "pc.info": "À propos des chiffres",
   "pc.line": "Patch du jeu {game}, données des cartes {cards}, classements {rank}",
+  "pc.lineCards": "Patch du jeu {game}, données des cartes {cards}",
+  "pend.status": "Patch {patch} : calcul en cours",
+  "pend.go": "Ouvrir le Codex",
   "pc.mechanical": "Modifiée en {patch}",
   "pc.talent": "Talents modifiés en {patch}",
   "pc.text": "Texte modifié en {patch}",
@@ -1234,6 +1242,7 @@ const FR = {
   "about.lead": "**Ce site est généré par IA**, données et analyse comprises.",
   "about.whatH": "Ce que c’est",
   "about.what": "Un guide de fan pour le jeu de cartes SPAM : les meilleurs decks et cartes du patch, toutes les cartes, et les meilleurs decks que tu peux monter avec les tiennes.",
+  "about.whatCards": "Un guide de fan pour le jeu de cartes SPAM : toutes les cartes, lues dans les fichiers du jeu. Les classements du patch {patch} sont en cours de calcul.",
   "about.howH": "Comment sont faits les classements",
   "about.how": "**En bref :** des IA ont joué chaque deck contre beaucoup d’autres, des milliers de fois, dans une copie hors ligne du jeu. Les decks qui gagnent le plus sont en tête.",
   "about.total": "{decks} decks mesurés pour le patch {patch}, sur {games} de parties simulées. Un match nul compte pour une demi-victoire ; sans talents.",

@@ -3,18 +3,25 @@
 // filled when a value, an ability or a passive changed (the class "mechanical"), hollow when only talents or texts did.
 // The data carries codes and positions; every word comes from i18n.js ("pc.*").
 
-import { h, icon, fmtDate } from "./util.js?v=b61bde9ecf";
-import { DB } from "./data.js?v=b61bde9ecf";
-import { L } from "./cards.js?v=b61bde9ecf";
-import { t } from "./i18n.js?v=b61bde9ecf";
-import { disclosure } from "./ui.js?v=b61bde9ecf";
+import { h, icon, fmtDate } from "./util.js?v=4bef3888cf";
+import { DB } from "./data.js?v=4bef3888cf";
+import { L } from "./cards.js?v=4bef3888cf";
+import { t } from "./i18n.js?v=4bef3888cf";
+import { disclosure } from "./ui.js?v=4bef3888cf";
 
 // Three patches can differ, and each label names the one it is about (SPEC.md, "Patch labels"):
 // - the GAME patch, the client players run today (below; the lab reads it from the game files);
 // - the CARD DATA patch, DB.patch (cards.json `patch`): card faces, card markers, the Codex;
 // - the RANKINGS patch, DB.meta.patch (meta.json `patch`): decks, tiers, counters, games, everything measured.
-// The game patch has no export of its own yet: bump it here, with the pc.notice text, when the lab reports a new client.
-export const GAME_PATCH = { patch: "1.24", date: "2026-10-15" };
+// The game patch has no export of its own yet: bump it here when the lab reports a new client (the bundle version of the
+// game build: 1.26, Steam build 26109944, the update of 2026-10-21 18:51).
+export const GAME_PATCH = { patch: "1.26", date: "2026-10-21" };
+
+// The rankings (both tier lists, My decks, the Deck builder, the card view's Meta section) are not shown while the lab
+// recomputes them for the game patch (owner, 2026-10-21: "we keep only the codex"). The views stay in the code: the two tier
+// list tabs draw the "being computed" placeholder (pending.js), My decks and the Deck builder are not shown at all, the
+// Codex is the landing view. Set it back to true when rankings of the game patch are exported (SPEC.md section 3.7).
+export const RANKINGS_SHOWN = false;
 
 export const changeOf = (c) => (c && c.patch_change) || null;
 /** A value, an ability or a passive changed: the rankings' numbers for this card are from before the change. */
@@ -22,10 +29,15 @@ export const numbersMoved = (c) => (changeOf(c) || {}).class === "mechanical";
 /** The patch the rankings were computed on (meta.json), when it is older than the card data's (cards.json). */
 export const rankingsBehind = () => (DB.meta && DB.patch && DB.meta.patch !== DB.patch ? DB.meta.patch : null);
 /** The rankings patch, when it is not the game's: the ranking views then carry the patch notice. */
-const rankingsBehindGame = () => (DB.meta && DB.meta.patch !== GAME_PATCH.patch ? DB.meta.patch : null);
+const rankingsBehindGame = () => (RANKINGS_SHOWN && DB.meta && DB.meta.patch !== GAME_PATCH.patch ? DB.meta.patch : null);
 
-/** The three patches in one line (footer, About): "Game patch 1.24, card data 1.23, rankings 1.22". */
-export const patchLine = () => t("pc.line", { game: GAME_PATCH.patch, cards: DB.patch, rank: DB.meta.patch });
+/** The patches in one line (footer, About): "Game patch 1.24, card data 1.23, rankings 1.22"; while the rankings are not
+ * shown, the game and card data only ("Game patch 1.26, card data 1.26"). */
+export const patchLine = () => (RANKINGS_SHOWN ? t("pc.line", { game: GAME_PATCH.patch, cards: DB.patch, rank: DB.meta.patch })
+  : t("pc.lineCards", { game: GAME_PATCH.patch, cards: DB.patch }));
+
+/** The date of the "Updated ..." line: the rankings' export, or the game patch's while only the card data is shown. */
+export const dataDate = () => (RANKINGS_SHOWN ? DB.meta.generated : GAME_PATCH.date);
 
 const word = (c) => t("pc." + changeOf(c).class, { patch: DB.patch });
 

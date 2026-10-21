@@ -1,18 +1,22 @@
-// Entry point: loads the core data, wires the header, the tabs and the delegated clicks, and mounts the five views.
+// Entry point: loads the core data, wires the header, the tabs and the delegated clicks, and mounts the views. While the
+// rankings are being recomputed (patch.js RANKINGS_SHOWN off) only three tabs are shown: the two tier lists draw the
+// "being computed" placeholder (pending.js), the Codex is the landing view, My decks and the Deck builder are not shown.
 
-import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=b61bde9ecf";
-import { t, applyStatic, millions } from "./i18n.js?v=b61bde9ecf";
-import { copyText } from "./ui.js?v=b61bde9ecf";
-import { DB, loadCore } from "./data.js?v=b61bde9ecf";
-import { patchLine } from "./patch.js?v=b61bde9ecf";
-import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=b61bde9ecf";
-import { versioned, withQuery } from "./version.js?v=b61bde9ecf";
-import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=b61bde9ecf";
-import { holdTiles } from "./cardtilt.js?v=b61bde9ecf";
-import { ambient } from "./ambient.js?v=b61bde9ecf";
+import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=4bef3888cf";
+import { t, applyStatic, millions } from "./i18n.js?v=4bef3888cf";
+import { copyText } from "./ui.js?v=4bef3888cf";
+import { DB, loadCore } from "./data.js?v=4bef3888cf";
+import { patchLine, dataDate, RANKINGS_SHOWN } from "./patch.js?v=4bef3888cf";
+import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=4bef3888cf";
+import { versioned, withQuery } from "./version.js?v=4bef3888cf";
+import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=4bef3888cf";
+import { holdTiles } from "./cardtilt.js?v=4bef3888cf";
+import { ambient } from "./ambient.js?v=4bef3888cf";
 
-// Five tabs, one view each; the Deck builder (#builder) sits next to My decks.
-const TABS = ["tiers", "card-tiers", "codex", "decks", "builder"];
+// Five tabs, one view each; the Deck builder (#builder) sits next to My decks. TABS are the ones shown.
+const ALL_TABS = ["tiers", "card-tiers", "codex", "decks", "builder"];
+const TABS = RANKINGS_SHOWN ? ALL_TABS : ["tiers", "card-tiers", "codex"];
+const HOME = RANKINGS_SHOWN ? "tiers" : "codex";      // the landing view (no hash, an unknown one, or a tab not shown)
 const TITLE_KEYS = { tiers: "tab.tiers", "card-tiers": "tab.cardTiers", codex: "tab.codex", decks: "tab.decks", builder: "fd.title" };
 const tabName = (tab) => t(TITLE_KEYS[tab]);
 let firstTab = true;         // the landing page keeps the site title until the visitor moves
@@ -20,7 +24,9 @@ const mounted = {};
 const mods = {};             // the view modules once mounted
 const scrolls = {};          // where each tab was scrolled to, so coming back does not lose the place
 let freshNav = false;        // a button that sends you to a tab starts it at the top
-const MODULES = { tiers: "./tiers.js", "card-tiers": "./cardtiers.js", codex: "./codex.js", decks: "./mydecks.js", builder: "./finder.js" };
+const MODULES = RANKINGS_SHOWN
+  ? { tiers: "./tiers.js", "card-tiers": "./cardtiers.js", codex: "./codex.js", decks: "./mydecks.js", builder: "./finder.js" }
+  : { tiers: "./pending.js", "card-tiers": "./pending.js", codex: "./codex.js" };
 const RETRY_MS = 1200;       // a view module that fails to load gets one more try after this pause
 let current = null;
 
@@ -63,14 +69,15 @@ function pickCard(key) {
 // ---- tabs
 // #tiers, #card-tiers, #codex, #decks, #builder (the Deck builder), or #<view>/<card key> which also opens that card. A natural
 // spelling of My decks (#my-decks, #mes-decks, #mydecks) or of the Deck builder (#finder, #deck-finder, #trouver, #deck-builder) opens it too
-// and is replaced in place by the canonical hash.
+// and is replaced in place by the canonical hash. A tab that is not shown opens the landing view, its hash replaced in place.
 const ALIASES = { "my-decks": "decks", "mes-decks": "decks", mydecks: "decks", finder: "builder", "deck-finder": "builder", trouver: "builder", "deck-builder": "builder" };
 function parseHash() {
   const [raw, ...rest] = location.hash.replace(/^#/, "").split("/");
-  const t = ALIASES[raw.toLowerCase()] || raw;
+  let t = ALIASES[raw.toLowerCase()] || raw;
+  if (ALL_TABS.includes(t) && !TABS.includes(t)) t = HOME;
   if (t !== raw) history.replaceState(history.state, "", "#" + [t, ...rest].join("/"));
   const key = rest[0];
-  return { tab: TABS.includes(t) ? t : "tiers", key: key && DB.byKey.has(key) ? key : null };
+  return { tab: TABS.includes(t) ? t : HOME, key: key && DB.byKey.has(key) ? key : null };
 }
 const tabFromHash = () => parseHash().tab;
 
@@ -80,7 +87,7 @@ function go(tab) {
 }
 
 function show(tab, force) {
-  if (!TABS.includes(tab)) tab = "tiers";
+  if (!TABS.includes(tab)) tab = HOME;
   if (tab === current && !force) return;
   const first = current === null;
   if (current) scrolls[current] = window.scrollY;
@@ -92,7 +99,7 @@ function show(tab, force) {
     btn.tabIndex = on_ ? 0 : -1;
   }
   revealTab(tab);
-  for (const v of TABS) {
+  for (const v of ALL_TABS) {
     const view = $("#view-" + v);
     view.hidden = v !== tab;
     view.classList.remove("enter");
@@ -218,7 +225,7 @@ function paintLang() {
 }
 
 function paintTitle() {
-  document.title = firstTab && current === "tiers" ? t("doc.title") : t("doc.tabTitle", { tab: tabName(current) });
+  document.title = firstTab && current === HOME && RANKINGS_SHOWN ? t("doc.title") : t("doc.tabTitle", { tab: tabName(current) });
 }
 
 // Every figure comes from meta.json: the games behind this patch (with the games of each stage) and, apart, all patches.
@@ -251,9 +258,12 @@ function copyHandle() {
 
 function paintFooter() {
   const m = DB.meta;
-  $("#foot-method").textContent = t("foot.method", { patch: m.patch, games: millions(m.totals.patch_games) });
-  $("#foot-games").textContent = gamesLine(m);
-  $("#foot-patch").textContent = t("foot.patch", { line: patchLine(), date: fmtDate(m.generated) });
+  // the method and the games describe the rankings: not said while they are not shown
+  $("#foot-method").textContent = RANKINGS_SHOWN ? t("foot.method", { patch: m.patch, games: millions(m.totals.patch_games) }) : "";
+  $("#foot-games").textContent = RANKINGS_SHOWN ? gamesLine(m) : "";
+  $("#foot-games").hidden = !RANKINGS_SHOWN;
+  $("#foot-patch").textContent = t("foot.patch", { line: patchLine(), date: fmtDate(dataDate()) });
+  $("#foot-about").textContent = t(RANKINGS_SHOWN ? "foot.how" : "head.about");     // nothing computed is shown: plain "About"
   copyPaint();
 }
 
@@ -269,12 +279,25 @@ function paintChrome() {
 }
 
 // ---- boot
+/** Before the data: only the tabs shown are in the header, the brand leads to the landing view, and the view the address
+ * asks for holds the skeleton (no motion: the real show() after the data counts as the first). */
+function preShow() {
+  for (const v of ALL_TABS) $("#tab-" + v).hidden = !TABS.includes(v);
+  $(".brand").setAttribute("href", "#" + HOME);
+  const tab = tabFromHash();
+  for (const v of ALL_TABS) $("#view-" + v).hidden = v !== tab;
+  const view = $("#view-" + tab);
+  if (!view.childElementCount) view.replaceChildren(skeleton());
+  return tab;
+}
+
 async function boot() {
+  const first = preShow();
   try {
     await loadCore();
   } catch (err) {
     console.error(err);
-    $("#view-tiers").replaceChildren(errorPanel(t("err.title"), t("err.dataText"), t("err.reload"), () => location.reload()));
+    $("#view-" + first).replaceChildren(errorPanel(t("err.title"), t("err.dataText"), t("err.reload"), () => location.reload()));
     return;
   }
   setKnown(DB.cards.map((c) => c.key));
@@ -292,9 +315,9 @@ async function boot() {
   $(".tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-tab]"); if (b && plain(e)) { e.preventDefault(); go(b.dataset.tab); } });
   $(".tabs").addEventListener("keydown", onKeyTabs);
   $(".tabs").addEventListener("scroll", paintStrip, { passive: true });
-  if (window.ResizeObserver) new ResizeObserver(() => revealTab(current || "tiers")).observe($(".tabs"));
-  if (document.fonts) document.fonts.ready.then(() => revealTab(current || "tiers"));
-  $(".brand").addEventListener("click", (e) => { if (plain(e)) { e.preventDefault(); go("tiers"); } });
+  if (window.ResizeObserver) new ResizeObserver(() => revealTab(current || HOME)).observe($(".tabs"));
+  if (document.fonts) document.fonts.ready.then(() => revealTab(current || HOME));
+  $(".brand").addEventListener("click", (e) => { if (plain(e)) { e.preventDefault(); go(HOME); } });
   window.addEventListener("hashchange", () => { const { tab, key } = parseHash(); show(tab); if (key) openCard(key, "url"); });
 
   show(tabFromHash(), true);

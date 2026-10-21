@@ -1,17 +1,17 @@
 // Codex tab: every released card as a game card, with search, filters, sort and the Owned toggle on every card.
 // A language change rebuilds the tab from the same state (search, filters, sort, open panels).
 
-import { h, icon, norm, fmtInt } from "./util.js?v=b61bde9ecf";
-import { searchField, terms as searchTerms, hasAll } from "./search.js?v=b61bde9ecf";
-import { DB } from "./data.js?v=b61bde9ecf";
-import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js?v=b61bde9ecf";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=b61bde9ecf";
-import { cardTile, ownToggle, setOwnedView, cardName, ELEMENTS, RARITIES, elName, raName, unsize } from "./cards.js?v=b61bde9ecf";
-import { disclosure, flip, segmented, filterChip, setChip, band } from "./ui.js?v=b61bde9ecf";
-import { toast, openCollection } from "./dialogs.js?v=b61bde9ecf";
-import { cardText } from "./cardtext.js?v=b61bde9ecf";
-import { t, STRINGS } from "./i18n.js?v=b61bde9ecf";
-import { GAME_PATCH } from "./patch.js?v=b61bde9ecf";
+import { h, icon, norm, fmtInt } from "./util.js?v=4bef3888cf";
+import { searchField, terms as searchTerms, hasAll } from "./search.js?v=4bef3888cf";
+import { DB } from "./data.js?v=4bef3888cf";
+import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js?v=4bef3888cf";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=4bef3888cf";
+import { cardTile, ownToggle, setOwnedView, cardName, ELEMENTS, RARITIES, elName, raName, unsize } from "./cards.js?v=4bef3888cf";
+import { disclosure, flip, segmented, filterChip, setChip, band } from "./ui.js?v=4bef3888cf";
+import { toast, openCollection } from "./dialogs.js?v=4bef3888cf";
+import { cardText } from "./cardtext.js?v=4bef3888cf";
+import { t, STRINGS } from "./i18n.js?v=4bef3888cf";
+import { GAME_PATCH, RANKINGS_SHOWN } from "./patch.js?v=4bef3888cf";
 
 // ---- traits, derived from the English texts and numbers of the data (no hand-made tags); names are "trait.<id>"
 const anyText = (c, rx) => c.abilities.some((a) => rx.test(a.description_en)) || c.passives.some((p) => rx.test(p.description_en));
@@ -156,7 +156,7 @@ function build() {
   traitList = TRAITS.filter(([id]) => cells.filter((x) => x.traits.has(id)).length >= 3).map(([id]) => id);
   ui = {};
 
-  // collection bar: the visible link between Owned and My decks
+  // collection bar: the visible link between Owned and My decks (no link while My decks is not shown, patch.js)
   ui.count = h("span.cb-n");
   ui.total = h("span.cb-t");
   ui.fill = h("span.track-fill");
@@ -282,11 +282,11 @@ function syncOwned(keys) {
   ui.count.textContent = fmtInt(n);
   ui.total.textContent = t("cx.ofOwned", { total });
   ui.fill.style.transform = `scaleX(${n / total})`;
-  ui.go.hidden = n === 0;
+  ui.go.hidden = n === 0 || !RANKINGS_SHOWN;
   // the "Saved in this browser only" line takes the hint's place once a card is owned (the same row, so nothing jumps);
   // without storage the full-width warning says it instead
   const saved = n > 0 && canPersist();
-  ui.hint.textContent = t(n ? "cx.hintSome" : "cx.hintNone");
+  ui.hint.textContent = t(n && RANKINGS_SHOWN ? "cx.hintSome" : "cx.hintNone");
   ui.hint.hidden = saved;
   ui.saved.el.hidden = !saved;
   ui.saved.paint();

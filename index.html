@@ -29,14 +29,14 @@
 
 <link rel="preload" href="fonts/lilita-one-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/nunito-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="data/cards.json?v=b61bde9ecf" as="fetch" crossorigin>
-<link rel="stylesheet" href="css/base.css?v=b61bde9ecf">
-<link rel="stylesheet" href="css/ambient.css?v=b61bde9ecf">
-<link rel="stylesheet" href="css/cards.css?v=b61bde9ecf">
-<link rel="stylesheet" href="css/views.css?v=b61bde9ecf">
-<link rel="stylesheet" href="css/cardtiers.css?v=b61bde9ecf">
-<link rel="stylesheet" href="css/card.css?v=b61bde9ecf">
-<link rel="modulepreload" href="js/main.js?v=b61bde9ecf">
+<link rel="preload" href="data/cards.json?v=4bef3888cf" as="fetch" crossorigin>
+<link rel="stylesheet" href="css/base.css?v=4bef3888cf">
+<link rel="stylesheet" href="css/ambient.css?v=4bef3888cf">
+<link rel="stylesheet" href="css/cards.css?v=4bef3888cf">
+<link rel="stylesheet" href="css/views.css?v=4bef3888cf">
+<link rel="stylesheet" href="css/cardtiers.css?v=4bef3888cf">
+<link rel="stylesheet" href="css/card.css?v=4bef3888cf">
+<link rel="modulepreload" href="js/main.js?v=4bef3888cf">
 </head>
 <body>
 <a class="skip" href="#main" data-i18n="head.skip">Skip to the content</a>
@@ -44,7 +44,7 @@
 <header class="chrome" id="chrome">
   <div class="wrap chrome-in">
     <div class="chrome-top">
-      <a class="brand" href="#tiers" aria-label="SPAM Meta, home" data-i18n-aria="head.home">
+      <a class="brand" href="#codex" aria-label="SPAM Meta, home" data-i18n-aria="head.home">
         <img class="brand-mark" src="favicon.svg" alt="" width="32" height="32">
         <span class="brand-name" translate="no">SPAM Meta</span>
       </a>
@@ -64,22 +64,23 @@
       </div>
     </div>
     <nav class="tabs" role="tablist" aria-label="Sections" data-i18n-aria="head.sections">
-      <a class="tab" role="tab" id="tab-tiers" href="#tiers" aria-selected="true" aria-controls="view-tiers" data-tab="tiers"><span class="tab-long" data-i18n="tab.tiers">Deck tier list</span><span class="tab-short" data-i18n="tab.tiersShort">Deck tiers</span></a>
+      <a class="tab" role="tab" id="tab-tiers" href="#tiers" aria-selected="false" aria-controls="view-tiers" data-tab="tiers" tabindex="-1"><span class="tab-long" data-i18n="tab.tiers">Deck tier list</span><span class="tab-short" data-i18n="tab.tiersShort">Deck tiers</span></a>
       <a class="tab" role="tab" id="tab-card-tiers" href="#card-tiers" aria-selected="false" aria-controls="view-card-tiers" data-tab="card-tiers" tabindex="-1"><span class="tab-long" data-i18n="tab.cardTiers">Card tier list</span><span class="tab-short" data-i18n="tab.cardTiersShort">Card tiers</span></a>
-      <a class="tab" role="tab" id="tab-codex" href="#codex" aria-selected="false" aria-controls="view-codex" data-tab="codex" tabindex="-1"><span data-i18n="tab.codex">Codex</span></a>
-      <a class="tab" role="tab" id="tab-decks" href="#decks" aria-selected="false" aria-controls="view-decks" data-tab="decks" tabindex="-1"><span data-i18n="tab.decks">My decks</span><span class="tab-n off" id="tab-decks-n"></span></a>
-      <a class="tab" role="tab" id="tab-builder" href="#builder" aria-selected="false" aria-controls="view-builder" data-tab="builder" tabindex="-1" title="Deck builder" aria-label="Deck builder" data-i18n-title="tab.builderName" data-i18n-aria="tab.builderName"><svg class="ico tab-ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M5 1.5h6A1.5 1.5 0 0 1 12.5 3v10a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 13V3A1.5 1.5 0 0 1 5 1.5zM8 5.5v5M5.5 8h5"/></svg><span data-i18n="tab.builder">Builder</span></a>
+      <a class="tab" role="tab" id="tab-codex" href="#codex" aria-selected="true" aria-controls="view-codex" data-tab="codex"><span data-i18n="tab.codex">Codex</span></a>
+      <a class="tab" role="tab" id="tab-decks" hidden href="#decks" aria-selected="false" aria-controls="view-decks" data-tab="decks" tabindex="-1"><span data-i18n="tab.decks">My decks</span><span class="tab-n off" id="tab-decks-n"></span></a>
+      <a class="tab" role="tab" id="tab-builder" hidden href="#builder" aria-selected="false" aria-controls="view-builder" data-tab="builder" tabindex="-1" title="Deck builder" aria-label="Deck builder" data-i18n-title="tab.builderName" data-i18n-aria="tab.builderName"><svg class="ico tab-ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M5 1.5h6A1.5 1.5 0 0 1 12.5 3v10a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 13V3A1.5 1.5 0 0 1 5 1.5zM8 5.5v5M5.5 8h5"/></svg><span data-i18n="tab.builder">Builder</span></a>
     </nav>
   </div>
 </header>
 
 <main id="main" class="wrap" tabindex="-1">
-  <section class="view" id="view-tiers" role="tabpanel" aria-labelledby="tab-tiers" tabindex="-1">
-    <div class="vhead"><h1 data-i18n="tl.h1">The best decks in SPAM</h1><p class="lede" data-i18n="app.loading">Loading…</p></div>
+  <!-- before the scripts run: the landing view's skeleton (the Codex while the rankings are not shown, js/patch.js) -->
+  <section class="view" id="view-tiers" role="tabpanel" aria-labelledby="tab-tiers" tabindex="-1" hidden></section>
+  <section class="view" id="view-card-tiers" role="tabpanel" aria-labelledby="tab-card-tiers" tabindex="-1" hidden></section>
+  <section class="view" id="view-codex" role="tabpanel" aria-labelledby="tab-codex" tabindex="-1">
+    <div class="vhead"><h1 data-i18n="cx.h1">Codex</h1><p class="lede" data-i18n="app.loading">Loading…</p></div>
     <div class="panel skel" aria-hidden="true"><i></i><i></i><i></i></div>
   </section>
-  <section class="view" id="view-card-tiers" role="tabpanel" aria-labelledby="tab-card-tiers" tabindex="-1" hidden></section>
-  <section class="view" id="view-codex" role="tabpanel" aria-labelledby="tab-codex" tabindex="-1" hidden></section>
   <section class="view" id="view-decks" role="tabpanel" aria-labelledby="tab-decks" tabindex="-1" hidden></section>
   <section class="view" id="view-builder" role="tabpanel" aria-labelledby="tab-builder" tabindex="-1" hidden></section>
 </main>
@@ -146,7 +147,7 @@
 
 <noscript><div class="wrap noscript"><p lang="fr">SPAM Meta a besoin de JavaScript pour afficher les cartes et les classements.</p><p>SPAM Meta needs JavaScript to draw the cards and the rankings.</p></div></noscript>
 
-<script type="module" src="js/main.js?v=b61bde9ecf"></script>
+<script type="module" src="js/main.js?v=4bef3888cf"></script>
 <script data-goatcounter="https://mfron2.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>

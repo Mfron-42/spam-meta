@@ -3,17 +3,17 @@
 // drawn as a full-screen card view (card.css); its enter and exit (the card flying from its tile) are played by
 // cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=b61bde9ecf";
-import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=b61bde9ecf";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=b61bde9ecf";
-import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=b61bde9ecf";
-import { encode, decode } from "./code.js?v=b61bde9ecf";
-import { copyText, disclosure } from "./ui.js?v=b61bde9ecf";
-import { t, tx, millions } from "./i18n.js?v=b61bde9ecf";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine } from "./patch.js?v=b61bde9ecf";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=b61bde9ecf";
-import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=b61bde9ecf";
-import { attachTilt } from "./cardtilt.js?v=b61bde9ecf";
+import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=4bef3888cf";
+import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=4bef3888cf";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=4bef3888cf";
+import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=4bef3888cf";
+import { encode, decode } from "./code.js?v=4bef3888cf";
+import { copyText, disclosure } from "./ui.js?v=4bef3888cf";
+import { t, tx, millions } from "./i18n.js?v=4bef3888cf";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, RANKINGS_SHOWN, GAME_PATCH } from "./patch.js?v=4bef3888cf";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=4bef3888cf";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=4bef3888cf";
+import { attachTilt } from "./cardtilt.js?v=4bef3888cf";
 
 let openDlg = null, pushed = false;
 
@@ -462,7 +462,7 @@ function renderCardDialog() {
   unsize(dlg);
   const lang = getLang();
   const own = isOwned(c.key);
-  const ownBtn = h("button.btn.toggle", { type: "button", "aria-pressed": String(own), "data-own-dlg": c.key, "aria-describedby": "cd-hint", onclick: () => {
+  const ownBtn = h("button.btn.toggle", { type: "button", "aria-pressed": String(own), "data-own-dlg": c.key, "aria-describedby": RANKINGS_SHOWN ? "cd-hint" : null, onclick: () => {
     setOwned(c.key, !isOwned(c.key));
   } }, [icon("plus"), icon("check"), h("span.on-off", t(own ? "card.isOwned" : "card.markOwned"))]);
 
@@ -495,11 +495,12 @@ function renderCardDialog() {
         // the six resistances straight under the card, untitled (owner, 2026-10-15: players know what they are); the
         // list keeps its name for screen readers
         resist.length ? h("ul.ress", { "aria-label": t("card.resistances") }, resist) : null,
-        h("div.cd-own", [ownBtn, h("p.cd-hint#cd-hint", t("card.feeds"))]),
+        // "Owned cards feed My decks." only while My decks is shown (patch.js RANKINGS_SHOWN)
+        h("div.cd-own", [ownBtn, RANKINGS_SHOWN ? h("p.cd-hint#cd-hint", t("card.feeds")) : null]),
       ]),
       h("div.cd-kit", kit),
     ]),
-    metaBand(c),
+    RANKINGS_SHOWN ? metaBand(c) : null,      // the Meta section reads the rankings: not drawn while they are not shown
     mods,
   ]);
   $(".dlg-scroll", dlg).replaceChildren(body);
@@ -525,6 +526,14 @@ function stageText(s) {
 }
 
 function buildAbout() {
+  // while the rankings are not shown (patch.js), About says what the site holds today: the cards, and the rankings being computed
+  if (!RANKINGS_SHOWN) return h("div.about", [
+    h("h2#about-title", t("about.h")),
+    h("p.lead", tx("about.lead")),
+    h("section", [h("h3", t("about.whatH")), h("p", t("about.whatCards", { patch: GAME_PATCH.patch }))]),
+    h("section", [h("h3", t("about.dataH")), h("p", t("about.data", { line: patchLine(), date: fmtDate(dataDate()) }))]),
+    h("p.legal", t("foot.legal")),
+  ]);
   const m = DB.meta, mm = m.methodology;
   const down = (m.totals && m.totals.decks_withheld) || 0;
   const cc = mm.cross_check || {};
