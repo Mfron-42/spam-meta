@@ -1,27 +1,27 @@
 {
   "available": true,
-  "version": "0.1.17",
+  "version": "0.1.18",
   "released": "2026-10-22",
-  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.17",
-  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.17",
+  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.18",
+  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.18",
   "notes": {
-    "en": "- Works with the game's 1.26 update. Since 1.26 the game's match servers answer on other network ports, and the overlay read no match at all; it reads them again. It now also learns a server from the start of the connection itself, so a later move of the servers does not stop it.\n- The engine follows the game. When the game updates, the overlay prepares its engine again by itself, in the background, and switches to it between two matches (never during one). The engine now plays 1.26's cards, abilities and tox prices.\n- The newest AI. The win chances and the advice come from the AI the bot plays now (v3s8): its board judge and its shop judge, trained on the turns where a buy cost a card its last damage spell.",
-    "fr": "- Fonctionne avec la mise \u00e0 jour 1.26 du jeu. Depuis la 1.26, les serveurs de partie du jeu r\u00e9pondent sur d'autres ports r\u00e9seau, et l'overlay ne lisait plus aucune partie ; il les lit de nouveau. Il apprend aussi d\u00e9sormais un serveur d\u00e8s le d\u00e9but de la connexion, si bien qu'un futur d\u00e9placement des serveurs ne l'arr\u00eatera plus.\n- Le moteur suit le jeu. Quand le jeu se met \u00e0 jour, l'overlay pr\u00e9pare de nouveau son moteur tout seul, en arri\u00e8re-plan, et bascule dessus entre deux parties (jamais pendant une partie). Le moteur joue maintenant les cartes, les capacit\u00e9s et les prix des tox de la 1.26.\n- La derni\u00e8re IA. Les chances de victoire et les conseils viennent de l'IA que joue le bot aujourd'hui (v3s8) : son juge du plateau et son juge de la boutique, entra\u00een\u00e9s sur les tours o\u00f9 un achat retirait \u00e0 une carte son dernier sort de d\u00e9g\u00e2ts."
+    "en": "- The AI's own move first. As soon as the AI has decided (about half a second after your decision opens), the \"do this\" dot sits on the move it would play, and the win chance shows its own estimate of it. It is the same AI the bot plays (v3s8), with its full search for spells, targets and the shop.\n- The other figures fill in after. Each spell's, target's and tox's change from now comes in as before, first from the value net, then from the AI's test games; the dot and the win chance no longer wait for them, and they no longer jump when the games come in.\n- Rest the cursor on the win chance to see what it rests on: the AI's estimate, the AI's test games once they have enough, the value net's reading, and the move the test games prefer when it is another one.\n- After an overlay update, the engine is prepared again by itself when the new version prepares it differently, in the background and between two matches, as after a game update.",
+    "fr": "- Le coup de l'IA d'abord. D\u00e8s que l'IA a d\u00e9cid\u00e9 (environ une demi-seconde apr\u00e8s l'ouverture de votre d\u00e9cision), le point \u00ab \u00e0 jouer \u00bb se place sur le coup qu'elle jouerait, et la chance de victoire affiche sa propre estimation de ce coup. C'est la m\u00eame IA que celle du bot (v3s8), avec sa recherche compl\u00e8te pour les sorts, les cibles et la boutique.\n- Les autres chiffres arrivent ensuite. Le changement de chaque sort, de chaque cible et de chaque tox arrive comme avant, d'abord selon le r\u00e9seau de valeur, puis selon les parties d'essai de l'IA ; le point et la chance de victoire ne les attendent plus, et ne sautent plus quand les parties arrivent.\n- Laissez le curseur sur la chance de victoire pour voir sur quoi elle repose : l'estimation de l'IA, les parties d'essai de l'IA quand elles sont assez nombreuses, la lecture du r\u00e9seau de valeur, et le coup que pr\u00e9f\u00e8rent les parties d'essai quand c'en est un autre.\n- Apr\u00e8s une mise \u00e0 jour de l'overlay, le moteur est pr\u00e9par\u00e9 de nouveau tout seul quand la nouvelle version le pr\u00e9pare autrement, en arri\u00e8re-plan et entre deux parties, comme apr\u00e8s une mise \u00e0 jour du jeu."
   },
   "assets": [
     {
       "kind": "setup",
-      "name": "SPAM-Overlay-Setup-0.1.17.exe",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.17/SPAM-Overlay-Setup-0.1.17.exe",
-      "size_bytes": 163310058,
-      "sha256": "fc5d5870bada37442d8728aabe33364c32f64b8e3947b72ee186efa0dedcd13e"
+      "name": "SPAM-Overlay-Setup-0.1.18.exe",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.18/SPAM-Overlay-Setup-0.1.18.exe",
+      "size_bytes": 163316867,
+      "sha256": "aa69450478a834d15411555614896e87c2f16d50865d783d0efc006fcc0d977d"
     },
     {
       "kind": "zip",
-      "name": "spam-overlay-0.1.17-win64.zip",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.17/spam-overlay-0.1.17-win64.zip",
-      "size_bytes": 244050290,
-      "sha256": "de6411ff14e8033acb98e08004bf467f0467cd9c3d545c0487aa8e616d68be0c"
+      "name": "spam-overlay-0.1.18-win64.zip",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.18/spam-overlay-0.1.18-win64.zip",
+      "size_bytes": 244057724,
+      "sha256": "09c8791460618f8e02309b18a394584b1ed8c31bfa4197c13a89f0513183e595"
     }
   ]
 }
