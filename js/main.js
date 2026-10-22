@@ -2,16 +2,16 @@
 // rankings are being recomputed (patch.js RANKINGS_SHOWN off) only three tabs are shown: the two tier lists draw the
 // "being computed" placeholder (pending.js), the Codex is the landing view, My decks and the Deck builder are not shown.
 
-import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=4bef3888cf";
-import { t, applyStatic, millions } from "./i18n.js?v=4bef3888cf";
-import { copyText } from "./ui.js?v=4bef3888cf";
-import { DB, loadCore } from "./data.js?v=4bef3888cf";
-import { patchLine, dataDate, RANKINGS_SHOWN } from "./patch.js?v=4bef3888cf";
-import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=4bef3888cf";
-import { versioned, withQuery } from "./version.js?v=4bef3888cf";
-import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=4bef3888cf";
-import { holdTiles } from "./cardtilt.js?v=4bef3888cf";
-import { ambient } from "./ambient.js?v=4bef3888cf";
+import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=88d15f43cc";
+import { t, applyStatic, millions } from "./i18n.js?v=88d15f43cc";
+import { copyText } from "./ui.js?v=88d15f43cc";
+import { DB, loadCore } from "./data.js?v=88d15f43cc";
+import { patchLine, dataDate, RANKINGS_SHOWN } from "./patch.js?v=88d15f43cc";
+import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=88d15f43cc";
+import { versioned, withQuery } from "./version.js?v=88d15f43cc";
+import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=88d15f43cc";
+import { holdTiles } from "./cardtilt.js?v=88d15f43cc";
+import { ambient } from "./ambient.js?v=88d15f43cc";
 
 // Five tabs, one view each; the Deck builder (#builder) sits next to My decks. TABS are the ones shown.
 const ALL_TABS = ["tiers", "card-tiers", "codex", "decks", "builder"];

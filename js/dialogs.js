@@ -3,17 +3,17 @@
 // drawn as a full-screen card view (card.css); its enter and exit (the card flying from its tile) are played by
 // cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=4bef3888cf";
-import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=4bef3888cf";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=4bef3888cf";
-import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=4bef3888cf";
-import { encode, decode } from "./code.js?v=4bef3888cf";
-import { copyText, disclosure } from "./ui.js?v=4bef3888cf";
-import { t, tx, millions } from "./i18n.js?v=4bef3888cf";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, RANKINGS_SHOWN, GAME_PATCH } from "./patch.js?v=4bef3888cf";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=4bef3888cf";
-import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=4bef3888cf";
-import { attachTilt } from "./cardtilt.js?v=4bef3888cf";
+import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=88d15f43cc";
+import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=88d15f43cc";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=88d15f43cc";
+import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=88d15f43cc";
+import { encode, decode } from "./code.js?v=88d15f43cc";
+import { copyText, disclosure } from "./ui.js?v=88d15f43cc";
+import { t, tx, millions } from "./i18n.js?v=88d15f43cc";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, RANKINGS_SHOWN, GAME_PATCH } from "./patch.js?v=88d15f43cc";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=88d15f43cc";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=88d15f43cc";
+import { attachTilt } from "./cardtilt.js?v=88d15f43cc";
 
 let openDlg = null, pushed = false;
 

@@ -11,8 +11,8 @@
 // {one, other} chosen by Intl.PluralRules on the parameter `count`, else `n` (French: 0 to 1.99 are "one"). `**bold**` is honoured by tx()
 // only. French copy uses plain spaces before : ; ? ! - they become no-break spaces when the table loads.
 
-import { h, fmtInt, dec } from "./util.js?v=4bef3888cf";
-import { getLang } from "./store.js?v=4bef3888cf";
+import { h, fmtInt, dec } from "./util.js?v=88d15f43cc";
+import { getLang } from "./store.js?v=88d15f43cc";
 
 const EN = {
   // ---- document and header

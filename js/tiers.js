@@ -10,15 +10,15 @@
 // withheld and secret decks have no cards and hide while it is on.
 // A language change redraws the page and keeps what the visitor opened (the reading guide, deck details, the filter).
 
-import { h, icon, pm, pct, pct1, dec } from "./util.js?v=4bef3888cf";
-import { DB, loadTier } from "./data.js?v=4bef3888cf";
-import { on, isOwned, ownedCount } from "./store.js?v=4bef3888cf";
-import { gameCard, cardBack, secretCard, strip, cardName } from "./cards.js?v=4bef3888cf";
-import { disclosure, segmented, scrollToEl, cascade } from "./ui.js?v=4bef3888cf";
-import { t, tx, millions } from "./i18n.js?v=4bef3888cf";
-import { findRow, terms, namedCards } from "./search.js?v=4bef3888cf";
-import { introLine, patchMark } from "./patch.js?v=4bef3888cf";
-import { paintOwned, evLine } from "./decklist.js?v=4bef3888cf";
+import { h, icon, pm, pct, pct1, dec } from "./util.js?v=88d15f43cc";
+import { DB, loadTier } from "./data.js?v=88d15f43cc";
+import { on, isOwned, ownedCount } from "./store.js?v=88d15f43cc";
+import { gameCard, cardBack, secretCard, strip, cardName } from "./cards.js?v=88d15f43cc";
+import { disclosure, segmented, scrollToEl, cascade } from "./ui.js?v=88d15f43cc";
+import { t, tx, millions } from "./i18n.js?v=88d15f43cc";
+import { findRow, terms, namedCards } from "./search.js?v=88d15f43cc";
+import { introLine, patchMark } from "./patch.js?v=88d15f43cc";
+import { paintOwned, evLine } from "./decklist.js?v=88d15f43cc";
 
 let root, tier, decks = [], stubs = [], sections = [], jumpChips = new Map(), banner, detailBtns = [], readyBtn, readyOnly = false, spotted = false;
 let find;
