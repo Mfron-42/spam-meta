@@ -4,14 +4,14 @@
 // are the best). A deck of the top 30 by score carries its rank there. The card search (search.js) keeps only the decks of
 // both lists that hold a matching card; the query survives a redraw (a card ticked, a language change).
 
-import { h, icon, fmtInt } from "./util.js?v=92a8dd692d";
-import { loadDecks } from "./data.js?v=92a8dd692d";
-import { on, isOwned, ownedCount } from "./store.js?v=92a8dd692d";
-import { deckRow, missingLine, paged, legend, tableHead } from "./decklist.js?v=92a8dd692d";
-import { findRow, terms, namedCards } from "./search.js?v=92a8dd692d";
-import { openCollection } from "./dialogs.js?v=92a8dd692d";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=92a8dd692d";
-import { t } from "./i18n.js?v=92a8dd692d";
+import { h, icon, fmtInt } from "./util.js?v=b9ded1bfd2";
+import { loadDecks } from "./data.js?v=b9ded1bfd2";
+import { on, isOwned, ownedCount } from "./store.js?v=b9ded1bfd2";
+import { deckRow, missingLine, paged, legend, tableHead } from "./decklist.js?v=b9ded1bfd2";
+import { findRow, terms, namedCards } from "./search.js?v=b9ded1bfd2";
+import { openCollection } from "./dialogs.js?v=b9ded1bfd2";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=b9ded1bfd2";
+import { t } from "./i18n.js?v=b9ded1bfd2";
 
 let root, D, listeners = new Set();
 let result = { build: [], near: [] };
@@ -71,7 +71,7 @@ function render() {
 
   find = findRow({ id: "md-q", name: "deck-card", placeholder: t("find.decksPh"), label: t("find.decksAria"), clearLabel: t("cx.clearSearch"), value: query,
     onChange: (v) => { query = v; paintLists(); },
-    onEnter: () => { const x = lists.querySelector(".dr"); if (x && query.trim()) x.scrollIntoView({ block: "start" }); } });
+    onEnter: () => { const x = lists.querySelector(".deck"); if (x && query.trim()) x.scrollIntoView({ block: "start" }); } });
   lists = h("div.md-lists");
   // the search row sits right above the lists it filters, under the collection bar (whose counts are the whole collection's)
   root.replaceChildren(...[head, notice, summary, legend("md-legend", legendState), find.el, lists].filter(Boolean));

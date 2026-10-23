@@ -8,15 +8,15 @@
 // address (#tiers, #tiers/speed). A language change redraws the page and keeps the list, the query and the filter.
 // (The tier-grouped view of the 1.22 rankings, with its matchups, withheld and secret decks, is in the git history.)
 
-import { h, icon, pm, pct, pct1, dec, reducedMotion } from "./util.js?v=92a8dd692d";
-import { DB, loadRanking } from "./data.js?v=92a8dd692d";
-import { on, isOwned, ownedCount } from "./store.js?v=92a8dd692d";
-import { cardName } from "./cards.js?v=92a8dd692d";
-import { segmented, scrollToEl, cascade, CURVE } from "./ui.js?v=92a8dd692d";
-import { t, tx } from "./i18n.js?v=92a8dd692d";
-import { findRow, terms, namedCards } from "./search.js?v=92a8dd692d";
-import { introLine, limitParams, provBanner, DECK_TABLE_SHOWN } from "./patch.js?v=92a8dd692d";
-import { paintOwned, deckSlot } from "./decklist.js?v=92a8dd692d";
+import { h, icon, pm, pct, pct1, dec, reducedMotion } from "./util.js?v=b9ded1bfd2";
+import { DB, loadRanking } from "./data.js?v=b9ded1bfd2";
+import { on, isOwned, ownedCount } from "./store.js?v=b9ded1bfd2";
+import { cardName } from "./cards.js?v=b9ded1bfd2";
+import { segmented, scrollToEl, cascade, CURVE } from "./ui.js?v=b9ded1bfd2";
+import { t, tx } from "./i18n.js?v=b9ded1bfd2";
+import { findRow, terms, namedCards } from "./search.js?v=b9ded1bfd2";
+import { introLine, limitParams, provBanner, DECK_TABLE_SHOWN } from "./patch.js?v=b9ded1bfd2";
+import { paintOwned, deckSlot } from "./decklist.js?v=b9ded1bfd2";
 
 const LISTS = { score: "by_score", speed: "by_speed" };
 let root, R, list = "score", query = "", readyOnly = false;
@@ -159,7 +159,7 @@ function facts(d) {
     ]);
   }
   return h("div.dfacts", [
-    h("div.dr-fig", { title: t("rk.roundsTip", { wins: d.wins }) }, [
+    h("div.dr-fig", { title: t("rk.roundsTip", { wins: d.rounds_wins || d.wins }) }, [
       h("span.fig-line", [h("b.stat-v", dec(d.rounds, 1)), h("span.fig-pm", { title: t("rk.roundsPmTip") }, "±" + dec(d.rounds_ci95, 1))]),
       h("span.stat-s", t("rk.roundsK")),
     ]),

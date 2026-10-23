@@ -4,13 +4,13 @@
 // sorted by the furthest stage reached, then the score there (docs/DATA.md, "ranking-decks.json"), so a filter that keeps
 // their order keeps the canonical ranking.
 
-import { h, icon, pct1, pm } from "./util.js?v=92a8dd692d";
-import { DB } from "./data.js?v=92a8dd692d";
-import { getLang, isOwned, ownedCount } from "./store.js?v=92a8dd692d";
-import { gameCard, chip, cardName, L } from "./cards.js?v=92a8dd692d";
-import { disclosure } from "./ui.js?v=92a8dd692d";
-import { t, tx } from "./i18n.js?v=92a8dd692d";
-import { introLine, provBanner } from "./patch.js?v=92a8dd692d";
+import { h, icon, pct1, pm } from "./util.js?v=b9ded1bfd2";
+import { DB } from "./data.js?v=b9ded1bfd2";
+import { getLang, isOwned, ownedCount } from "./store.js?v=b9ded1bfd2";
+import { gameCard, chip, cardName, L } from "./cards.js?v=b9ded1bfd2";
+import { disclosure } from "./ui.js?v=b9ded1bfd2";
+import { t, tx } from "./i18n.js?v=b9ded1bfd2";
+import { introLine, provBanner } from "./patch.js?v=b9ded1bfd2";
 
 // ---------------------------------------------------------------- stages, in plain words
 // level -> stage of the ranking run: 3 the final (the full AI against the benchmark decks), 2 the race (its faster setting),
@@ -107,27 +107,29 @@ export function paintOwned(el, cards) {
 
 // ---------------------------------------------------------------- one deck row
 /**
- * A measured deck as a row: its rank label, its four game cards with their talents, its stage line, its score at that stage
- * and its journey (its rank in the final is its rank on the Deck tier list). `cards` reorders the cards for display (a deck is a set; the
- * talents follow their cards); `tag` is one more quiet tag; `note` and `badge` are nodes added under the facts (a "missing"
- * line, an owned badge); `hits` (the cards a card search found) dims the other cards.
+ * A measured deck as a row, in the Deck tier list's pattern (DESIGN.md "Deck row"): on the ground, a head (its place in this
+ * list, the four card names hidden after it for screen readers, a quiet word, the owned badge pushed right), then its four game
+ * cards with their talents and its facts: the win rate at its furthest stage with the stage meter caption, its journey, a
+ * "Missing:" / "Without:" line. On one column the figure comes before the cards and the journey after them. `cards` reorders the
+ * cards for display (a deck is a set; the talents follow their cards); `hits` (the cards a card search found) or `dim` (the card
+ * the visitor lacks) dims the other cards.
  */
 export function deckRow(r, rankLabel, { cards = r.cards, tag = null, note = null, badge = null, hits = null, dim = null } = {}) {
   const talentOf = (c) => r.talents[r.cards.indexOf(c)];
   const miss = (c) => (hits ? !hits.includes(c) : !!(dim && dim.includes(c)));
-  return h("article.dr", [
-    // the list position (not a rank: the deck's rank is its final's, in the journey); its cards name the row for screen readers
-    h("div.dr-rank", [h("h3.rk", [rankLabel, h("span.sr", " " + r.cards.map(cardName).join(", "))])]),
-    h("div.deck-cards", cards.map((c) => deckSlot(c, talentOf(c), { miss: miss(c) }))),
-    h("div.dr-info", [
-      h("div.dr-fig", [
-        h("span.fig-line", [h("b.stat-v", pct1(r.rate)), r.level === 3 ? h("span.fig-pm", { title: t("tl.pmTip") }, pm(r.stages.final.ci95)) : null]),
-        evLine(r.level),
+  return h("article.deck", [
+    // the list position (not a rank: the deck's rank is its final's, in the journey)
+    h("div.deck-head", [h("h3.rk", [rankLabel, h("span.sr", " " + r.cards.map(cardName).join(", "))]), tag, badge]),
+    h("div.deck-body", [
+      h("div.deck-cards", cards.map((c) => deckSlot(c, talentOf(c), { miss: miss(c) }))),
+      h("div.deck-facts", [
+        h("div.dfacts", h("div.dr-fig", [
+          h("span.fig-line", [h("b.stat-v", pct1(r.rate)), r.level === 3 ? h("span.fig-pm", { title: t("tl.pmTip") }, pm(r.stages.final.ci95)) : null]),
+          evLine(r.level),
+        ])),
+        journey(r),
+        note,
       ]),
-      journey(r),
-      note,
-      tag ? h("div.tags", tag) : null,
-      badge,
     ]),
   ]);
 }
@@ -138,7 +140,7 @@ export const missingLine = (c) => h("p.dr-miss", [h("span.muted", t("md.missing"
 /** A list that shows `page` rows and appends the next `page` on demand, without re-rendering what is already there. */
 export function paged(items, mk, page = 8) {
   let shown = Math.min(page, items.length);
-  const list = h("div.drs", items.slice(0, shown).map((it, i) => mk(it, i)));
+  const list = h("div.rk-list.decklist", items.slice(0, shown).map((it, i) => mk(it, i)));
   const count = h("p.muted", { "aria-live": "polite" });
   const btn = h("button.btn.soft", { type: "button", onclick: () => {
     const next = Math.min(items.length, shown + page);

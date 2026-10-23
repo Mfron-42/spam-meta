@@ -1,7 +1,7 @@
 // Loads the generated JSON once and builds the lookups every view needs. Every request carries the publish version
 // (version.js), so a new publish never mixes with data an earlier visit cached.
 
-import { versioned, withQuery } from "./version.js?v=92a8dd692d";
+import { versioned, withQuery } from "./version.js?v=b9ded1bfd2";
 
 const cache = new Map();
 // data paths are resolved from this module, not from the page, so a page in a sub-folder (site/overlay/) reads the same files

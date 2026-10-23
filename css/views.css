@@ -45,7 +45,7 @@
 /* "About the numbers": the caveats as a short list in the region's own type */
 .vinfo-l { display: grid; gap: 4px; max-width: 68ch; padding-left: 20px; list-style: disc; text-wrap: pretty; }
 /* under each card, the talent the deck plays with it: the client's talent glyph and its name, two lines at most */
-.rk-list .slot, .dr .slot { display: grid; gap: 12px; align-content: start; }      /* clear of the rarity gem that overhangs the card */
+.rk-list .slot { display: grid; gap: 12px; align-content: start; }      /* clear of the rarity gem that overhangs the card */
 .slot-tl { display: flex; justify-content: center; align-items: flex-start; gap: 4px; min-width: 0; color: var(--ink-2); font: 600 14px/1.3 var(--text); text-align: center; cursor: help; }
 .slot-tl .ab-talent { width: 16px; height: 16px; margin-top: 1px; }
 .slot-tl > span { min-width: 0; overflow: hidden; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
@@ -194,15 +194,12 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .mdsec { display: grid; gap: 16px; margin-top: 48px; }
 .mdsec .sub { margin-top: -8px; }
 .cbar + .guide-wrap { margin-top: 16px; }
-.drs { display: grid; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 0 24px; }
-.dr { display: grid; grid-template-columns: 56px minmax(0, 640px) minmax(0, 1fr); gap: 16px 24px; align-items: center; padding: 24px 0; border-top: 1px solid var(--line); }
-.dr:first-child { border-top: 0; }
-.dr .deck-cards { padding: 8px; }
-.dr-info { display: grid; gap: 8px; align-content: center; justify-items: start; min-width: 0; }
 .dr-fig { display: grid; gap: 2px; }
 .dr-fig .stat-v { font-size: 28px; }
-.dr-t { color: var(--ink-2); font-size: 14px; line-height: 1.5; }
 .dr-miss { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+/* the deck table's rows (My decks, the Deck builder) are the Deck tier list's rows; their facts add the journey */
+.decklist .deck-facts { gap: 12px; }
+.decklist .dr-fig { cursor: auto; }      /* its basis is the caption under it, not a tooltip */
 /* the journey of a deck (DESIGN.md "Deck journey"): one quiet line per stage it played, the stage name in the ink colour */
 .jy { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 12px; margin: 0; padding: 0; list-style: none;
   color: var(--muted); font-size: 14px; line-height: 1.5; }
@@ -306,11 +303,9 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 @media (max-width: 1040px) {
   .deck-body { grid-template-columns: minmax(0, 1fr); }
   .rk-list .deck-facts { order: -1; }          /* one column: the number right under the rank, before the cards */
+  .decklist .deck-facts { display: contents; }      /* the deck table: the figure before the cards, the journey after them */
+  .decklist .dfacts { order: -1; }
   .dfacts { padding-top: 0; }
-  .dr { grid-template-columns: 48px minmax(0, 1fr); }
-  .dr-info { grid-column: 2; }
-  .dr .deck-cards { grid-column: 2; max-width: 640px; }
-  .dr-rank { grid-row: 1 / span 2; align-self: start; }
   .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 760px) {
@@ -324,11 +319,6 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
   .gc-ab.long, .gc-pa.long, .gc-ab.xlong, .gc-pa.xlong { font-size: max(8.5px, calc(var(--u) * 4.4)); }
   .deck-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 12px; max-width: 360px; }
   .deck.spot .deck-cards { gap: 16px 12px; max-width: 420px; }
-  .drs { padding: 0 16px; }
-  .dr { grid-template-columns: minmax(0, 1fr); padding: 16px 0; }
-  .dr-info, .dr .deck-cards { grid-column: 1; }
-  .dr-rank { grid-row: auto; }
-  .dr .deck-cards { max-width: 360px; }
   .tb-bulk .btn { flex: 1 1 auto; }
   .deck-head .obadge { margin-left: 0; }
   .fd-slots { grid-template-columns: repeat(2, minmax(0, 1fr)); }

@@ -11,8 +11,8 @@
 // {one, other} chosen by Intl.PluralRules on the parameter `count`, else `n` (French: 0 to 1.99 are "one"). `**bold**` is honoured by tx()
 // only. French copy uses plain spaces before : ; ? ! - they become no-break spaces when the table loads.
 
-import { h, fmtInt, dec } from "./util.js?v=92a8dd692d";
-import { getLang } from "./store.js?v=92a8dd692d";
+import { h, fmtInt, dec } from "./util.js?v=b9ded1bfd2";
+import { getLang } from "./store.js?v=b9ded1bfd2";
 
 const EN = {
   // ---- document and header
@@ -239,7 +239,7 @@ const EN = {
   "rk.rr": "{pct} in the top-{n} round robin",
   "rk.rrTip": "{games} games against the {opp} other decks of the round robin. It does not set the rank.",
   "rk.roundsK": "rounds to win",
-  "rk.roundsTip": "Mean over its {wins} wins. 1 round = both players act once.",
+  "rk.roundsTip": "Rounds measured on {wins} wins. 1 round = both players act once.",
   "rk.roundsPmTip": "Margin of error (95%), in rounds",
   "rk.speedRate": "Wins {pct} of {games} games",
   "rk.winsIn": "Wins in ~{rounds} rounds",
@@ -986,7 +986,7 @@ const FR = {
   "rk.rr": "{pct} au tournoi du top {n}",
   "rk.rrTip": "{games} parties contre les {opp} autres decks du tournoi. Il ne fixe pas le rang.",
   "rk.roundsK": "tours pour gagner",
-  "rk.roundsTip": "Moyenne sur ses {wins} victoires. 1 tour = chaque joueur agit une fois.",
+  "rk.roundsTip": "Tours mesurés sur {wins} victoires. 1 tour = chaque joueur agit une fois.",
   "rk.roundsPmTip": "Marge d’erreur (95 %), en tours",
   "rk.speedRate": "Gagne {pct} de {games} parties",
   "rk.winsIn": "Gagne en ~{rounds} tours",
