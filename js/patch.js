@@ -3,11 +3,11 @@
 // filled when a value, an ability or a passive changed (the class "mechanical"), hollow when only talents or texts did.
 // The data carries codes and positions; every word comes from i18n.js ("pc.*").
 
-import { h, icon, fmtDate } from "./util.js?v=45718717f7";
-import { DB } from "./data.js?v=45718717f7";
-import { L } from "./cards.js?v=45718717f7";
-import { t } from "./i18n.js?v=45718717f7";
-import { disclosure } from "./ui.js?v=45718717f7";
+import { h, icon, fmtDate } from "./util.js?v=b2212b274c";
+import { DB } from "./data.js?v=b2212b274c";
+import { L } from "./cards.js?v=b2212b274c";
+import { t } from "./i18n.js?v=b2212b274c";
+import { disclosure } from "./ui.js?v=b2212b274c";
 
 // Three patches can differ, and each label names the one it is about (SPEC.md, "Patch labels"):
 // - the GAME patch, the client players run today (below; the lab reads it from the game files);
@@ -17,10 +17,14 @@ import { disclosure } from "./ui.js?v=45718717f7";
 // game build: 1.26, Steam build 26109944, the update of 2026-10-21 18:51).
 export const GAME_PATCH = { patch: "1.26", date: "2026-10-21" };
 
-// The rankings (both tier lists, My decks, the Deck builder, the card view's Meta section) are not shown while the lab
-// recomputes them for the game patch (owner, 2026-10-21: "we keep only the codex"). The views stay in the code: the two tier
-// list tabs draw the "being computed" placeholder (pending.js), My decks and the Deck builder are not shown at all, the
-// Codex is the landing view. Set it back to true when rankings of the game patch are exported (SPEC.md section 3.7).
+// What the site shows of the rankings (SPEC.md section 3.7). Two switches; the views stay in the code either way.
+// - DECK_RANKING_SHOWN: the Deck tier list draws the lab's deck ranking of the game patch (ranking.json, tiers.js), labelled
+//   provisional while its `final` is false (owner, 2026-10-23: "mets en ligne le classement temporaire"), and the card view's
+//   Meta section counts its decks. Off, the Deck tier list draws the "being computed" placeholder (pending.js).
+// - RANKINGS_SHOWN: the rankings still on the 1.22 files (the Card tier list, My decks, the Deck builder, the card view's card
+//   tier and "With and against"), off while the lab recomputes them (owner, 2026-10-21: "we keep only the codex"): the Card
+//   tier list draws the placeholder, My decks and the Deck builder are not shown. Set it back to true when they are exported.
+export const DECK_RANKING_SHOWN = true;
 export const RANKINGS_SHOWN = false;
 
 export const changeOf = (c) => (c && c.patch_change) || null;
@@ -28,16 +32,34 @@ export const changeOf = (c) => (c && c.patch_change) || null;
 export const numbersMoved = (c) => (changeOf(c) || {}).class === "mechanical";
 /** The patch the rankings were computed on (meta.json), when it is older than the card data's (cards.json). */
 export const rankingsBehind = () => (DB.meta && DB.patch && DB.meta.patch !== DB.patch ? DB.meta.patch : null);
-/** The rankings patch, when it is not the game's: the ranking views then carry the patch notice. */
-const rankingsBehindGame = () => (RANKINGS_SHOWN && DB.meta && DB.meta.patch !== GAME_PATCH.patch ? DB.meta.patch : null);
+/** The rankings patch, when it is not the game's: the ranking views then carry the patch notice. A view that reads the deck
+ * ranking (ranking.json) passes its patch; the others read meta.json's while they are shown. */
+const rankingsBehindGame = (patch) => {
+  const p = patch || (RANKINGS_SHOWN && DB.meta ? DB.meta.patch : null);
+  return p && p !== GAME_PATCH.patch ? p : null;
+};
 
-/** The patches in one line (footer, About): "Game patch 1.24, card data 1.23, rankings 1.22"; while the rankings are not
- * shown, the game and card data only ("Game patch 1.26, card data 1.26"). */
-export const patchLine = () => (RANKINGS_SHOWN ? t("pc.line", { game: GAME_PATCH.patch, cards: DB.patch, rank: DB.meta.patch })
-  : t("pc.lineCards", { game: GAME_PATCH.patch, cards: DB.patch }));
+/** The deck ranking (ranking.json) while the Deck tier list shows it, else null. */
+export const deckRanking = () => (DECK_RANKING_SHOWN && DB.ranking) || null;
+
+/** What the deck ranking's caveats quote (i18n "rk.limit.*"): its score list's narrowest and widest margins, in whole points. */
+export function limitParams(R) {
+  const ci = R.by_score.decks.map((d) => d.ci95 * 100);
+  return { lo: Math.round(Math.min(...ci)), hi: Math.round(Math.max(...ci)) };
+}
+
+/** The patches in one line (footer, About): "Game patch 1.24, card data 1.23, rankings 1.22"; while only the deck ranking
+ * is shown, "Game patch 1.26, card data 1.26, provisional deck ranking 1.26"; with no ranking shown, the game and card data
+ * only ("Game patch 1.26, card data 1.26"). */
+export function patchLine() {
+  const game = GAME_PATCH.patch, cards = DB.patch, R = deckRanking();
+  if (RANKINGS_SHOWN) return t("pc.line", { game, cards, rank: DB.meta.patch });
+  if (R) return t(R.final ? "pc.lineDecks" : "pc.lineDecksProv", { game, cards, rank: R.patch });
+  return t("pc.lineCards", { game, cards });
+}
 
 /** The date of the "Updated ..." line: the rankings' export, or the game patch's while only the card data is shown. */
-export const dataDate = () => (RANKINGS_SHOWN ? DB.meta.generated : GAME_PATCH.date);
+export const dataDate = () => (RANKINGS_SHOWN ? DB.meta.generated : deckRanking() ? deckRanking().generated : GAME_PATCH.date);
 
 const word = (c) => t("pc." + changeOf(c).class, { patch: DB.patch });
 
@@ -48,13 +70,6 @@ export const glyph = (c) => h("i.pglyph" + (numbersMoved(c) ? "" : ".hollow"), {
 export function patchTag(c) {
   if (!changeOf(c)) return null;
   return h("span.tag.ptag", [glyph(c), h("span", word(c))]);
-}
-
-/** The small mark on a card of a deck or a tier-list icon: the glyph with its words for screen readers and as a tooltip. */
-export function patchMark(c, cls = "pmark") {
-  if (!changeOf(c)) return null;
-  const w = word(c);
-  return h("span." + cls, { title: w }, [glyph(c), h("span.sr", w)]);
 }
 
 /** What changed, in one line: "Changed: HP 550 → 750, Dragon's Breath. Removed: Scorching Bite." (null for an unchanged card). */
@@ -87,15 +102,13 @@ export function oldNumbersNote(c) {
 
 /**
  * The patch notice of the ranking views (Deck tier list, Card tier list, My decks, Deck builder), or null when the rankings
- * are on the game's patch. Its text is the lab's finding for that game patch (pc.notice), never a card name.
- * `legend`: the view draws the patch mark on its cards and has no other legend for it (the Deck tier list), so the notice
- * ends with "◆ changed in 1.23", the card data's patch (the glyph is decorative there; the marks carry their own words).
+ * are on the game's patch (`patch`: the view's rankings patch when it reads the deck ranking). Its text is the lab's finding
+ * for that game patch (pc.notice), never a card name.
  */
-export function patchNotice({ legend = false } = {}) {
-  if (!rankingsBehindGame()) return null;
-  const key = h("span.pnotice-key", [h("i.pglyph", { "aria-hidden": "true" }), t("pc.noticeKey", { patch: DB.patch })]);
+export function patchNotice({ patch = null } = {}) {
+  if (!rankingsBehindGame(patch)) return null;
   const date = fmtDate(GAME_PATCH.date, "long", false);
-  return h("p.pnotice", { role: "note" }, [t("pc.notice", { game: GAME_PATCH.patch, date }), legend ? [" ", key] : null]);
+  return h("p.pnotice", { role: "note" }, t("pc.notice", { game: GAME_PATCH.patch, date }));
 }
 
 // which views have their "About the numbers" open: kept across a redraw (a language change)
@@ -104,10 +117,12 @@ const infoOpen = new Set();
 /**
  * A ranking view's intro line (DESIGN.md "Intro line"): the one short `lede`, then, when there is something more to say (the
  * patch notice, the view's `method` sentence), a quiet "About the numbers" text disclosure at its end that opens those lines
- * under it. Returns the nodes to put under the h1: the line, and the region when there is one. `key` names the view.
+ * under it. Returns the nodes to put under the h1: the line, and the region when there is one. `key` names the view;
+ * `method` is one sentence or a list of them (one paragraph each, or a node of its own such as a list); `patch` is the view's
+ * rankings patch when it reads the deck ranking (ranking.json).
  */
-export function introLine(key, lede, { method = null, legend = false } = {}) {
-  const parts = [method ? h("p", method) : null, patchNotice({ legend })].filter(Boolean);
+export function introLine(key, lede, { method = null, patch = null } = {}) {
+  const parts = [...[].concat(method || []).map((m) => (m instanceof Node ? m : h("p", m))), patchNotice({ patch })].filter(Boolean);
   if (!parts.length) return [h("div.vsub", lede)];
   const id = "info-" + key;
   const btn = h("button.tdisc", { type: "button", "aria-controls": id }, [icon("info"), h("span", t("pc.info")), icon("chevron")]);

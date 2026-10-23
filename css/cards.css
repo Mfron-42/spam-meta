@@ -96,7 +96,6 @@ button.gc:active .gc-in { scale: .98; }
 @media (hover: hover) { .mc:hover::after, .ct-ic:hover::after { opacity: .6; } }
 .mc:active, .ct-ic:active { scale: .96; }
 .mc:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--night), 0 0 0 4px var(--accent); }
-.strip { display: inline-flex; gap: 8px; padding: 7px 0 0 7px; flex: none; }
 
 .cc { display: inline-flex; align-items: center; gap: 8px; height: 28px; max-width: 100%; margin: 2px 0; padding: 0 8px 0 4px; border: 0; border-radius: 4px; vertical-align: middle; text-align: left;
   background: var(--socket); box-shadow: var(--sunken); color: var(--ink); font: 600 14px/1 var(--text); cursor: pointer;
@@ -108,15 +107,6 @@ button.gc:active .gc-in { scale: .98; }
 .cc:focus-visible { outline: none; box-shadow: var(--sunken), 0 0 0 2px var(--accent); }
 .cc { position: relative; }
 .cc::after { content: ""; position: absolute; inset: -8px -2px; }
-.gc-q { position: absolute; inset: 0; display: grid; place-items: center; padding-bottom: calc(var(--u) * 10); font: 400 calc(var(--u) * 34) / 1 var(--display); color: var(--muted); }
-.gc.back { cursor: default; }
-.gc.back { --rc: var(--r-common); }
-.gc.back.r-rare { --rc: var(--r-rare); } .gc.back.r-epic { --rc: var(--r-epic); } .gc.back.r-legendary { --rc: var(--r-legendary); } .gc.back.r-divine { --rc: var(--r-divine); }
-.gc.back .gc-face { background: linear-gradient(180deg, var(--panel-hi), var(--socket)); border-color: var(--rc); background: linear-gradient(180deg, color-mix(in srgb, var(--rc) 26%, var(--panel-hi)), var(--socket) 78%); }
-/* a secret deck's card: blank grey, no rarity colour, faint diagonal lines that read as struck out (DESIGN.md, Card back) */
-.gc.back.blank .gc-face { border-color: var(--line); background:
-  repeating-linear-gradient(135deg, rgba(255, 255, 255, .035) 0 2px, transparent 2px 12px), linear-gradient(180deg, var(--panel-hi), var(--socket) 78%); }
-.gc-r { position: absolute; left: 0; right: 0; bottom: calc(var(--u) * 17); text-align: center; font: 400 max(12px, calc(var(--u) * 9)) / 1 var(--display); letter-spacing: .02em; color: var(--rc); }
 .panel .cc, .stat .cc { background: var(--socket); }
 
 /* ---------------------------------------------------------------- Codex cell and the Owned toggle */

@@ -3,10 +3,11 @@
 // Matching is accent- and case-insensitive and every word must match ("chouette", "leviathan", "lames en"); a phrase in
 // double quotes must match as written. The field clears with its clear button or Escape.
 
-import { h, icon, norm, debounce } from "./util.js?v=45718717f7";
-import { DB } from "./data.js?v=45718717f7";
-import { chip } from "./cards.js?v=45718717f7";
-import { t, tx } from "./i18n.js?v=45718717f7";
+import { h, icon, norm, debounce } from "./util.js?v=b2212b274c";
+import { DB } from "./data.js?v=b2212b274c";
+import { chip } from "./cards.js?v=b2212b274c";
+import { t, tx } from "./i18n.js?v=b2212b274c";
+import { RANKINGS_SHOWN } from "./patch.js?v=b2212b274c";
 
 /** The words of a query, normalised: `polychrome "en peine"` -> ["polychrome", "en peine"]. */
 export function terms(q) {
@@ -63,8 +64,8 @@ export function searchField({ id, name = "q", placeholder, label, clearLabel, va
 /**
  * The card search row of a deck list (Deck tier list, My decks): the field, then one live line beside it that names what was
  * found ("3 decks with <chip>") or says nothing matched, with a Clear button. When the query names exactly one card that a deck
- * holds, the line ends with "Decks with this card", which opens the Deck builder with that card picked (every measured deck, not
- * only the ones of this list). The caller filters its decks in onChange and
+ * holds and the Deck builder is shown (patch.js RANKINGS_SHOWN), the line ends with "Decks with this card", which opens the Deck
+ * builder with that card picked (every measured deck, not only the ones of this list). The caller filters its decks in onChange and
  * then calls paint(ts, hits, inDecks, shown): the query's words, the cards it names, those of them some deck of the list
  * holds, and how many decks are shown. Returns { el, field, paint }.
  */
@@ -82,7 +83,7 @@ export function findRow({ id, name, placeholder, label, clearLabel, value = "", 
     else if (!shown) say = [...(hits.length <= 2 ? tx("find.noDeck", { cards: h("span.find-cards", named(hits)) }) : [t("find.noDeckN", { m: hits.length })]), clear];
     else if (inDecks.length <= 2) say = tx("find.decks", { n: shown, cards: h("span.find-cards", named(inDecks)) });
     else say = [t("find.decksN", { n: shown, m: inDecks.length })];
-    if (hits.length === 1 && shown) {
+    if (hits.length === 1 && shown && RANKINGS_SHOWN) {
       say.push(h("a.btn.ghost.find-more", { href: "#builder", "data-goto": "builder", "data-pick": hits[0].key, title: t("card.findDecksTitle") }, [icon("search"), t("card.findDecks")]));
     }
     status.replaceChildren(...say);

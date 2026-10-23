@@ -6,7 +6,7 @@ Live site: https://mfron-42.github.io/spam-meta/
 
 **This site is AI-generated.**
 
-The rankings come from 1,148,832 simulated matches played by search AIs in an offline copy of the game. Patch 1.22, data generated on 2026-10-14.
+The deck ranking of patch 1.26 (provisional, version 1) comes from 134,197 games simulated by our AI, playing both sides in an offline copy of the game. Data generated on 2026-10-23.
 
 Bug or question? Discord: noob9795
 

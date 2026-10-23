@@ -3,17 +3,17 @@
 // drawn as a full-screen card view (card.css); its enter and exit (the card flying from its tile) are played by
 // cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt } from "./util.js?v=45718717f7";
-import { DB, loadTier, loadCardTiers, loadCardCounters } from "./data.js?v=45718717f7";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=45718717f7";
-import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=45718717f7";
-import { encode, decode } from "./code.js?v=45718717f7";
-import { copyText, disclosure } from "./ui.js?v=45718717f7";
-import { t, tx, millions } from "./i18n.js?v=45718717f7";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, RANKINGS_SHOWN, GAME_PATCH } from "./patch.js?v=45718717f7";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=45718717f7";
-import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=45718717f7";
-import { attachTilt } from "./cardtilt.js?v=45718717f7";
+import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt, dec } from "./util.js?v=b2212b274c";
+import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=b2212b274c";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=b2212b274c";
+import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=b2212b274c";
+import { encode, decode } from "./code.js?v=b2212b274c";
+import { copyText, disclosure } from "./ui.js?v=b2212b274c";
+import { t, tx, millions } from "./i18n.js?v=b2212b274c";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, RANKINGS_SHOWN, DECK_RANKING_SHOWN, GAME_PATCH } from "./patch.js?v=b2212b274c";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=b2212b274c";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=b2212b274c";
+import { attachTilt } from "./cardtilt.js?v=b2212b274c";
 
 let openDlg = null, pushed = false;
 
@@ -80,16 +80,19 @@ export function toast(message, action) {
 export function hideToast() { $("#toast").classList.remove("on"); }
 
 // ---------------------------------------------------------------- card dialog
-let currentKey = null;
+let currentKey = null, currentTalent = null;
 const cardDlg = () => $("#dlg-card");
 
 /**
  * Open a card. `mode` "url": the page was opened on the card's address (a deep link or a direct load), so no history
  * entry is added and the card opens without travelling. `from`: the pressed control; its card flies to the dialog.
+ * `talent`: the position of the talent to show selected (a card of a ranked deck opens on the talent that deck plays).
  */
-export function openCard(key, mode, from) {
+export function openCard(key, mode, from, talent) {
   const c = DB.byKey.get(key);
   if (!c) return;
+  const tk = Number(talent);
+  currentTalent = talent != null && talent !== "" && Number.isInteger(tk) && c.talents[tk] ? tk : null;
   // what the flight needs is taken before anything changes (a chip inside the open dialog is replaced below); a motion
   // still running ends at once, so a second card never lands in a half-open or half-closed dialog
   const flight = mode === "url" ? null : takeOff(from);
@@ -102,7 +105,7 @@ export function openCard(key, mode, from) {
   const fromUrl = mode === "url" && !dlg.open;
   dlg._fromUrl = fromUrl;
   openModal(dlg, () => {
-    currentKey = null; unsize(dlg);
+    currentKey = null; currentTalent = null; unsize(dlg);
     if (dlg._fromUrl) { history.replaceState(null, "", "#" + tab); dlg._fromUrl = false; }
   }, `#${tab}/${key}`);
   dlg.querySelector(".dlg-scroll").scrollTop = 0;
@@ -296,12 +299,13 @@ function passiveEntry(c, p, i) {
  * three tabs (stacked on a phone), the suggested one carrying the "Suggested" tag and selected when the dialog opens; the
  * selected talent's name and text show in one shared detail area under them. Every text stays in the page (the panes share
  * one grid cell, so the area keeps the height of the longest and nothing moves when the choice changes); arrow keys move
- * between the tabs. Without a suggested talent, the first one is selected and no tag is drawn.
+ * between the tabs. Without a suggested talent, the first one is selected and no tag is drawn. `pick`: the talent to select
+ * instead (the one a ranked deck plays, when the card was opened from that deck).
  */
-function talentPicker(c) {
+function talentPicker(c, pick = null) {
   const lang = getLang();
   const sugg = suggestedTalent(c);
-  const first = sugg ? sugg.i : 0;
+  const first = pick != null ? pick : sugg ? sugg.i : 0;
   const id = (i, part) => `tp-${part}-${i}`;
   const tabs = [], panes = [];
   const select = (k, focus) => {
@@ -456,6 +460,44 @@ function metaBand(c) {
   ]);
 }
 
+/**
+ * The Meta section while only the deck ranking is shown (patch.js DECK_RANKING_SHOWN): one data notice naming the ranking
+ * ("Provisional ranking, patch 1.26."), then two stat cells, the decks of each list that play the card with the best rank,
+ * and, when one does, "Decks with this card", which opens the Deck tier list searched for the card. No card tier and no
+ * "With and against" (their files are 1.22).
+ */
+function rankingBand(c) {
+  const cell = (label, fig, cap) => h("div.stat.cd-stat", [h("span.stat-k", label), h("span.stat-v", fig), h("span.stat-s", cap)]);
+  const sec = h("section.cd-meta", { "aria-labelledby": "cd-meta-h" });
+  const paint = (R) => {
+    const holds = (list) => list.decks.filter((d) => d.cards.includes(c.id));
+    const score = holds(R.by_score), speed = holds(R.by_speed);
+    const best = (list, none) => (list.length ? t("card.rkBest", { rank: list[0].rank }) : t(none));
+    sec.replaceChildren(
+      h("div.cd-meta-h", [
+        h("h3#cd-meta-h", t("card.metaH")),
+        score.length || speed.length
+          ? h("a.btn.cd-find", { href: "#tiers", "data-goto": "tiers", "data-find": c.key, title: t("card.rkFindTitle") }, [icon("search"), t("card.findDecks")])
+          : null,
+      ]),
+      h("p.dnote", [icon("info"), h("span", t(R.final ? "card.rkNote" : "card.rkNoteProv", { patch: R.patch }))]),
+      h("div.cd-stats", [
+        cell(t("card.rkScoreK", { n: R.by_score.decks.length }), fmtInt(score.length), best(score, "card.tlNone")),
+        cell(t("card.rkSpeedK", { n: R.by_speed.decks.length }), fmtInt(speed.length), best(speed, "card.tlNone")),
+      ]),
+    );
+  };
+  if (DB.ranking) paint(DB.ranking);
+  else {
+    sec.setAttribute("aria-busy", "true");
+    sec.replaceChildren(h("div.cd-meta-h", h("h3#cd-meta-h", t("card.metaH"))), h("div.skel.cm-skel", { "aria-hidden": "true" }, [h("i"), h("i")]));
+    loadRanking().then((R) => { if (currentKey === c.key && sec.isConnected) paint(R); })
+      .catch(() => { if (sec.isConnected) sec.remove(); })
+      .finally(() => sec.removeAttribute("aria-busy"));
+  }
+  return sec;
+}
+
 function renderCardDialog() {
   const c = DB.byKey.get(currentKey);
   const dlg = cardDlg();
@@ -482,7 +524,7 @@ function renderCardDialog() {
       // where the ruled lines come from, said once under the abilities that have them
       c.abilities.some((a) => a.hidden) ? h("p.hx-note", [h("span.hx-note-rule", { "aria-hidden": "true" }), t("hx.note")]) : null),
     c.passives.length ? kitGroup("cd-pa", t("card.passives"), c.passives.map((p, i) => passiveEntry(c, p, i))) : null,
-    c.talents.length ? kitGroup("cd-ta", t("card.talents"), talentPicker(c)) : null,
+    c.talents.length ? kitGroup("cd-ta", t("card.talents"), talentPicker(c, currentTalent)) : null,
   ];
 
   // the card's name is the dialog's accessible name; it is not printed (owner, 2026-10-15: the card face carries it)
@@ -500,7 +542,8 @@ function renderCardDialog() {
       ]),
       h("div.cd-kit", kit),
     ]),
-    RANKINGS_SHOWN ? metaBand(c) : null,      // the Meta section reads the rankings: not drawn while they are not shown
+    // the Meta section reads the rankings: the full one with them, the deck ranking's counts alone with it, else none
+    RANKINGS_SHOWN ? metaBand(c) : DECK_RANKING_SHOWN ? rankingBand(c) : null,
     mods,
   ]);
   $(".dlg-scroll", dlg).replaceChildren(body);
@@ -527,6 +570,21 @@ function stageText(s) {
 
 function buildAbout() {
   // while the rankings are not shown (patch.js), About says what the site holds today: the cards, and the rankings being computed
+  const R = deckRanking();
+  if (!RANKINGS_SHOWN && R) return h("div.about", [
+    h("h2#about-title", t("about.h")),
+    h("p.lead", tx("about.lead")),
+    h("section", [h("h3", t("about.whatH")), h("p", t(R.final ? "about.whatRk" : "about.whatRkProv", { patch: R.patch }))]),
+    h("section", [
+      h("h3", t("about.howH")),
+      h("p", t("about.rkHow", { ai: R.pilot, games: R.games, pool: R.pool, kept: R.by_score.decks_measured,
+        n: R.by_score.opponents, per: R.by_score.games_per_opponent })),
+      h("p", t("about.rkSpeed", { median: dec(R.by_speed.median_rounds, 1) })),
+    ]),
+    h("section", [h("h3", t("about.limitsH")), h("ul", R.limits.map((l) => h("li", t("rk.limit." + l, limitParams(R)))))]),
+    h("section", [h("h3", t("about.dataH")), h("p", t("about.data", { line: patchLine(), date: fmtDate(dataDate()) }))]),
+    h("p.legal", t("foot.legal")),
+  ]);
   if (!RANKINGS_SHOWN) return h("div.about", [
     h("h2#about-title", t("about.h")),
     h("p.lead", tx("about.lead")),

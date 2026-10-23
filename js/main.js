@@ -1,22 +1,23 @@
 // Entry point: loads the core data, wires the header, the tabs and the delegated clicks, and mounts the views. While the
-// rankings are being recomputed (patch.js RANKINGS_SHOWN off) only three tabs are shown: the two tier lists draw the
-// "being computed" placeholder (pending.js), the Codex is the landing view, My decks and the Deck builder are not shown.
+// rankings are being recomputed (patch.js RANKINGS_SHOWN off) only three tabs are shown, My decks and the Deck builder are not
+// shown and the Card tier list draws the "being computed" placeholder (pending.js); the Deck tier list draws the deck ranking
+// of the game patch (patch.js DECK_RANKING_SHOWN, tiers.js) and is the landing view, else the placeholder too and the Codex lands.
 
-import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=45718717f7";
-import { t, applyStatic, millions } from "./i18n.js?v=45718717f7";
-import { copyText } from "./ui.js?v=45718717f7";
-import { DB, loadCore } from "./data.js?v=45718717f7";
-import { patchLine, dataDate, RANKINGS_SHOWN } from "./patch.js?v=45718717f7";
-import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=45718717f7";
-import { versioned, withQuery } from "./version.js?v=45718717f7";
-import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=45718717f7";
-import { holdTiles } from "./cardtilt.js?v=45718717f7";
-import { ambient } from "./ambient.js?v=45718717f7";
+import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=b2212b274c";
+import { t, applyStatic, millions } from "./i18n.js?v=b2212b274c";
+import { copyText } from "./ui.js?v=b2212b274c";
+import { DB, loadCore, loadRanking } from "./data.js?v=b2212b274c";
+import { patchLine, dataDate, deckRanking, RANKINGS_SHOWN, DECK_RANKING_SHOWN } from "./patch.js?v=b2212b274c";
+import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=b2212b274c";
+import { versioned, withQuery } from "./version.js?v=b2212b274c";
+import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=b2212b274c";
+import { holdTiles } from "./cardtilt.js?v=b2212b274c";
+import { ambient } from "./ambient.js?v=b2212b274c";
 
 // Five tabs, one view each; the Deck builder (#builder) sits next to My decks. TABS are the ones shown.
 const ALL_TABS = ["tiers", "card-tiers", "codex", "decks", "builder"];
 const TABS = RANKINGS_SHOWN ? ALL_TABS : ["tiers", "card-tiers", "codex"];
-const HOME = RANKINGS_SHOWN ? "tiers" : "codex";      // the landing view (no hash, an unknown one, or a tab not shown)
+const HOME = RANKINGS_SHOWN || DECK_RANKING_SHOWN ? "tiers" : "codex";    // the landing view (no hash, an unknown one, or a tab not shown)
 const TITLE_KEYS = { tiers: "tab.tiers", "card-tiers": "tab.cardTiers", codex: "tab.codex", decks: "tab.decks", builder: "fd.title" };
 const tabName = (tab) => t(TITLE_KEYS[tab]);
 let firstTab = true;         // the landing page keeps the site title until the visitor moves
@@ -26,7 +27,7 @@ const scrolls = {};          // where each tab was scrolled to, so coming back d
 let freshNav = false;        // a button that sends you to a tab starts it at the top
 const MODULES = RANKINGS_SHOWN
   ? { tiers: "./tiers.js", "card-tiers": "./cardtiers.js", codex: "./codex.js", decks: "./mydecks.js", builder: "./finder.js" }
-  : { tiers: "./pending.js", "card-tiers": "./pending.js", codex: "./codex.js" };
+  : { tiers: DECK_RANKING_SHOWN ? "./tiers.js" : "./pending.js", "card-tiers": "./pending.js", codex: "./codex.js" };
 const RETRY_MS = 1200;       // a view module that fails to load gets one more try after this pause
 let current = null;
 
@@ -42,8 +43,9 @@ document.addEventListener("error", (e) => {
   }
 }, true);
 
-// ---- delegated clicks: card chips and cards open the dialog; [data-goto] jumps to a view ([data-pick]: the Deck builder
-// with that card picked, from the card dialog)
+// ---- delegated clicks: card chips and cards open the dialog (a deck's card on its talent, [data-talent]); [data-goto] jumps
+// to a view ([data-pick]: the Deck builder with that card picked, [data-find]: the Deck tier list searched for that card, both
+// from the card dialog)
 const plain = (e) => e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey;   // let "open in a new tab" work on links
 document.addEventListener("click", (e) => {
   const g = e.target.closest("[data-goto]");
@@ -52,11 +54,12 @@ document.addEventListener("click", (e) => {
     e.preventDefault();
     freshNav = true;
     if (g.dataset.pick) pickCard(g.dataset.pick);
+    else if (g.dataset.find) findCard(g.dataset.find);
     else go(g.dataset.goto);
     return;
   }
   const c = e.target.closest("[data-card]");
-  if (c) { e.preventDefault(); openCard(c.dataset.card, null, c); }
+  if (c) { e.preventDefault(); openCard(c.dataset.card, null, c, c.dataset.talent); }
 });
 
 /** The Deck builder with one card picked: the card dialog closes in place (its address becomes #builder), then the view opens. */
@@ -64,6 +67,13 @@ function pickCard(key) {
   leaveCard("builder");
   go("builder");
   ensure("builder").then(() => { if (mods.builder) mods.builder.pick([key]); });
+}
+
+/** The Deck tier list searched for one card: the card dialog closes in place (its address becomes #tiers), then the view opens. */
+function findCard(key) {
+  leaveCard("tiers");
+  go("tiers");
+  ensure("tiers").then(() => { if (mods.tiers && mods.tiers.findCard) mods.tiers.findCard(key); });
 }
 
 // ---- tabs
@@ -225,7 +235,7 @@ function paintLang() {
 }
 
 function paintTitle() {
-  document.title = firstTab && current === HOME && RANKINGS_SHOWN ? t("doc.title") : t("doc.tabTitle", { tab: tabName(current) });
+  document.title = firstTab && current === HOME && HOME === "tiers" ? t("doc.title") : t("doc.tabTitle", { tab: tabName(current) });
 }
 
 // Every figure comes from meta.json: the games behind this patch (with the games of each stage) and, apart, all patches.
@@ -257,13 +267,14 @@ function copyHandle() {
 }
 
 function paintFooter() {
-  const m = DB.meta;
-  // the method and the games describe the rankings: not said while they are not shown
-  $("#foot-method").textContent = RANKINGS_SHOWN ? t("foot.method", { patch: m.patch, games: millions(m.totals.patch_games) }) : "";
+  const m = DB.meta, R = deckRanking();
+  // the method and the games describe the rankings shown: the deck ranking's while it is the only one, nothing with none
+  $("#foot-method").textContent = RANKINGS_SHOWN ? t("foot.method", { patch: m.patch, games: millions(m.totals.patch_games) })
+    : R ? t(R.final ? "foot.methodRk" : "foot.methodRkProv", { patch: R.patch, games: R.games, ai: R.pilot }) : "";
   $("#foot-games").textContent = RANKINGS_SHOWN ? gamesLine(m) : "";
   $("#foot-games").hidden = !RANKINGS_SHOWN;
   $("#foot-patch").textContent = t("foot.patch", { line: patchLine(), date: fmtDate(dataDate()) });
-  $("#foot-about").textContent = t(RANKINGS_SHOWN ? "foot.how" : "head.about");     // nothing computed is shown: plain "About"
+  $("#foot-about").textContent = t(RANKINGS_SHOWN || R ? "foot.how" : "head.about");     // nothing computed is shown: plain "About"
   copyPaint();
 }
 
@@ -295,6 +306,8 @@ async function boot() {
   const first = preShow();
   try {
     await loadCore();
+    // the deck ranking is quoted by the footer, About and the card view: it comes with the core (its view still retries on its own)
+    if (DECK_RANKING_SHOWN) await loadRanking().catch((err) => console.error(err));
   } catch (err) {
     console.error(err);
     $("#view-" + first).replaceChildren(errorPanel(t("err.title"), t("err.dataText"), t("err.reload"), () => location.reload()));
