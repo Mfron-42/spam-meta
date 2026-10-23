@@ -1,23 +1,24 @@
-// Entry point: loads the core data, wires the header, the tabs and the delegated clicks, and mounts the views. While the
-// rankings are being recomputed (patch.js RANKINGS_SHOWN off) only three tabs are shown, My decks and the Deck builder are not
-// shown and the Card tier list draws the "being computed" placeholder (pending.js); the Deck tier list draws the deck ranking
-// of the game patch (patch.js DECK_RANKING_SHOWN, tiers.js) and is the landing view, else the placeholder too and the Codex lands.
+// Entry point: loads the core data, wires the header, the tabs and the delegated clicks, and mounts the views. The switches of
+// patch.js decide what shows: the Deck tier list draws the deck ranking of the game patch (DECK_RANKING_SHOWN, tiers.js) and is
+// the landing view, else the "being computed" placeholder (pending.js) and the Codex lands; My decks and the Deck builder read
+// the same run's deck table (DECK_TABLE_SHOWN), else they have no tab; the Card tier list draws the placeholder while its
+// rankings are being recomputed (CARD_RANKINGS_SHOWN off).
 
-import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=5a5eaa4fb2";
-import { t, applyStatic, millions } from "./i18n.js?v=5a5eaa4fb2";
-import { copyText } from "./ui.js?v=5a5eaa4fb2";
-import { DB, loadCore, loadRanking } from "./data.js?v=5a5eaa4fb2";
-import { patchLine, dataDate, deckRanking, RANKINGS_SHOWN, DECK_RANKING_SHOWN } from "./patch.js?v=5a5eaa4fb2";
-import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=5a5eaa4fb2";
-import { versioned, withQuery } from "./version.js?v=5a5eaa4fb2";
-import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=5a5eaa4fb2";
-import { holdTiles } from "./cardtilt.js?v=5a5eaa4fb2";
-import { ambient } from "./ambient.js?v=5a5eaa4fb2";
+import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=92a8dd692d";
+import { t, applyStatic, millions } from "./i18n.js?v=92a8dd692d";
+import { copyText } from "./ui.js?v=92a8dd692d";
+import { DB, loadCore, loadRanking } from "./data.js?v=92a8dd692d";
+import { patchLine, dataDate, deckRanking, CARD_RANKINGS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN } from "./patch.js?v=92a8dd692d";
+import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=92a8dd692d";
+import { versioned, withQuery } from "./version.js?v=92a8dd692d";
+import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=92a8dd692d";
+import { holdTiles } from "./cardtilt.js?v=92a8dd692d";
+import { ambient } from "./ambient.js?v=92a8dd692d";
 
 // Five tabs, one view each; the Deck builder (#builder) sits next to My decks. TABS are the ones shown.
 const ALL_TABS = ["tiers", "card-tiers", "codex", "decks", "builder"];
-const TABS = RANKINGS_SHOWN ? ALL_TABS : ["tiers", "card-tiers", "codex"];
-const HOME = RANKINGS_SHOWN || DECK_RANKING_SHOWN ? "tiers" : "codex";    // the landing view (no hash, an unknown one, or a tab not shown)
+const TABS = CARD_RANKINGS_SHOWN || DECK_TABLE_SHOWN ? ALL_TABS : ["tiers", "card-tiers", "codex"];
+const HOME = CARD_RANKINGS_SHOWN || DECK_RANKING_SHOWN ? "tiers" : "codex";    // the landing view (no hash, an unknown one, or a tab not shown)
 const TITLE_KEYS = { tiers: "tab.tiers", "card-tiers": "tab.cardTiers", codex: "tab.codex", decks: "tab.decks", builder: "fd.title" };
 const tabName = (tab) => t(TITLE_KEYS[tab]);
 let firstTab = true;         // the landing page keeps the site title until the visitor moves
@@ -25,9 +26,13 @@ const mounted = {};
 const mods = {};             // the view modules once mounted
 const scrolls = {};          // where each tab was scrolled to, so coming back does not lose the place
 let freshNav = false;        // a button that sends you to a tab starts it at the top
-const MODULES = RANKINGS_SHOWN
-  ? { tiers: "./tiers.js", "card-tiers": "./cardtiers.js", codex: "./codex.js", decks: "./mydecks.js", builder: "./finder.js" }
-  : { tiers: DECK_RANKING_SHOWN ? "./tiers.js" : "./pending.js", "card-tiers": "./pending.js", codex: "./codex.js" };
+const MODULES = {
+  tiers: DECK_RANKING_SHOWN ? "./tiers.js" : "./pending.js",
+  "card-tiers": CARD_RANKINGS_SHOWN ? "./cardtiers.js" : "./pending.js",
+  codex: "./codex.js",
+  decks: "./mydecks.js",
+  builder: "./finder.js",
+};
 const RETRY_MS = 1200;       // a view module that fails to load gets one more try after this pause
 let current = null;
 
@@ -269,12 +274,12 @@ function copyHandle() {
 function paintFooter() {
   const m = DB.meta, R = deckRanking();
   // the method and the games describe the rankings shown: the deck ranking's while it is the only one, nothing with none
-  $("#foot-method").textContent = RANKINGS_SHOWN ? t("foot.method", { patch: m.patch, games: millions(m.totals.patch_games) })
+  $("#foot-method").textContent = CARD_RANKINGS_SHOWN ? t("foot.method", { patch: m.patch, games: millions(m.totals.patch_games) })
     : R ? t(R.final ? "foot.methodRk" : "foot.methodRkProv", { patch: R.patch, games: R.games, ai: R.pilot }) : "";
-  $("#foot-games").textContent = RANKINGS_SHOWN ? gamesLine(m) : "";
-  $("#foot-games").hidden = !RANKINGS_SHOWN;
+  $("#foot-games").textContent = CARD_RANKINGS_SHOWN ? gamesLine(m) : "";
+  $("#foot-games").hidden = !CARD_RANKINGS_SHOWN;
   $("#foot-patch").textContent = t("foot.patch", { line: patchLine(), date: fmtDate(dataDate()) });
-  $("#foot-about").textContent = t(RANKINGS_SHOWN || R ? "foot.how" : "head.about");     // nothing computed is shown: plain "About"
+  $("#foot-about").textContent = t(CARD_RANKINGS_SHOWN || R ? "foot.how" : "head.about");     // nothing computed is shown: plain "About"
   copyPaint();
 }
 

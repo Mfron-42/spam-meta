@@ -3,17 +3,17 @@
 // drawn as a full-screen card view (card.css); its enter and exit (the card flying from its tile) are played by
 // cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt, dec } from "./util.js?v=5a5eaa4fb2";
-import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=5a5eaa4fb2";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=5a5eaa4fb2";
-import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=5a5eaa4fb2";
-import { encode, decode } from "./code.js?v=5a5eaa4fb2";
-import { copyText, disclosure } from "./ui.js?v=5a5eaa4fb2";
-import { t, tx, millions } from "./i18n.js?v=5a5eaa4fb2";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, RANKINGS_SHOWN, DECK_RANKING_SHOWN, GAME_PATCH } from "./patch.js?v=5a5eaa4fb2";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=5a5eaa4fb2";
-import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=5a5eaa4fb2";
-import { attachTilt } from "./cardtilt.js?v=5a5eaa4fb2";
+import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt, dec } from "./util.js?v=92a8dd692d";
+import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=92a8dd692d";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=92a8dd692d";
+import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=92a8dd692d";
+import { encode, decode } from "./code.js?v=92a8dd692d";
+import { copyText, disclosure } from "./ui.js?v=92a8dd692d";
+import { t, tx, millions } from "./i18n.js?v=92a8dd692d";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, CARD_RANKINGS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, GAME_PATCH } from "./patch.js?v=92a8dd692d";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=92a8dd692d";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=92a8dd692d";
+import { attachTilt } from "./cardtilt.js?v=92a8dd692d";
 
 let openDlg = null, pushed = false;
 
@@ -462,9 +462,9 @@ function metaBand(c) {
 
 /**
  * The Meta section while only the deck ranking is shown (patch.js DECK_RANKING_SHOWN): one data notice naming the ranking
- * ("Provisional ranking, patch 1.26."), then two stat cells, the decks of each list that play the card with the best rank,
- * and, when one does, "Decks with this card", which opens the Deck tier list searched for the card. No card tier and no
- * "With and against" (their files are 1.22).
+ * ("Temporary ranking, patch 1.26."), then two stat cells, the decks of each list that play the card with the best rank,
+ * and "Decks with this card": the Deck builder with the card picked while it is shown (patch.js DECK_TABLE_SHOWN), else,
+ * when a listed deck plays it, the Deck tier list searched for the card. No card tier and no "With and against" (1.22 files).
  */
 function rankingBand(c) {
   const cell = (label, fig, cap) => h("div.stat.cd-stat", [h("span.stat-k", label), h("span.stat-v", fig), h("span.stat-s", cap)]);
@@ -476,9 +476,12 @@ function rankingBand(c) {
     sec.replaceChildren(
       h("div.cd-meta-h", [
         h("h3#cd-meta-h", t("card.metaH")),
-        score.length || speed.length
-          ? h("a.btn.cd-find", { href: "#tiers", "data-goto": "tiers", "data-find": c.key, title: t("card.rkFindTitle") }, [icon("search"), t("card.findDecks")])
-          : null,
+        // the Deck builder with this card picked while it is shown (every measured deck), else the Deck tier list searched for it
+        DECK_TABLE_SHOWN
+          ? h("a.btn.cd-find", { href: "#builder", "data-goto": "builder", "data-pick": c.key, title: t("card.findDecksTitle") }, [icon("search"), t("card.findDecks")])
+          : score.length || speed.length
+            ? h("a.btn.cd-find", { href: "#tiers", "data-goto": "tiers", "data-find": c.key, title: t("card.rkFindTitle") }, [icon("search"), t("card.findDecks")])
+            : null,
       ]),
       h("p.dnote", [icon("info"), h("span", t(R.final ? "card.rkNote" : "card.rkNoteProv", { patch: R.patch }))]),
       h("div.cd-stats", [
@@ -504,7 +507,7 @@ function renderCardDialog() {
   unsize(dlg);
   const lang = getLang();
   const own = isOwned(c.key);
-  const ownBtn = h("button.btn.toggle", { type: "button", "aria-pressed": String(own), "data-own-dlg": c.key, "aria-describedby": RANKINGS_SHOWN ? "cd-hint" : null, onclick: () => {
+  const ownBtn = h("button.btn.toggle", { type: "button", "aria-pressed": String(own), "data-own-dlg": c.key, "aria-describedby": DECK_TABLE_SHOWN ? "cd-hint" : null, onclick: () => {
     setOwned(c.key, !isOwned(c.key));
   } }, [icon("plus"), icon("check"), h("span.on-off", t(own ? "card.isOwned" : "card.markOwned"))]);
 
@@ -537,13 +540,13 @@ function renderCardDialog() {
         // the six resistances straight under the card, untitled (owner, 2026-10-15: players know what they are); the
         // list keeps its name for screen readers
         resist.length ? h("ul.ress", { "aria-label": t("card.resistances") }, resist) : null,
-        // "Owned cards feed My decks." only while My decks is shown (patch.js RANKINGS_SHOWN)
-        h("div.cd-own", [ownBtn, RANKINGS_SHOWN ? h("p.cd-hint#cd-hint", t("card.feeds")) : null]),
+        // "Owned cards feed My decks." only while My decks is shown (patch.js DECK_TABLE_SHOWN)
+        h("div.cd-own", [ownBtn, DECK_TABLE_SHOWN ? h("p.cd-hint#cd-hint", t("card.feeds")) : null]),
       ]),
       h("div.cd-kit", kit),
     ]),
     // the Meta section reads the rankings: the full one with them, the deck ranking's counts alone with it, else none
-    RANKINGS_SHOWN ? metaBand(c) : DECK_RANKING_SHOWN ? rankingBand(c) : null,
+    CARD_RANKINGS_SHOWN ? metaBand(c) : DECK_RANKING_SHOWN ? rankingBand(c) : null,
     mods,
   ]);
   $(".dlg-scroll", dlg).replaceChildren(body);
@@ -571,7 +574,7 @@ function stageText(s) {
 function buildAbout() {
   // while the rankings are not shown (patch.js), About says what the site holds today: the cards, and the rankings being computed
   const R = deckRanking();
-  if (!RANKINGS_SHOWN && R) return h("div.about", [
+  if (!CARD_RANKINGS_SHOWN && R) return h("div.about", [
     h("h2#about-title", t("about.h")),
     h("p.lead", tx("about.lead")),
     h("section", [h("h3", t("about.whatH")), h("p", t(R.final ? "about.whatRk" : "about.whatRkProv", { patch: R.patch }))]),
@@ -585,7 +588,7 @@ function buildAbout() {
     h("section", [h("h3", t("about.dataH")), h("p", t("about.data", { line: patchLine(), date: fmtDate(dataDate()) }))]),
     h("p.legal", t("foot.legal")),
   ]);
-  if (!RANKINGS_SHOWN) return h("div.about", [
+  if (!CARD_RANKINGS_SHOWN) return h("div.about", [
     h("h2#about-title", t("about.h")),
     h("p.lead", tx("about.lead")),
     h("section", [h("h3", t("about.whatH")), h("p", t("about.whatCards", { patch: GAME_PATCH.patch }))]),

@@ -1,7 +1,7 @@
 // Loads the generated JSON once and builds the lookups every view needs. Every request carries the publish version
 // (version.js), so a new publish never mixes with data an earlier visit cached.
 
-import { versioned, withQuery } from "./version.js?v=5a5eaa4fb2";
+import { versioned, withQuery } from "./version.js?v=92a8dd692d";
 
 const cache = new Map();
 // data paths are resolved from this module, not from the page, so a page in a sub-folder (site/overlay/) reads the same files
@@ -96,17 +96,33 @@ export function loadCardCounters() {
   return ccLoad;
 }
 
-/** The 4,868 measured decks, with card indices resolved to card objects. */
+/**
+ * The deck table of the ranking run (ranking-decks.json, tools/export_ranking.py): every deck it measured, best first (the
+ * furthest stage reached, then the score there), each row with its card objects (board order) and their talents, its stage
+ * (`level`: 3 final, 2 race, 1 screen), its score and games at that stage (`rate`, `games`), and every stage it played
+ * (`stages`: screen {rate, games, kept}, race {rate, games, kept}, final {rank, score, ci95, games}, round robin place). My
+ * decks and the Deck builder read it.
+ */
 export async function loadDecks() {
   if (!DB.decks) {
-    const d = await getJSON("data/decks.json");
+    const [d] = await Promise.all([getJSON("data/ranking-decks.json"), loadRanking().catch(() => null)]);    // the AI's name for the intro
     const cards = d.cards.map((id) => DB.byId.get(id));
+    const st = (v, f) => (v ? f(v) : null);
     DB.decks = {
       raw: d,
-      levels: d.levels,
-      rows: d.rows.map((r, i) => ({
-        i, cards: r[0].map((x) => cards[x]), level: r[1], rate: r[2], games: r[3], score: r[4], rounds: r[5], tierRank: r[6],
-      })),
+      stages: d.stages,
+      rows: d.rows.map((r, i) => {
+        const cs = r[0].map((x) => cards[x]);
+        const stages = {
+          screen: st(r[3], ([rate, games, kept]) => ({ rate, games, kept: !!kept })),
+          race: st(r[4], ([rate, games, kept]) => ({ rate, games, kept: !!kept })),
+          final: st(r[5], ([rank, score, ci95, games]) => ({ rank, score, ci95, games })),
+          rt: r[6] || null,
+        };
+        const at = r[2] === 3 ? { rate: stages.final.score, games: stages.final.games } : r[2] === 2 ? stages.race : stages.screen;
+        return { i, cards: cs, talents: r[1], tls: cs.map((c, k) => (c && c.talents[r[1][k]]) || null), level: r[2], rate: at.rate,
+          games: at.games, stages };
+      }).filter((r) => r.cards.every(Boolean)),
     };
   }
   return DB.decks;

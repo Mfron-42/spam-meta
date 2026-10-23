@@ -1,18 +1,17 @@
 // My decks tab: the best decks the visitor can build from the cards they marked as owned, plus the best decks that are
-// exactly one card away. Order is the one docs/DATA.md defines: evidence level first, then rank_score (the rows are
-// already sorted that way, so the first rows that fit are the best). A deck that is also in the tier list carries its
-// tier tag (joined by card set, never by position). The card search of the Deck tier list (search.js) keeps only the decks
-// of both lists that hold a matching card; the query survives a redraw (a card ticked, a language change).
+// exactly one card away, read from the ranking run's deck table (ranking-decks.json). Order is the one docs/DATA.md defines:
+// the furthest stage reached first, then the score there (the rows are already sorted that way, so the first rows that fit
+// are the best). A deck of the top 30 by score carries its rank there. The card search (search.js) keeps only the decks of
+// both lists that hold a matching card; the query survives a redraw (a card ticked, a language change).
 
-import { h, icon, fmtInt } from "./util.js?v=5a5eaa4fb2";
-import { DB, loadDecks, loadTier } from "./data.js?v=5a5eaa4fb2";
-import { on, isOwned, ownedCount } from "./store.js?v=5a5eaa4fb2";
-import { deckRow, missingLine, paged, legend } from "./decklist.js?v=5a5eaa4fb2";
-import { findRow, terms, namedCards } from "./search.js?v=5a5eaa4fb2";
-import { openCollection } from "./dialogs.js?v=5a5eaa4fb2";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=5a5eaa4fb2";
-import { t } from "./i18n.js?v=5a5eaa4fb2";
-import { introLine } from "./patch.js?v=5a5eaa4fb2";
+import { h, icon, fmtInt } from "./util.js?v=92a8dd692d";
+import { loadDecks } from "./data.js?v=92a8dd692d";
+import { on, isOwned, ownedCount } from "./store.js?v=92a8dd692d";
+import { deckRow, missingLine, paged, legend, tableHead } from "./decklist.js?v=92a8dd692d";
+import { findRow, terms, namedCards } from "./search.js?v=92a8dd692d";
+import { openCollection } from "./dialogs.js?v=92a8dd692d";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=92a8dd692d";
+import { t } from "./i18n.js?v=92a8dd692d";
 
 let root, D, listeners = new Set();
 let result = { build: [], near: [] };
@@ -39,7 +38,6 @@ function compute() {
 export async function mount(el) {
   root = el;
   D = await loadDecks();
-  try { await loadTier(); } catch (e) { /* tier tags are optional */ }
   compute();
   render();
   on("owned", () => { compute(); render(); });
@@ -52,10 +50,7 @@ const legendState = { open: false };
 function render() {
   if (!root) return;
   const n = ownedCount();
-  const head = h("div.vhead", [
-    h("h1", t("md.h1")),
-    ...introLine("decks", h("p.lede", t("md.lede"))),
-  ]);
+  const head = tableHead("decks", t("md.h1"), t("md.lede"));
   const notice = inAppNotice();
   if (!n) { root.replaceChildren(...[head, notice, emptyState()].filter(Boolean)); return; }
 
@@ -98,7 +93,7 @@ function paintLists() {
     parts.push(h("section.mdsec", { "aria-labelledby": "md-build" }, [
       h("h2#md-build", t("md.buildH")),
       build.length
-        ? paged(build, (r, i) => deckRow(r, `#${i + 1}`, opt))
+        ? paged(build, (r, i) => deckRow(r, String(i + 1), opt))
         : h("div.panel.soft", [h("p", t("md.buildNone")), h("a.btn", { href: "#codex", "data-goto": "codex" }, t("md.markMore"))]),
     ]));
   }
@@ -107,7 +102,7 @@ function paintLists() {
       h("h2#md-near", t("md.nearH")),
       near.length
         ? [h("p.muted.sub", t("md.nearSub")),
-          paged(near, (x, i) => deckRow(x.row, `#${i + 1}`, { ...opt, note: missingLine(x.miss) }))]
+          paged(near, (x, i) => deckRow(x.row, String(i + 1), { ...opt, dim: [x.miss], note: missingLine(x.miss) }))]
         : h("div.panel.soft", h("p", t("md.nearNone"))),
     ]));
   }
@@ -122,7 +117,7 @@ function emptyState() {
   return h("div.empty.panel", [
     h("div.empty-ico", { "aria-hidden": "true" }, icon("plus", 28)),
     h("h2", t("md.emptyH")),
-    h("p", t("md.emptyP", { n: DB.meta.totals.decks_listed || DB.meta.totals.decks_measured })),
+    h("p", t("md.emptyP", { n: D.rows.length })),
     h("div.empty-act", [
       h("a.btn.primary", { href: "#codex", "data-goto": "codex" }, [t("md.openCodex"), icon("arrow")]),
       h("button.btn.ghost", { type: "button", onclick: openCollection }, [icon("copy"), t("md.import")]),

@@ -1,12 +1,12 @@
-// The placeholder of a ranking view while its rankings are being computed for the game patch (patch.js RANKINGS_SHOWN; owner,
+// The placeholder of a ranking view while its rankings are being computed for the game patch (patch.js CARD_RANKINGS_SHOWN; owner,
 // 2026-10-21: "Patch 1.26 : calcul en cours"). The Deck tier list and the Card tier list draw it instead of their old numbers:
 // the view's heading, one quiet status line in a sunken strip (a fact, not a control), and the way to the Codex, the view that
 // is live. It loads no ranking data.
 
-import { h, icon } from "./util.js?v=5a5eaa4fb2";
-import { t } from "./i18n.js?v=5a5eaa4fb2";
-import { on } from "./store.js?v=5a5eaa4fb2";
-import { GAME_PATCH } from "./patch.js?v=5a5eaa4fb2";
+import { h, icon } from "./util.js?v=92a8dd692d";
+import { t } from "./i18n.js?v=92a8dd692d";
+import { on } from "./store.js?v=92a8dd692d";
+import { GAME_PATCH } from "./patch.js?v=92a8dd692d";
 
 const HEADINGS = { "view-tiers": "tl.h1", "view-card-tiers": "ct.h1" };
 

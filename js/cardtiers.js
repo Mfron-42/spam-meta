@@ -6,17 +6,19 @@
 // on both measurements and its presence in the decks the site lists; the pinned card links to the card dialog. A Details
 // view lists every card in a sortable table. Data: data/cardtiers.json (tools/export_cardtiers.py); presence is counted
 // here from tierlist.json and decks.json, the files the other tabs already read. No counter is shown per card.
+// Off since 2026-10-21 (patch.js CARD_RANKINGS_SHOWN): data.js loadDecks() now reads the 1.26 deck table (ranking-decks.json,
+// levels 1-3), so the presence counts below must move to the 1.26 files with the card rankings before this view returns.
 // A language change rebuilds the page from the same state (measurement, view, filters, rings, open panels).
 
-import { h, $, $$, icon, fmtInt, pct, pct1, sgn, reducedMotion } from "./util.js?v=5a5eaa4fb2";
-import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=5a5eaa4fb2";
-import { DB, loadCardTiers, loadTier, loadDecks } from "./data.js?v=5a5eaa4fb2";
-import { on, getLang } from "./store.js?v=5a5eaa4fb2";
-import { cardName, otherName, chip, L, ELEMENTS, RARITIES, elName, raName } from "./cards.js?v=5a5eaa4fb2";
-import { disclosure, filterChip, setChip, cascade, band } from "./ui.js?v=5a5eaa4fb2";
-import { t, tx, ord } from "./i18n.js?v=5a5eaa4fb2";
-import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, introLine, suggestedTalent } from "./patch.js?v=5a5eaa4fb2";
-import { textNodes, hideTip } from "./cardtext.js?v=5a5eaa4fb2";
+import { h, $, $$, icon, fmtInt, pct, pct1, sgn, reducedMotion } from "./util.js?v=92a8dd692d";
+import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=92a8dd692d";
+import { DB, loadCardTiers, loadTier, loadDecks } from "./data.js?v=92a8dd692d";
+import { on, getLang } from "./store.js?v=92a8dd692d";
+import { cardName, otherName, chip, L, ELEMENTS, RARITIES, elName, raName } from "./cards.js?v=92a8dd692d";
+import { disclosure, filterChip, setChip, cascade, band } from "./ui.js?v=92a8dd692d";
+import { t, tx, ord } from "./i18n.js?v=92a8dd692d";
+import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, introLine, suggestedTalent } from "./patch.js?v=92a8dd692d";
+import { textNodes, hideTip } from "./cardtext.js?v=92a8dd692d";
 
 const AXK = { c: "ct.axC", r: "ct.axR" };
 const ax = (a) => t(AXK[a]);

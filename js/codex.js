@@ -1,17 +1,17 @@
 // Codex tab: every released card as a game card, with search, filters, sort and the Owned toggle on every card.
 // A language change rebuilds the tab from the same state (search, filters, sort, open panels).
 
-import { h, icon, norm, fmtInt } from "./util.js?v=5a5eaa4fb2";
-import { searchField, terms as searchTerms, hasAll } from "./search.js?v=5a5eaa4fb2";
-import { DB } from "./data.js?v=5a5eaa4fb2";
-import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js?v=5a5eaa4fb2";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=5a5eaa4fb2";
-import { cardTile, ownToggle, setOwnedView, cardName, ELEMENTS, RARITIES, elName, raName, unsize } from "./cards.js?v=5a5eaa4fb2";
-import { disclosure, flip, segmented, filterChip, setChip, band } from "./ui.js?v=5a5eaa4fb2";
-import { toast, openCollection } from "./dialogs.js?v=5a5eaa4fb2";
-import { cardText } from "./cardtext.js?v=5a5eaa4fb2";
-import { t, STRINGS } from "./i18n.js?v=5a5eaa4fb2";
-import { GAME_PATCH, RANKINGS_SHOWN } from "./patch.js?v=5a5eaa4fb2";
+import { h, icon, norm, fmtInt } from "./util.js?v=92a8dd692d";
+import { searchField, terms as searchTerms, hasAll } from "./search.js?v=92a8dd692d";
+import { DB } from "./data.js?v=92a8dd692d";
+import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js?v=92a8dd692d";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=92a8dd692d";
+import { cardTile, ownToggle, setOwnedView, cardName, ELEMENTS, RARITIES, elName, raName, unsize } from "./cards.js?v=92a8dd692d";
+import { disclosure, flip, segmented, filterChip, setChip, band } from "./ui.js?v=92a8dd692d";
+import { toast, openCollection } from "./dialogs.js?v=92a8dd692d";
+import { cardText } from "./cardtext.js?v=92a8dd692d";
+import { t, STRINGS } from "./i18n.js?v=92a8dd692d";
+import { GAME_PATCH, DECK_TABLE_SHOWN } from "./patch.js?v=92a8dd692d";
 
 // ---- traits, derived from the English texts and numbers of the data (no hand-made tags); names are "trait.<id>"
 const anyText = (c, rx) => c.abilities.some((a) => rx.test(a.description_en)) || c.passives.some((p) => rx.test(p.description_en));
@@ -282,11 +282,11 @@ function syncOwned(keys) {
   ui.count.textContent = fmtInt(n);
   ui.total.textContent = t("cx.ofOwned", { total });
   ui.fill.style.transform = `scaleX(${n / total})`;
-  ui.go.hidden = n === 0 || !RANKINGS_SHOWN;
+  ui.go.hidden = n === 0 || !DECK_TABLE_SHOWN;
   // the "Saved in this browser only" line takes the hint's place once a card is owned (the same row, so nothing jumps);
   // without storage the full-width warning says it instead
   const saved = n > 0 && canPersist();
-  ui.hint.textContent = t(n && RANKINGS_SHOWN ? "cx.hintSome" : "cx.hintNone");
+  ui.hint.textContent = t(n && DECK_TABLE_SHOWN ? "cx.hintSome" : "cx.hintNone");
   ui.hint.hidden = saved;
   ui.saved.el.hidden = !saved;
   ui.saved.paint();

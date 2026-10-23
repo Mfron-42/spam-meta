@@ -1,22 +1,22 @@
 // Deck tier list tab: the lab's deck ranking of the game patch (data/ranking.json, tools/export_ranking.py) as two lists of
 // one view (owner, 2026-10-23): the decks by win rate (their score against the benchmark decks, with its 95% margin) and the
 // decks that win in the fewest rounds (with their win rate beside it). A ranked list, no tier letters and no hidden deck
-// (owner, 2026-10-21). While the ranking is not final the view says so at its top ("Provisional ranking", one honest line),
-// with its method and caveats behind "About the numbers".
+// (owner, 2026-10-21). While the ranking is not final the view says so at its top (the banner "Temporary ranking", patch.js
+// provBanner), with why, its method and caveats behind "About the numbers". A fast deck says where it went after the race.
 // Each deck is its four game cards in board order, each with the talent it plays under it; a card opens the card view on that
 // talent. A card search keeps the decks holding a card, "Ready to play" the decks the visitor owns. The list shown lives in the
 // address (#tiers, #tiers/speed). A language change redraws the page and keeps the list, the query and the filter.
 // (The tier-grouped view of the 1.22 rankings, with its matchups, withheld and secret decks, is in the git history.)
 
-import { h, icon, pm, pct, pct1, dec, reducedMotion } from "./util.js?v=5a5eaa4fb2";
-import { DB, loadRanking } from "./data.js?v=5a5eaa4fb2";
-import { getLang, on, isOwned, ownedCount } from "./store.js?v=5a5eaa4fb2";
-import { gameCard, cardName, L } from "./cards.js?v=5a5eaa4fb2";
-import { segmented, scrollToEl, cascade, CURVE } from "./ui.js?v=5a5eaa4fb2";
-import { t } from "./i18n.js?v=5a5eaa4fb2";
-import { findRow, terms, namedCards } from "./search.js?v=5a5eaa4fb2";
-import { introLine, limitParams, RANKINGS_SHOWN } from "./patch.js?v=5a5eaa4fb2";
-import { paintOwned } from "./decklist.js?v=5a5eaa4fb2";
+import { h, icon, pm, pct, pct1, dec, reducedMotion } from "./util.js?v=92a8dd692d";
+import { DB, loadRanking } from "./data.js?v=92a8dd692d";
+import { on, isOwned, ownedCount } from "./store.js?v=92a8dd692d";
+import { cardName } from "./cards.js?v=92a8dd692d";
+import { segmented, scrollToEl, cascade, CURVE } from "./ui.js?v=92a8dd692d";
+import { t, tx } from "./i18n.js?v=92a8dd692d";
+import { findRow, terms, namedCards } from "./search.js?v=92a8dd692d";
+import { introLine, limitParams, provBanner, DECK_TABLE_SHOWN } from "./patch.js?v=92a8dd692d";
+import { paintOwned, deckSlot } from "./decklist.js?v=92a8dd692d";
 
 const LISTS = { score: "by_score", speed: "by_speed" };
 let root, R, list = "score", query = "", readyOnly = false;
@@ -81,9 +81,10 @@ function render() {
   root.replaceChildren(
     h("div.vhead", [
       h("h1", t("tl.h1")),
-      // the status of the ranking, said first: the "being computed" strip of the placeholder, now with what is shown
-      prov ? h("p.rk-status", [icon("clock", 24), h("span", t("rk.status", { patch: R.patch }))]) : null,
-      ...introLine("tiers", h("p.lede.quiet", t(prov ? "rk.ledeProv" : "rk.lede", { v: R.version, next: R.version + 1, ai: R.pilot, games: R.games, patch: R.patch })),
+      // a provisional ranking says so first, in a banner no one can miss (owner, 2026-10-23 evening)
+      prov ? provBanner("tiers") : null,
+      // the facts only: the banner says it is temporary, "About the numbers" says which version and why
+      ...introLine("tiers", h("p.lede.quiet", t("rk.lede", { ai: R.pilot, games: R.games, patch: R.patch })),
         { method: methodLines(), patch: R.patch }),
     ]),
     findBar(),
@@ -96,10 +97,11 @@ function render() {
   paintList(false);
 }
 
-/** What "About the numbers" opens: how the ranking was made, its caveats as a short list, the round robin and the speed. */
+/** What "About the numbers" opens: why it is provisional, how it was made, its caveats as a short list, the round robin and the speed. */
 function methodLines() {
   const s = R.by_score, n = s.opponents;
   return [
+    R.final ? null : h("p", tx("rk.mWhy")),
     t("rk.mHow", { v: R.version, pool: R.pool, kept: s.decks_measured, n, per: s.games_per_opponent }),
     t("rk.mTalents"),
     h("ul.vinfo-l", R.limits.map((l) => h("li", t("rk.limit." + l, limitParams(R))))),
@@ -136,18 +138,6 @@ function findBar() {
 }
 
 // ---------------------------------------------------------------- one deck
-/** A deck's card: the game card (list size, or full for the first deck of the list) and, under it, the talent it plays. */
-function slot(d, k, full) {
-  const c = d.cs[k], tl = d.tls[k];
-  const card = gameCard(c, { size: full ? "full" : "list", eager: full });
-  card.dataset.talent = String(d.talents[k]);      // the card view opens on this talent (main.js, dialogs.js)
-  return h("div.slot", [
-    card,
-    tl ? h("p.slot-tl", { title: L(tl, "description") }, [h("i.ab-talent", { "aria-hidden": "true" }),
-      h("span", { lang: getLang() }, [h("span.sr", t("rk.talentSr")), h("span", { translate: "no" }, L(tl, "name"))])]) : null,
-  ]);
-}
-
 /** "Wins in ~15.5 rounds": its margin, wins and source are the title, and the same words follow for screen readers. */
 function winsIn(ws) {
   const tip = t("rk.winsInTip", { pm: dec(ws.rounds_ci95, 1), wins: ws.wins, median: dec(R.by_speed.median_rounds, 1) });
@@ -161,7 +151,7 @@ function facts(d) {
     return h("div.dfacts", [
       h("div.dr-fig", { title: t("rk.scoreTip", { games: d.games, n: s.opponents }) }, [
         h("span.fig-line", [h("b.stat-v", pct1(d.score)), h("span.fig-pm", { title: t("tl.pmTip") }, pm(d.ci95))]),
-        h("span.stat-s", [t("rk.scoreK", { n: s.opponents }), h("span.sr", t("ui.sep") + t("tl.setsRank"))]),
+        h("span.stat-s", t("rk.scoreK", { n: s.opponents })),
       ]),
       // how fast it wins, from the race like the speed list (owner, 2026-10-23); its margin is the line's title
       ws ? winsIn(ws) : null,
@@ -171,19 +161,21 @@ function facts(d) {
   return h("div.dfacts", [
     h("div.dr-fig", { title: t("rk.roundsTip", { wins: d.wins }) }, [
       h("span.fig-line", [h("b.stat-v", dec(d.rounds, 1)), h("span.fig-pm", { title: t("rk.roundsPmTip") }, "±" + dec(d.rounds_ci95, 1))]),
-      h("span.stat-s", [t("rk.roundsK"), h("span.sr", t("ui.sep") + t("tl.setsRank"))]),
+      h("span.stat-s", t("rk.roundsK")),
     ]),
     h("p.fig-all", { title: t("rk.speedRateTip", { n: R.by_speed.opponents }) }, t("rk.speedRate", { pct: pct1(d.win_rate), games: d.games })),
+    // where it went after the race (owner, 2026-10-23: why a deck at 86% "does not continue"): its final, or the race's end
+    h("p.fig-all", { title: t(d.final ? "rk.thenFinalTip" : "rk.thenStoppedTip", { n: R.by_score.decks_measured, opp: R.by_score.opponents }) },
+      d.final ? t("rk.thenFinal", { pct: pct1(d.final.score), rank: d.final.rank }) : t("rk.thenStopped", { n: R.by_score.decks_measured })),
   ]);
 }
 
 function deckEl(d, full) {
   const badge = h("div.obadge", { hidden: true });
-  const slots = d.cs.map((c, k) => slot(d, k, full));
+  const slots = d.cs.map((c, k) => deckSlot(c, d.talents[k], { full }));
   // quiet facts about the rank in words, never boxes: a shared rank, the deck's place in the other list
   const words = [
     d.tied ? h("span.deck-word", { title: t("rk.tiedTip") }, t("rk.tied")) : null,
-    d.score_rank ? h("span.deck-word", t("rk.alsoScore", { rank: d.score_rank })) : null,
   ];
   const el = h("li.deck" + (full ? ".spot" : ""), { id: `deck-${list}-${d.rank}-${decks.length}`, "aria-label": t("tl.rankAria", { rank: d.rank, cards: d.cs.map(cardName).join(", ") }) }, [
     h("div.deck-head", [h("h3.rk", `#${d.rank}`), ...words, badge]),
@@ -245,7 +237,7 @@ function updateBanner() {
   }
   banner.replaceChildren(...[
     h("div.callout-t", [h("h2", t("tl.ownH", { n })), h("p", t("tl.ownP", { total: decks.length, ready, near }))]),
-    // the way to My decks, while it is shown (patch.js RANKINGS_SHOWN)
-    RANKINGS_SHOWN ? go(t("tl.ownGo"), "decks") : null,
+    // the way to My decks, while it is shown (patch.js DECK_TABLE_SHOWN)
+    DECK_TABLE_SHOWN ? go(t("tl.ownGo"), "decks") : null,
   ].filter(Boolean));
 }

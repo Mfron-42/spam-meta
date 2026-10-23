@@ -1,19 +1,18 @@
 // Deck builder (#builder, its own tab next to My decks): the visitor picks 1 to 4 cards they want to play and the
-// page lists the measured decks (decks.json) that hold all of them, best first by the canonical rank (rows are already
-// sorted by it). When no measured deck holds every pick, one line says so and the decks holding the most of them follow,
-// labelled "3 of your 4 cards". Only decks.json rows are read: the withheld and hidden decks have none, so they can never
-// be proposed, and a pick that matches nothing gets the same generic line whatever the reason.
+// page lists the measured decks (the ranking run's deck table, ranking-decks.json) that hold all of them, best first by the
+// canonical order (rows are already sorted by it). When no measured deck holds every pick, one line says so and the decks
+// holding the most of them follow, labelled "3 of your 4 cards". Only the table's rows are read: the decks the privacy rules
+// keep off the site have none, so they can never be proposed, and a pick that matches nothing gets the same generic line.
 // The picks live in memory only (the address holds a tab and, while a card dialog is open, a card key; SPEC.md); the card
 // dialog's "Decks with this card" sets them through pick().
 
-import { h, icon, fmtInt } from "./util.js?v=5a5eaa4fb2";
-import { DB, loadDecks, loadTier } from "./data.js?v=5a5eaa4fb2";
-import { on, isOwned, ownedCount } from "./store.js?v=5a5eaa4fb2";
-import { cardName, chip } from "./cards.js?v=5a5eaa4fb2";
-import { t } from "./i18n.js?v=5a5eaa4fb2";
-import { introLine } from "./patch.js?v=5a5eaa4fb2";
-import { searchField, announcer, terms, namedCards } from "./search.js?v=5a5eaa4fb2";
-import { deckRow, paged, legend, paintOwned } from "./decklist.js?v=5a5eaa4fb2";
+import { h, icon, fmtInt } from "./util.js?v=92a8dd692d";
+import { DB, loadDecks } from "./data.js?v=92a8dd692d";
+import { on, isOwned, ownedCount } from "./store.js?v=92a8dd692d";
+import { cardName, chip } from "./cards.js?v=92a8dd692d";
+import { t } from "./i18n.js?v=92a8dd692d";
+import { searchField, announcer, terms, namedCards } from "./search.js?v=92a8dd692d";
+import { deckRow, paged, legend, paintOwned, tableHead } from "./decklist.js?v=92a8dd692d";
 
 const MAX = 4;           // four picks are a whole deck
 const PAGE = 10;         // results shown, then ten more on request
@@ -28,7 +27,6 @@ let field, sugEl, slotsEl, resEl, voice;
 export async function mount(el) {
   root = el;
   D = await loadDecks();
-  try { await loadTier(); } catch (e) { /* tier tags and the popular cards fall back to decks.json */ }
   popular = popularCards();
   render();
   on("owned", () => paintResults());
@@ -43,12 +41,10 @@ export function pick(keys) {
 }
 
 // ---------------------------------------------------------------- which cards to offer
-/** The cards the Deck tier list plays most (then by their best rank); decks.json's best rows if it did not load. */
+/** The cards the 60 finalists of the deck table play most (then by their best rank). */
 function popularCards() {
   const count = new Map();
-  const decks = DB.tier ? DB.tier.decks.filter((d) => Array.isArray(d.cards)).map((d) => d.cards.map((id) => DB.byId.get(id)))
-    : D.rows.slice(0, 30).map((r) => r.cards);
-  decks.forEach((cs) => cs.forEach((c) => { if (c) count.set(c, (count.get(c) || 0) + 1); }));
+  D.rows.filter((r) => r.level === 3).forEach((r) => r.cards.forEach((c) => count.set(c, (count.get(c) || 0) + 1)));
   return [...count.entries()].sort((a, b) => b[1] - a[1]).map(([c]) => c);   // stable: ties keep their first (best) rank
 }
 
@@ -84,7 +80,7 @@ function render() {
   resEl = h("div.fd-res");
   voice = announcer();
   root.replaceChildren(
-    h("div.vhead", [h("h1", t("fd.h1")), ...introLine("builder", h("p.lede", t("fd.lede")))]),
+    tableHead("builder", t("fd.h1"), t("fd.lede")),
     h("div.fd-pick", [h("div.fd-field", field.el), sugEl, slotsEl, voice.el]),
     resEl,
   );
@@ -188,14 +184,14 @@ function paintResults() {
   if (m.full.length) {
     items = m.full.filter((r) => !mineOnly || mine(r));
     head = t("fd.resH", { n: items.length });
-    mk = (r, i) => deckRow(r, `#${i + 1}`, { cards: order(r), badge: badge(r) });
+    mk = (r, i) => deckRow(r, String(i + 1), { cards: order(r), badge: badge(r) });
   } else {
     parts.push(h("p.fd-none", t("fd.none", { n: picks.length })));
     items = m.near.filter((x) => !mineOnly || mine(x.r));
     head = m.near.length ? t("fd.closeH") : null;
-    mk = (x, i) => deckRow(x.r, `#${i + 1}`, {
+    mk = (x, i) => deckRow(x.r, String(i + 1), {
       cards: order(x.r),
-      tag: h("span.tag", t("fd.has", { k: x.k, n: picks.length })),
+      // "Without: <chips>" says which picks it lacks (the old "3 of your 4 cards" tag said it twice)
       note: h("p.dr-miss", [h("span.muted", t("fd.without") + " "), ...picks.filter((p) => !x.r.cards.includes(p)).map(chip)]),
       badge: badge(x.r),
     });
