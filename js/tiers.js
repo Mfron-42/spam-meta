@@ -8,15 +8,15 @@
 // address (#tiers, #tiers/speed). A language change redraws the page and keeps the list, the query and the filter.
 // (The tier-grouped view of the 1.22 rankings, with its matchups, withheld and secret decks, is in the git history.)
 
-import { h, icon, pm, pct, pct1, dec, reducedMotion } from "./util.js?v=b2212b274c";
-import { DB, loadRanking } from "./data.js?v=b2212b274c";
-import { getLang, on, isOwned, ownedCount } from "./store.js?v=b2212b274c";
-import { gameCard, cardName, L } from "./cards.js?v=b2212b274c";
-import { segmented, scrollToEl, cascade, CURVE } from "./ui.js?v=b2212b274c";
-import { t } from "./i18n.js?v=b2212b274c";
-import { findRow, terms, namedCards } from "./search.js?v=b2212b274c";
-import { introLine, limitParams, RANKINGS_SHOWN } from "./patch.js?v=b2212b274c";
-import { paintOwned } from "./decklist.js?v=b2212b274c";
+import { h, icon, pm, pct, pct1, dec, reducedMotion } from "./util.js?v=5a5eaa4fb2";
+import { DB, loadRanking } from "./data.js?v=5a5eaa4fb2";
+import { getLang, on, isOwned, ownedCount } from "./store.js?v=5a5eaa4fb2";
+import { gameCard, cardName, L } from "./cards.js?v=5a5eaa4fb2";
+import { segmented, scrollToEl, cascade, CURVE } from "./ui.js?v=5a5eaa4fb2";
+import { t } from "./i18n.js?v=5a5eaa4fb2";
+import { findRow, terms, namedCards } from "./search.js?v=5a5eaa4fb2";
+import { introLine, limitParams, RANKINGS_SHOWN } from "./patch.js?v=5a5eaa4fb2";
+import { paintOwned } from "./decklist.js?v=5a5eaa4fb2";
 
 const LISTS = { score: "by_score", speed: "by_speed" };
 let root, R, list = "score", query = "", readyOnly = false;
@@ -148,15 +148,23 @@ function slot(d, k, full) {
   ]);
 }
 
+/** "Wins in ~15.5 rounds": its margin, wins and source are the title, and the same words follow for screen readers. */
+function winsIn(ws) {
+  const tip = t("rk.winsInTip", { pm: dec(ws.rounds_ci95, 1), wins: ws.wins, median: dec(R.by_speed.median_rounds, 1) });
+  return h("p.fig-all", { title: tip }, [t("rk.winsIn", { rounds: dec(ws.rounds, 1) }), h("span.sr", t("ui.sep") + tip)]);
+}
+
 /** The number that sets the rank, its margin and its field, then one quiet second line; the basis of each is its tooltip. */
 function facts(d) {
   if (list === "score") {
-    const s = R.by_score, rr = d.round_robin;
+    const s = R.by_score, rr = d.round_robin, ws = d.win_speed;
     return h("div.dfacts", [
       h("div.dr-fig", { title: t("rk.scoreTip", { games: d.games, n: s.opponents }) }, [
         h("span.fig-line", [h("b.stat-v", pct1(d.score)), h("span.fig-pm", { title: t("tl.pmTip") }, pm(d.ci95))]),
         h("span.stat-s", [t("rk.scoreK", { n: s.opponents }), h("span.sr", t("ui.sep") + t("tl.setsRank"))]),
       ]),
+      // how fast it wins, from the race like the speed list (owner, 2026-10-23); its margin is the line's title
+      ws ? winsIn(ws) : null,
       rr ? h("p.fig-all", { title: t("rk.rrTip", { games: rr.games, opp: R.round_robin.opponents }) }, t("rk.rr", { pct: pct1(rr.win_rate), n: R.round_robin.decks })) : null,
     ]);
   }

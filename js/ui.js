@@ -1,7 +1,7 @@
 // Shared interface pieces: the disclosure (collapsible region), FLIP reordering, segmented control, filter chip, and the
 // small "go to a tab" helper used by the Owned <-> My decks links.
 
-import { h, icon, reducedMotion } from "./util.js?v=b2212b274c";
+import { h, icon, reducedMotion } from "./util.js?v=5a5eaa4fb2";
 
 export const CURVE = "cubic-bezier(.4, 0, .2, 1)";
 

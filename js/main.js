@@ -3,16 +3,16 @@
 // shown and the Card tier list draws the "being computed" placeholder (pending.js); the Deck tier list draws the deck ranking
 // of the game patch (patch.js DECK_RANKING_SHOWN, tiers.js) and is the landing view, else the placeholder too and the Codex lands.
 
-import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=b2212b274c";
-import { t, applyStatic, millions } from "./i18n.js?v=b2212b274c";
-import { copyText } from "./ui.js?v=b2212b274c";
-import { DB, loadCore, loadRanking } from "./data.js?v=b2212b274c";
-import { patchLine, dataDate, deckRanking, RANKINGS_SHOWN, DECK_RANKING_SHOWN } from "./patch.js?v=b2212b274c";
-import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=b2212b274c";
-import { versioned, withQuery } from "./version.js?v=b2212b274c";
-import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=b2212b274c";
-import { holdTiles } from "./cardtilt.js?v=b2212b274c";
-import { ambient } from "./ambient.js?v=b2212b274c";
+import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=5a5eaa4fb2";
+import { t, applyStatic, millions } from "./i18n.js?v=5a5eaa4fb2";
+import { copyText } from "./ui.js?v=5a5eaa4fb2";
+import { DB, loadCore, loadRanking } from "./data.js?v=5a5eaa4fb2";
+import { patchLine, dataDate, deckRanking, RANKINGS_SHOWN, DECK_RANKING_SHOWN } from "./patch.js?v=5a5eaa4fb2";
+import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=5a5eaa4fb2";
+import { versioned, withQuery } from "./version.js?v=5a5eaa4fb2";
+import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=5a5eaa4fb2";
+import { holdTiles } from "./cardtilt.js?v=5a5eaa4fb2";
+import { ambient } from "./ambient.js?v=5a5eaa4fb2";
 
 // Five tabs, one view each; the Deck builder (#builder) sits next to My decks. TABS are the ones shown.
 const ALL_TABS = ["tiers", "card-tiers", "codex", "decks", "builder"];

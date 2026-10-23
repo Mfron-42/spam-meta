@@ -11,8 +11,8 @@
 // {one, other} chosen by Intl.PluralRules on the parameter `count`, else `n` (French: 0 to 1.99 are "one"). `**bold**` is honoured by tx()
 // only. French copy uses plain spaces before : ; ? ! - they become no-break spaces when the table loads.
 
-import { h, fmtInt, dec } from "./util.js?v=b2212b274c";
-import { getLang } from "./store.js?v=b2212b274c";
+import { h, fmtInt, dec } from "./util.js?v=5a5eaa4fb2";
+import { getLang } from "./store.js?v=5a5eaa4fb2";
 
 const EN = {
   // ---- document and header
@@ -228,8 +228,8 @@ const EN = {
   "rk.limit.intervals_overlap": "Margins are wide (±{lo} to {hi} points) and overlap: close decks can swap places.",
   "rk.limit.plan_decks": "Our AI plays some decks that need a precise plan less well than a good player.",
   "rk.limit.recall_deferred": "Some decks dropped early were not replayed: a strong deck may be missing.",
-  "rk.mRR": "The top {decks} also played each other, {gpp} games per pair: that is the small line under a score. It does not set the rank.",
-  "rk.mSpeed": "Win speed comes from the race, a faster setting of the same AI against the same {n} decks. Across all its decks, the median win takes {median} rounds.",
+  "rk.mRR": "The top {decks} also played each other, {gpp} games per pair: that is the “top-{decks} round robin” line under a score. It does not set the rank.",
+  "rk.mSpeed": "The rounds to win, in both lists, come from the race: a faster setting of the same AI against the same {n} decks. Across all the race’s decks, the median win takes {median} rounds.",
   "rk.scoreTip": "Win rate against the {n} benchmark decks, {games} games.",
   "rk.scoreK": "vs {n} benchmark decks",
   "rk.rr": "{pct} in the top-{n} round robin",
@@ -238,6 +238,8 @@ const EN = {
   "rk.roundsTip": "Mean over its {wins} wins. 1 round = both players act once.",
   "rk.roundsPmTip": "Margin of error (95%), in rounds",
   "rk.speedRate": "Wins {pct} of {games} games",
+  "rk.winsIn": "Wins in ~{rounds} rounds",
+  "rk.winsInTip": "Margin ±{pm} rounds (95%). Mean of its {wins} wins in the race, the faster setting of the same AI, as in Win speed. 1 round = both players act once; a typical win takes {median} rounds.",
   "rk.speedRateTip": "Win rate in the race, against the {n} benchmark decks: not the same test as the win-rate list.",
   "rk.tied": "tied",
   "rk.tiedTip": "Same score as another deck: they share the rank.",
@@ -513,7 +515,7 @@ const EN = {
   "about.whatRk": "A fan guide to the card game SPAM: every card, read from the game files, and the deck ranking of patch {patch}. The card ranking is being computed.",
   "about.whatRkProv": "A fan guide to the card game SPAM: every card, read from the game files, and a provisional deck ranking of patch {patch}. The card ranking is being computed.",
   "about.rkHow": "Our AI ({ai}) played both sides in an offline copy of the game, {games} games in all. Of {pool} decks, a quick screen and a race kept {kept}; each then played {per} games against each of {n} benchmark decks. Its score is its win rate there.",
-  "about.rkSpeed": "The fastest decks come from the race, a faster setting of the same AI against the same decks. The median win of all its decks takes {median} rounds.",
+  "about.rkSpeed": "The rounds to win, in both lists, come from the race, a faster setting of the same AI against the same decks. Across all the race’s decks, the median win takes {median} rounds.",
   "about.howH": "How the rankings were made",
   "about.how": "**In short:** AIs played each deck against many others, thousands of times, in an offline copy of the game. The decks that win most rank highest.",
   "about.total": "{decks} decks measured for patch {patch}, over {games} simulated matches. Draws count as half a win; no talents.",
@@ -951,8 +953,8 @@ const FR = {
   "rk.limit.intervals_overlap": "Les marges sont larges (±{lo} à {hi} points) et se chevauchent : des decks proches peuvent échanger leur place.",
   "rk.limit.plan_decks": "Notre IA joue moins bien qu’un bon joueur certains decks qui demandent un plan précis.",
   "rk.limit.recall_deferred": "Des decks écartés tôt n’ont pas été rejoués : un bon deck peut manquer.",
-  "rk.mRR": "Les {decks} premiers se sont aussi affrontés, {gpp} parties par paire : c’est la petite ligne sous le score. Elle ne fixe pas le rang.",
-  "rk.mSpeed": "La vitesse vient de la course, un réglage plus rapide de la même IA contre les mêmes {n} decks. Sur tous ses decks, la victoire médiane prend {median} tours.",
+  "rk.mRR": "Les {decks} premiers se sont aussi affrontés, {gpp} parties par paire : c’est la ligne « tournoi du top {decks} » sous le score. Elle ne fixe pas le rang.",
+  "rk.mSpeed": "Les tours pour gagner, dans les deux listes, viennent de la course : un réglage plus rapide de la même IA contre les mêmes {n} decks. Sur tous les decks de la course, la victoire médiane prend {median} tours.",
   "rk.scoreTip": "Taux de victoire contre les {n} decks de mesure, {games} parties.",
   "rk.scoreK": "contre {n} decks de mesure",
   "rk.rr": "{pct} au tournoi du top {n}",
@@ -961,6 +963,8 @@ const FR = {
   "rk.roundsTip": "Moyenne sur ses {wins} victoires. 1 tour = chaque joueur agit une fois.",
   "rk.roundsPmTip": "Marge d’erreur (95 %), en tours",
   "rk.speedRate": "Gagne {pct} de {games} parties",
+  "rk.winsIn": "Gagne en ~{rounds} tours",
+  "rk.winsInTip": "Marge ±{pm} tours (95 %). Moyenne de ses {wins} victoires dans la course, le réglage plus rapide de la même IA, comme dans Vitesse de victoire. 1 tour = chaque joueur agit une fois ; une victoire type prend {median} tours.",
   "rk.speedRateTip": "Taux de victoire dans la course, contre les {n} decks de mesure : pas le même test que la liste au taux de victoire.",
   "rk.tied": "ex æquo",
   "rk.tiedTip": "Même score qu’un autre deck : ils partagent le rang.",
@@ -1232,7 +1236,7 @@ const FR = {
   "about.whatRk": "Un guide de fan pour le jeu de cartes SPAM : toutes les cartes, lues dans les fichiers du jeu, et le classement des decks du patch {patch}. Le classement des cartes est en cours de calcul.",
   "about.whatRkProv": "Un guide de fan pour le jeu de cartes SPAM : toutes les cartes, lues dans les fichiers du jeu, et un classement temporaire des decks du patch {patch}. Le classement des cartes est en cours de calcul.",
   "about.rkHow": "Notre IA ({ai}) a joué les deux camps dans une copie hors ligne du jeu, {games} parties en tout. Sur {pool} decks, une présélection et une course en ont gardé {kept} ; chacun a ensuite joué {per} parties contre chacun des {n} decks de mesure. Son score est son taux de victoire là.",
-  "about.rkSpeed": "Les decks les plus rapides viennent de la course, un réglage plus rapide de la même IA contre les mêmes decks. Sur tous ses decks, la victoire médiane prend {median} tours.",
+  "about.rkSpeed": "Les tours pour gagner, dans les deux listes, viennent de la course, un réglage plus rapide de la même IA contre les mêmes decks. Sur tous les decks de la course, la victoire médiane prend {median} tours.",
   "about.howH": "Comment sont faits les classements",
   "about.how": "**En bref :** des IA ont joué chaque deck contre beaucoup d’autres, des milliers de fois, dans une copie hors ligne du jeu. Les decks qui gagnent le plus sont en tête.",
   "about.total": "{decks} decks mesurés pour le patch {patch}, sur {games} de parties simulées. Un match nul compte pour une demi-victoire ; sans talents.",

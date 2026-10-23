@@ -3,17 +3,17 @@
 // drawn as a full-screen card view (card.css); its enter and exit (the card flying from its tile) are played by
 // cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt, dec } from "./util.js?v=b2212b274c";
-import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=b2212b274c";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=b2212b274c";
-import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=b2212b274c";
-import { encode, decode } from "./code.js?v=b2212b274c";
-import { copyText, disclosure } from "./ui.js?v=b2212b274c";
-import { t, tx, millions } from "./i18n.js?v=b2212b274c";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, RANKINGS_SHOWN, DECK_RANKING_SHOWN, GAME_PATCH } from "./patch.js?v=b2212b274c";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=b2212b274c";
-import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=b2212b274c";
-import { attachTilt } from "./cardtilt.js?v=b2212b274c";
+import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt, dec } from "./util.js?v=5a5eaa4fb2";
+import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=5a5eaa4fb2";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=5a5eaa4fb2";
+import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=5a5eaa4fb2";
+import { encode, decode } from "./code.js?v=5a5eaa4fb2";
+import { copyText, disclosure } from "./ui.js?v=5a5eaa4fb2";
+import { t, tx, millions } from "./i18n.js?v=5a5eaa4fb2";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, RANKINGS_SHOWN, DECK_RANKING_SHOWN, GAME_PATCH } from "./patch.js?v=5a5eaa4fb2";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=5a5eaa4fb2";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=5a5eaa4fb2";
+import { attachTilt } from "./cardtilt.js?v=5a5eaa4fb2";
 
 let openDlg = null, pushed = false;
 

@@ -17,7 +17,7 @@
 // listeners for the page; a hand measures its cards once when the pointer enters it (and again after a scroll), and only
 // the cards on screen are written. Pointer only: nothing for the keyboard or a screen reader. Reduced motion: nothing moves.
 
-import { reducedMotion } from "./util.js?v=b2212b274c";
+import { reducedMotion } from "./util.js?v=5a5eaa4fb2";
 
 const HERO = { maxY: 14, maxX: 12, persp: 3.5, art: 4, front: 1.5, pop: 4 };   // degrees at the edges; perspective in card
 const TILE = { maxY: 10, maxX: 9, persp: 4, art: 4, front: 1.5, pop: 3 };      // widths; layer depths in % of the card width
