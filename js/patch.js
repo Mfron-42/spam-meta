@@ -3,11 +3,11 @@
 // filled when a value, an ability or a passive changed (the class "mechanical"), hollow when only talents or texts did.
 // The data carries codes and positions; every word comes from i18n.js ("pc.*").
 
-import { h, icon, fmtDate, dec, fmtInt } from "./util.js?v=24015c5634";
-import { DB } from "./data.js?v=24015c5634";
-import { L } from "./cards.js?v=24015c5634";
-import { t } from "./i18n.js?v=24015c5634";
-import { disclosure } from "./ui.js?v=24015c5634";
+import { h, icon, fmtDate, dec, fmtInt } from "./util.js?v=50d3047a93";
+import { DB } from "./data.js?v=50d3047a93";
+import { L } from "./cards.js?v=50d3047a93";
+import { t } from "./i18n.js?v=50d3047a93";
+import { disclosure } from "./ui.js?v=50d3047a93";
 
 // Three patches can differ, and each label names the one it is about (SPEC.md, "Patch labels"):
 // - the GAME patch, the client players run today (below; the lab reads it from the game files);
@@ -146,7 +146,8 @@ export function introLine(key, lede, { method = null, patch = null } = {}) {
 
 /**
  * The banner of a temporary ranking (DESIGN.md "Provisional banner"): the clock, "Temporary ranking" as its title, one sentence
- * (which version, by which AI, what runs now and when the next update comes), and "Why?", which opens the view's "About the
+ * (which version, by which AI, and what runs now that will update it; never a date or a clock time, which would go stale), and
+ * "Why?", which opens the view's "About the
  * numbers" right under it (its first paragraph says why). Not dismissible, no motion. `key` names the view (its intro line's
  * disclosure is "info-<key>").
  */

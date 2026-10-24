@@ -11,8 +11,8 @@
 // {one, other} chosen by Intl.PluralRules on the parameter `count`, else `n` (French: 0 to 1.99 are "one"). `**bold**` is honoured by tx()
 // only. French copy uses plain spaces before : ; ? ! - they become no-break spaces when the table loads.
 
-import { h, fmtInt, dec } from "./util.js?v=24015c5634";
-import { getLang } from "./store.js?v=24015c5634";
+import { h, fmtInt, dec } from "./util.js?v=50d3047a93";
+import { getLang } from "./store.js?v=50d3047a93";
 
 const EN = {
   // ---- document and header
@@ -217,7 +217,7 @@ const EN = {
   "rk.thenStopped": "Stopped in the race, not among the {n} finalists",
   "rk.thenFinal": "In the final: {pct} (#{rank})",
   "rk.bannerWhyT": "Open “About the numbers”",
-  "rk.bannerP": "Version {v}, by our AI {ai}. A wider deck search is under way; next update around noon (Paris time).",
+  "rk.bannerP": "Version {v}, by our AI {ai}. A wider deck search is under way and will update this ranking.",
   "rk.bannerH": "Temporary ranking",
   "rk.lede": "{games} games simulated by our AIs, patch {patch}.",
   "rk.list.score": "Win rate",
@@ -234,12 +234,15 @@ const EN = {
   "rk.limit.recall_deferred": "Some decks dropped early were not replayed: a strong deck may be missing.",
   "rk.limit.pool_gaps": "Our pool missed some decks players use: a strong deck may be missing until the wider search ends.",
   "rk.limit.recast_cap": "In our offline copy of the game a card recasts at most 4 times per round: decks built on cooldown cuts may be underrated.",
-  "rk.mRR": "The top {decks} also played each other, {gpp} games per pair: that is the “top-{decks} round robin” line under a score. It does not set the rank.",
+  "rk.mRR": "The top {decks} also played each other, {gpp} games per pair: that is the “Top-{decks} round robin” line of a deck’s path, with its place and its win rate there. It does not set the rank.",
   "rk.mSpeed": "Rounds to win, in both lists: the average round in which a deck’s wins end, against the same {n} decks in the race and the final. In the race, the median win takes {median} rounds.",
   "rk.range": "{lo} to {hi}",
   "rk.atLeast": "at least {n}",
   "rk.scoreTip": "Win rate against the {n} benchmark decks, {games} games.",
-  "rk.scoreK": "vs {n} benchmark decks",
+  "rk.scoreK": "win rate in the final vs {n} benchmark decks",
+  "rk.stopAt.1": "stopped in the first sort",
+  "rk.stopAt.2": "stopped in the race",
+  "rk.stopAt.3": "reached the final",
   "rk.rr": "{pct} in the top-{n} round robin",
   "rk.rrTip": "{games} games against the {opp} other decks of the round robin. It does not set the rank.",
   "rk.roundsK": "rounds to win",
@@ -477,7 +480,7 @@ const EN = {
   "rk.thenFinalTip": "Its win rate and rank in the final: our AI at full strength against the {opp} benchmark decks.",
   "md.rtDesc": "The best {decks} of the final also played each other. A second reading: it sets no rank.",
   "ev.2.descAll": "{decks} decks. Our AI at full strength, {min} to {max} games against the {n} benchmark decks; the best {keep} go to the final.",
-  "jy.direct": " (entered directly)",
+  "jy.direct": "seeded into the race",
   "jy.toFinal": "to the final",
   "jy.stopped": "stopped",
   "jy.check": "stopped, re-tested in the race as a check",
@@ -493,6 +496,8 @@ const EN = {
   "md.mCut": "Each stage keeps its best decks after a correction for decks with few games, so a deck can score a little above a kept one and still stop.",
   "jy.rt": "#{place} of {n}",
   "jy.final": "#{rank} of {n}",
+  "jy.finalPct": "#{rank} of {n}, {pct}",
+  "jy.rtPct": "#{place} of {n}, {pct}",
   "jy.aria": "Its path through the ranking",
   "jy.sep": ": ",
   "st.rt": "Top-16 round robin",
@@ -500,7 +505,7 @@ const EN = {
   "st.race": "Race",
   "st.screen": "First sort",
   "md.orFind": "No collection? Pick the cards you want in the",
-  "md.meter": "Stage {l} of {n}",
+  "md.meter": "Stage {l} of {n}: {stage}",
   "md.missing": "Missing:",
 
   // ---- deck builder (#builder, its own tab next to My decks)
@@ -529,7 +534,7 @@ const EN = {
   "ev.2": "Fairly reliable",
   "ev.1": "Indicative",
   "ev.3.desc": "Our AI at full strength: {per} games against each of the {n} benchmark decks.",
-  "ev.2.desc": "{decks} decks: the {screen} best of the first sort, {direct} entered directly and {checks} re-tested as a check. Our AI at full strength, {min} to {max} games against the {n} benchmark decks; the best {keep} go to the final.",
+  "ev.2.desc": "{decks} decks: the {screen} best of the first sort, {direct} seeded into it directly and {checks} re-tested as a check. Our AI at full strength, {min} to {max} games against the {n} benchmark decks; the best {keep} go to the final.",
   "ev.1.desc": "{decks} decks. A fast AI, {min} to {max} games each; the best {keep} go to the race. A lead, not a verdict.",
 
   // ---- about
@@ -968,7 +973,7 @@ const FR = {
   "rk.thenStopped": "Arrêté en course, hors des {n} finalistes",
   "rk.thenFinal": "En finale : {pct} (#{rank})",
   "rk.bannerWhyT": "Ouvrir « À propos des chiffres »",
-  "rk.bannerP": "Version {v}, par notre IA {ai}. Une recherche de decks plus large est en cours ; prochaine mise à jour vers midi.",
+  "rk.bannerP": "Version {v}, par notre IA {ai}. Une recherche de decks plus large est en cours et mettra ce classement à jour.",
   "rk.bannerH": "Classement temporaire",
   "rk.lede": "{games} parties simulées par nos IA, patch {patch}.",
   "rk.list.score": "Taux de victoire",
@@ -985,12 +990,15 @@ const FR = {
   "rk.limit.recall_deferred": "Des decks écartés tôt n’ont pas été rejoués : un bon deck peut manquer.",
   "rk.limit.pool_gaps": "Notre liste a raté des decks que les joueurs utilisent : un bon deck peut manquer jusqu’à la fin de la recherche plus large.",
   "rk.limit.recast_cap": "Dans notre copie hors ligne du jeu, une carte relance au plus 4 fois par tour : les decks qui misent sur la réduction de recharge peuvent être sous-estimés.",
-  "rk.mRR": "Les {decks} premiers se sont aussi affrontés, {gpp} parties par paire : c’est la ligne « tournoi du top {decks} » sous le score. Elle ne fixe pas le rang.",
+  "rk.mRR": "Les {decks} premiers se sont aussi affrontés, {gpp} parties par paire : c’est la ligne « Tournoi du top {decks} » du parcours d’un deck, avec sa place et son taux de victoire. Elle ne fixe pas le rang.",
   "rk.mSpeed": "Les tours pour gagner, dans les deux listes : le tour moyen où les victoires d’un deck se terminent, contre les mêmes {n} decks en course et en finale. En course, la victoire médiane prend {median} tours.",
   "rk.range": "{lo} à {hi}",
   "rk.atLeast": "au moins {n}",
   "rk.scoreTip": "Taux de victoire contre les {n} decks de mesure, {games} parties.",
-  "rk.scoreK": "contre {n} decks de mesure",
+  "rk.scoreK": "taux de victoire en finale contre {n} decks de mesure",
+  "rk.stopAt.1": "arrêté au premier tri",
+  "rk.stopAt.2": "arrêté en course",
+  "rk.stopAt.3": "arrivé en finale",
   "rk.rr": "{pct} au tournoi du top {n}",
   "rk.rrTip": "{games} parties contre les {opp} autres decks du tournoi. Il ne fixe pas le rang.",
   "rk.roundsK": "tours pour gagner",
@@ -1225,7 +1233,7 @@ const FR = {
   "rk.thenFinalTip": "Son taux de victoire et son rang en finale : notre IA à pleine force contre les {opp} decks de mesure.",
   "md.rtDesc": "Les {decks} meilleurs de la finale se sont aussi affrontés. Une seconde lecture : elle ne fixe aucun rang.",
   "ev.2.descAll": "{decks} decks. Notre IA à pleine force, {min} à {max} parties contre les {n} decks de mesure ; les {keep} meilleurs vont en finale.",
-  "jy.direct": " (entré directement)",
+  "jy.direct": "qualifié d’office pour la course",
   "jy.toFinal": "en finale",
   "jy.stopped": "écarté",
   "jy.check": "écarté, rejoué en course pour contrôle",
@@ -1241,6 +1249,8 @@ const FR = {
   "md.mCut": "Chaque étape garde ses meilleurs decks après une correction pour les decks à peu de parties : un deck peut donc dépasser un peu un deck retenu et s’arrêter quand même.",
   "jy.rt": "#{place} sur {n}",
   "jy.final": "#{rank} sur {n}",
+  "jy.finalPct": "#{rank} sur {n}, {pct}",
+  "jy.rtPct": "#{place} sur {n}, {pct}",
   "jy.aria": "Son parcours dans le classement",
   "jy.sep": " : ",
   "st.rt": "Tournoi du top 16",
@@ -1248,7 +1258,7 @@ const FR = {
   "st.race": "Course",
   "st.screen": "Premier tri",
   "md.orFind": "Pas de collection ? Choisis les cartes que tu veux dans le",
-  "md.meter": "Étape {l} sur {n}",
+  "md.meter": "Étape {l} sur {n} : {stage}",
   "md.missing": "Il manque :",
 
   // ---- deck builder
@@ -1277,7 +1287,7 @@ const FR = {
   "ev.2": "Assez fiable",
   "ev.1": "Indicatif",
   "ev.3.desc": "Notre IA à pleine force : {per} parties contre chacun des {n} decks de mesure.",
-  "ev.2.desc": "{decks} decks : les {screen} meilleurs du premier tri, {direct} entrés directement et {checks} rejoués pour contrôle. Notre IA à pleine force, {min} à {max} parties contre les {n} decks de mesure ; les {keep} meilleurs vont en finale.",
+  "ev.2.desc": "{decks} decks : les {screen} meilleurs du premier tri, {direct} qualifiés d’office et {checks} rejoués pour contrôle. Notre IA à pleine force, {min} à {max} parties contre les {n} decks de mesure ; les {keep} meilleurs vont en finale.",
   "ev.1.desc": "{decks} decks. Une IA rapide, {min} à {max} parties chacun ; les {keep} meilleurs vont en course. Une piste, pas un verdict.",
 
   "about.h": "À propos de SPAM Meta",

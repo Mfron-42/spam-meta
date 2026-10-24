@@ -1,16 +1,17 @@
 // The one way to list measured decks (the ranking run's deck table, ranking-decks.json), shared by My decks and the Deck
-// builder, and the deck parts the Deck tier list reuses: a deck's card with its talent under it, the stage line, the journey
-// (the stages a deck played and its score at each), the paging, the "How reliable?" legend and the owned badge. Rows arrive
+// builder, and the deck parts the Deck tier list reuses: a deck's card with its talent under it, the stage meter and its
+// caption, the journey (the stages a deck played and its score at each), the owned badge; and, for the two deck table views,
+// the paging and the "How reliable?" legend. Rows arrive
 // sorted by the furthest stage reached, then the score there (docs/DATA.md, "ranking-decks.json"), so a filter that keeps
 // their order keeps the canonical ranking.
 
-import { h, icon, pct1, pm } from "./util.js?v=24015c5634";
-import { DB } from "./data.js?v=24015c5634";
-import { getLang, isOwned, ownedCount } from "./store.js?v=24015c5634";
-import { gameCard, chip, cardName, L } from "./cards.js?v=24015c5634";
-import { disclosure } from "./ui.js?v=24015c5634";
-import { t, tx } from "./i18n.js?v=24015c5634";
-import { introLine, provBanner, gameSpan } from "./patch.js?v=24015c5634";
+import { h, icon, pct1, pm } from "./util.js?v=50d3047a93";
+import { DB } from "./data.js?v=50d3047a93";
+import { getLang, isOwned, ownedCount } from "./store.js?v=50d3047a93";
+import { gameCard, chip, cardName, L } from "./cards.js?v=50d3047a93";
+import { disclosure } from "./ui.js?v=50d3047a93";
+import { t, tx } from "./i18n.js?v=50d3047a93";
+import { introLine, provBanner, gameSpan } from "./patch.js?v=50d3047a93";
 
 // ---------------------------------------------------------------- stages, in plain words
 // level -> stage of the ranking run: 3 the final (the full AI against the benchmark decks), 2 the race (the same AI and decks,
@@ -18,14 +19,20 @@ import { introLine, provBanner, gameSpan } from "./patch.js?v=24015c5634";
 export const STAGE = { 3: "final", 2: "race", 1: "screen" };
 const LEVELS = 3;
 
-function meter(level) {
-  return h("span.meter", { role: "img", "aria-label": t("md.meter", { l: level, n: LEVELS }) },
+/** The stage meter: three small bars, filled to the furthest stage a deck reached, the empty ones hollow (DESIGN.md "Stage
+ * meter"); its name, also its title, says which stage ("Stage 2 of 3: Race"). */
+export function meter(level) {
+  const name = t("md.meter", { l: level, n: LEVELS, stage: t("st." + STAGE[level]) });
+  return h("span.meter", { role: "img", "aria-label": name, title: name },
     Array.from({ length: LEVELS }, (_, i) => h("i", { class: i < level ? "on" : "" })));
 }
 
+/** A caption under a deck's figure, led by the stage meter of the furthest stage it reached: `text` says what the figure is. */
+export const stageCaption = (level, text) => h("p.ev", [meter(level), h("span", text)]);
+
 /** The caption under a deck's figure: the stage meter, then what the figure is and how reliable it is ("win rate in the
  * race · Fairly reliable"). Every measured deck carries it (My decks, the Deck builder), so a deck reads the same everywhere. */
-export const evLine = (level) => h("p.ev", [meter(level), h("span", t("md.rateCap." + STAGE[level]) + t("ui.dot") + t("ev." + level))]);
+export const evLine = (level) => stageCaption(level, t("md.rateCap." + STAGE[level]) + t("ui.dot") + t("ev." + level));
 
 // ---------------------------------------------------------------- a deck's card
 /**
@@ -46,27 +53,39 @@ export function deckSlot(c, talent, { full = false, miss = false } = {}) {
 // ---------------------------------------------------------------- the journey
 /**
  * The stages a deck played and its score at each (owner, 2026-10-23: "à quelle étape du tournoi il s'est arrêté et avec quel
- * score"): the first sort (kept or not; a deck not kept but raced was one of the random checks; a deck with no first sort went
- * straight to the race), the race (sent to the final or not), the final (rank, score and margin), the top-16 round robin
- * (place). Each stage keeps its best `kept` decks by a cautious reading (DATA.md), so the line says "among the 60", not a cut.
+ * score"): the first sort (kept or not; a deck not kept but raced was one of the random checks; a deck the run seeded straight
+ * into the race says so on that line), the race (sent to the final or not), the final (its rank among the 60, and its score
+ * unless the row's figure is that score), the top-16 round robin (place). Each stage keeps its best `kept` decks by a cautious
+ * reading (DATA.md), so the lines say kept or stopped, never a cut score.
+ * `figure`: the stage whose score is the row's figure, so its line drops the number (default the furthest stage, as on My decks
+ * and the Deck tier list's win-rate list; null when the figure is not a win rate, as on the speed list, so the final's line then
+ * carries its score). `rr`: the deck's round-robin win rate when the view has it (`{rate, title}`, ranking.json), printed after
+ * its place with its basis as the title; the deck table holds the place only.
  */
-export function journey(r) {
-  const s = r.stages, n = DB.decks.stages, top = STAGE[r.level];
-  // the furthest stage's score is the row's figure: its line keeps the games and what happened, not the number again
-  const games = (stage, x) => t("jy.games", { games: x.games }) + (stage === top ? "" : t("ui.comma") + pct1(x.rate));
-  const li = (stage, text) => h("li", [h("span.jy-s", t("st." + stage) + t("jy.sep")), h("span", text)]);
+export function journey(r, { figure = STAGE[r.level], rr = null } = {}) {
+  const s = r.stages, n = DB.decks.stages;
+  const games = (stage, x) => t("jy.games", { games: x.games }) + (stage === figure ? "" : t("ui.comma") + pct1(x.rate));
+  const li = (stage, text, title = null) => h("li", [h("span.jy-s", t("st." + stage) + t("jy.sep")), h("span", { title }, text)]);
   const items = [];
   if (s.screen) {
     const word = s.screen.kept ? "jy.kept" : s.race ? "jy.check" : "jy.stopped";
     items.push(li("screen", games("screen", s.screen) + t("ui.comma") + t(word)));
+  } else if (s.race && n.screen) {
+    // seeded straight into the race: its first sort says so, so every stage keeps one line of its own
+    items.push(li("screen", t("jy.direct")));
   }
-  if (s.race) {
-    const word = t(s.race.kept ? "jy.toFinal" : "jy.stopped") + (!s.screen && n.screen ? t("jy.direct") : "");
-    items.push(li("race", games("race", s.race) + t("ui.comma") + word));
+  if (s.race) items.push(li("race", games("race", s.race) + t("ui.comma") + t(s.race.kept ? "jy.toFinal" : "jy.stopped")));
+  if (s.final) {
+    items.push(li("final", figure === "final" ? t("jy.final", { rank: s.final.rank, n: n.final.decks })
+      : t("jy.finalPct", { rank: s.final.rank, n: n.final.decks, pct: pct1(s.final.score) })));
   }
-  if (s.final) items.push(li("final", t("jy.final", { rank: s.final.rank, n: n.final.decks })));
-  if (s.rt) items.push(li("rt", t("jy.rt", { place: s.rt, n: n.round_robin.decks })));
-  return h("ol.jy", { "aria-label": t("jy.aria") }, items);
+  if (s.rt) {
+    // the round robin's basis is the value's title, and the same words follow for screen readers (a title alone is not read)
+    items.push(rr ? li("rt", [t("jy.rtPct", { place: s.rt, n: n.round_robin.decks, pct: pct1(rr.rate) }), h("span.sr", t("ui.sep") + rr.title)], rr.title)
+      : li("rt", t("jy.rt", { place: s.rt, n: n.round_robin.decks })));
+  }
+  // role="list": a list drawn without markers loses its list role in WebKit
+  return h("ol.jy", { role: "list", "aria-label": t("jy.aria") }, items);
 }
 
 /**

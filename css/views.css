@@ -197,22 +197,34 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .dr-fig { display: grid; gap: 2px; }
 .dr-fig .stat-v { font-size: 28px; }
 .dr-miss { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
-/* the deck table's rows (My decks, the Deck builder) are the Deck tier list's rows; their facts add the journey */
-.decklist .deck-facts { gap: 12px; }
+/* every deck row (the Deck tier list, My decks, the Deck builder): its facts, then its journey, 12px apart */
+.rk-list .deck-facts { gap: 12px; }
+/* the first deck of a tier list, its cards across the row: its facts and its journey side by side under them, 48px apart,
+   the journey level with the figure (one column under 1040px, where the row's facts take their usual places) */
+@media (min-width: 1041px) {
+  .rk-list .deck.spot .deck-facts { grid-template-columns: max-content minmax(0, 1fr); column-gap: 48px; }
+  .rk-list .deck.spot .jy { padding-top: 8px; }
+}
 .decklist .dr-fig { cursor: auto; }      /* its basis is the caption under it, not a tooltip */
-/* the journey of a deck (DESIGN.md "Deck journey"): one quiet line per stage it played, the stage name in the ink colour */
+/* the journey of a deck (DESIGN.md "Deck journey"): one quiet line per stage it played, the stage name in bold */
 .jy { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 12px; margin: 0; padding: 0; list-style: none;
   color: var(--muted); font-size: 14px; line-height: 1.5; }
 .jy li { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; }      /* the stage names line up in one column */
-.jy .jy-s { color: var(--ink-2); font-weight: 600; }
+.jy .jy-s { font-weight: 600; }      /* weight alone sets the stage name apart: the journey reads quieter than the figure's lines */
+.jy [title] { cursor: help; }      /* a value with its basis as the tooltip (the round robin's win rate) */
 @media (max-width: 520px) {      /* a phone: one line per stage, the name inline, so the values keep the column's width */
   .jy { grid-template-columns: minmax(0, 1fr); }
   .jy li { display: block; }
 }
 .levels .meter-gap { width: 24px; }      /* the round robin's line: no stage meter, its text in the column of the others */
-.ev { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; color: var(--muted); font-size: 14px; line-height: 1.4; }
+/* the caption under a deck's figure: the meter, one text line tall, then the words, which wrap beside it (never under it, so
+   the meter never stands alone on a line of its own on a narrow phone) */
+.ev { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 8px; color: var(--muted); font-size: 14px; line-height: 1.4; }
+.ev .meter { height: 1lh; align-items: center; }
 .meter { display: inline-flex; gap: 3px; align-items: flex-end; }
-.meter i { width: 6px; height: 14px; border-radius: 2px; background: var(--socket); box-shadow: var(--sunken); }
+/* an empty bar is hollow (a 1px Dusk Lavender edge, 7:1 on the ground), a filled one solid Soft Lavender: the patch mark's
+   filled / hollow grammar, so "2 of 3" reads as two of three, never as a shorter meter */
+.meter i { width: 6px; height: 14px; border-radius: 2px; background: transparent; box-shadow: inset 0 0 0 1px var(--muted); }
 .meter i.on { background: var(--ink-2); box-shadow: none; }
 .more { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 16px; }
 
@@ -302,9 +314,9 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 /* ---------------------------------------------------------------- tablet and phone */
 @media (max-width: 1040px) {
   .deck-body { grid-template-columns: minmax(0, 1fr); }
-  .rk-list .deck-facts { order: -1; }          /* one column: the number right under the rank, before the cards */
-  .decklist .deck-facts { display: contents; }      /* the deck table: the figure before the cards, the journey after them */
-  .decklist .dfacts { order: -1; }
+  /* one column: the number right under the rank, before the cards; the journey after them */
+  .rk-list .deck-facts { display: contents; }
+  .rk-list .dfacts { order: -1; }
   .dfacts { padding-top: 0; }
   .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }

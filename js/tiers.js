@@ -2,29 +2,37 @@
 // one view (owner, 2026-10-23): the decks by win rate (their score against the benchmark decks, with its 95% margin) and the
 // decks that win in the fewest rounds (with their win rate beside it). A ranked list, no tier letters and no hidden deck
 // (owner, 2026-10-21). While the ranking is not final the view says so at its top (the banner "Temporary ranking", patch.js
-// provBanner), with why, its method and caveats behind "About the numbers". A fast deck says where it went after the race.
+// provBanner), with why, its method and caveats behind "About the numbers". Every deck carries the stage meter of the furthest
+// stage it reached and its journey, the stages it played and its score at each (decklist.js, read from the same run's deck
+// table; owner, 2026-10-24: the bars that say where a deck was eliminated).
 // Each deck is its four game cards in board order, each with the talent it plays under it; a card opens the card view on that
 // talent. A card search keeps the decks holding a card, "Ready to play" the decks the visitor owns. The list shown lives in the
 // address (#tiers, #tiers/speed). A language change redraws the page and keeps the list, the query and the filter.
 // (The tier-grouped view of the 1.22 rankings, with its matchups, withheld and secret decks, is in the git history.)
 
-import { h, icon, pm, pct, pct1, dec, reducedMotion } from "./util.js?v=24015c5634";
-import { DB, loadRanking } from "./data.js?v=24015c5634";
-import { on, isOwned, ownedCount } from "./store.js?v=24015c5634";
-import { cardName } from "./cards.js?v=24015c5634";
-import { segmented, scrollToEl, cascade, CURVE } from "./ui.js?v=24015c5634";
-import { t, tx } from "./i18n.js?v=24015c5634";
-import { findRow, terms, namedCards } from "./search.js?v=24015c5634";
-import { introLine, limitParams, gameSpan, medianRounds, provBanner, DECK_TABLE_SHOWN } from "./patch.js?v=24015c5634";
-import { paintOwned, deckSlot } from "./decklist.js?v=24015c5634";
+import { h, icon, pm, pct, pct1, dec, reducedMotion } from "./util.js?v=50d3047a93";
+import { DB, loadRanking, loadDecks, deckKey } from "./data.js?v=50d3047a93";
+import { on, isOwned, ownedCount } from "./store.js?v=50d3047a93";
+import { cardName } from "./cards.js?v=50d3047a93";
+import { segmented, scrollToEl, cascade, CURVE } from "./ui.js?v=50d3047a93";
+import { t, tx } from "./i18n.js?v=50d3047a93";
+import { findRow, terms, namedCards } from "./search.js?v=50d3047a93";
+import { introLine, limitParams, gameSpan, medianRounds, provBanner, DECK_TABLE_SHOWN } from "./patch.js?v=50d3047a93";
+import { paintOwned, deckSlot, stageCaption, journey } from "./decklist.js?v=50d3047a93";
 
 const LISTS = { score: "by_score", speed: "by_speed" };
-let root, R, list = "score", query = "", readyOnly = false;
+let root, R, table = null, rrOf = new Map(), list = "score", query = "", readyOnly = false;
 let decks = [], find, seg, readyBtn, banner, basisEl, listEl, headEl, sayEl, emptyEl;
 
 export async function mount(el) {
   root = el;
-  R = await loadRanking();
+  // the deck table (while it is shown) gives every listed deck its stages: the stage meter and the journey; without it (not
+  // shown, or a failed request) the rows keep their figures and their quiet lines
+  const [r, d] = await Promise.all([loadRanking(), DECK_TABLE_SHOWN ? loadDecks().catch(() => null) : null]);
+  R = r;
+  table = d ? new Map(d.rows.map((x) => [deckKey(x.cards.map((c) => c.id)), x])) : null;
+  // the round robin's win rate of the 16, for their journey on both lists (a fast deck can be one of them)
+  rrOf = new Map(R.by_score.decks.filter((x) => x.round_robin).map((x) => [deckKey(x.cards), x.round_robin]));
   list = listFromHash() || "score";
   render();
   // the one load sequence of this tab: the first time it is shown, the decks on screen arrive in rank order
@@ -144,30 +152,50 @@ function winsIn(ws) {
   return h("p.fig-all", { title: tip }, [t("rk.winsIn", { rounds: dec(ws.rounds, 1) }), h("span.sr", t("ui.sep") + tip)]);
 }
 
-/** The number that sets the rank, its margin and its field, then one quiet second line; the basis of each is its tooltip. */
+/** The round robin's win rate of a deck of the 16 (null for the others), with its basis as the title. */
+function rrNote(d) {
+  const rr = rrOf.get(deckKey(d.cards));
+  return rr ? { rate: rr.win_rate, title: t("rk.rrTip", { games: rr.games, opp: R.round_robin.opponents }) } : null;
+}
+
+/**
+ * A deck's facts, as every measured deck of the site reads (decklist.js; owner, 2026-10-24: the small bars that say where a
+ * deck was eliminated): the number that sets the rank with its margin; under it the stage meter of the furthest stage the deck
+ * reached and the number's field, which names that stage ("win rate in the final vs 12 benchmark decks"; on the speed list
+ * "rounds to win · stopped in the race"); the quiet line; then the journey, the stages it played and its score at each. On the win-rate
+ * list every deck is a finalist (its meter is full), so the journey says how it got there and where it ended: its first sort, its
+ * race, its final ("#14 of 60": the figure is its final score) and, for the 16, its round-robin place and win rate. On the speed
+ * list the meter says where the deck stopped and the journey carries its race record and, for a finalist, its final rank and score.
+ * Without the deck table a row keeps its figure and its quiet lines (the round robin's; on the speed list, the race record and
+ * where it went next). The basis of each number is its tooltip.
+ */
 function facts(d) {
+  const row = table && table.get(deckKey(d.cards));
   if (list === "score") {
     const s = R.by_score, rr = d.round_robin, ws = d.win_speed;
-    return h("div.dfacts", [
+    const field = t("rk.scoreK", { n: s.opponents });
+    return [h("div.dfacts", [
       h("div.dr-fig", { title: t("rk.scoreTip", { games: d.games, n: s.opponents }) }, [
         h("span.fig-line", [h("b.stat-v", pct1(d.score)), h("span.fig-pm", { title: t("tl.pmTip") }, pm(d.ci95))]),
-        h("span.stat-s", t("rk.scoreK", { n: s.opponents })),
+        row ? stageCaption(row.level, field) : h("span.stat-s", field),
       ]),
-      // how fast it wins, from the race like the speed list (owner, 2026-10-23); its margin is the line's title
+      // how fast it wins (owner, 2026-10-23); its margin is the line's title
       ws ? winsIn(ws) : null,
-      rr ? h("p.fig-all", { title: t("rk.rrTip", { games: rr.games, opp: R.round_robin.opponents }) }, t("rk.rr", { pct: pct1(rr.win_rate), n: R.round_robin.decks })) : null,
-    ]);
+      rr && !row ? h("p.fig-all", { title: t("rk.rrTip", { games: rr.games, opp: R.round_robin.opponents }) }, t("rk.rr", { pct: pct1(rr.win_rate), n: R.round_robin.decks })) : null,
+    ]), row ? journey(row, { rr: rrNote(d) }) : null];
   }
-  return h("div.dfacts", [
+  // the figure is rounds, not a stage's score: the caption says where the deck stopped, in words beside its meter
+  const field = t("rk.roundsK");
+  return [h("div.dfacts", [
     h("div.dr-fig", { title: t("rk.roundsTip", { wins: d.rounds_wins || d.wins }) }, [
       h("span.fig-line", [h("b.stat-v", dec(d.rounds, 1)), h("span.fig-pm", { title: t("rk.roundsPmTip") }, "±" + dec(d.rounds_ci95, 1))]),
-      h("span.stat-s", t("rk.roundsK")),
+      row ? stageCaption(row.level, field + t("ui.dot") + t("rk.stopAt." + row.level)) : h("span.stat-s", field),
     ]),
-    h("p.fig-all", { title: t("rk.speedRateTip", { n: R.by_speed.opponents }) }, t("rk.speedRate", { pct: pct1(d.win_rate), games: d.games })),
-    // where it went after the race (owner, 2026-10-23: why a deck at 86% "does not continue"): its final, or the race's end
-    h("p.fig-all", { title: t(d.final ? "rk.thenFinalTip" : "rk.thenStoppedTip", { n: R.by_score.decks_measured, opp: R.by_score.opponents }) },
+    // without the deck table: the race record and where it went after the race (owner, 2026-10-23), as one line each
+    row ? null : h("p.fig-all", { title: t("rk.speedRateTip", { n: R.by_speed.opponents }) }, t("rk.speedRate", { pct: pct1(d.win_rate), games: d.games })),
+    row ? null : h("p.fig-all", { title: t(d.final ? "rk.thenFinalTip" : "rk.thenStoppedTip", { n: R.by_score.decks_measured, opp: R.by_score.opponents }) },
       d.final ? t("rk.thenFinal", { pct: pct1(d.final.score), rank: d.final.rank }) : t("rk.thenStopped", { n: R.by_score.decks_measured })),
-  ]);
+  ]), row ? journey(row, { figure: null, rr: rrNote(d) }) : null];
 }
 
 function deckEl(d, full) {
@@ -181,7 +209,7 @@ function deckEl(d, full) {
     h("div.deck-head", [h("h3.rk", `#${d.rank}`), ...words, badge]),
     h("div.deck-body", [
       h("div.deck-cards" + (full ? ".full" : ""), slots),
-      h("div.deck-facts", facts(d)),
+      h("div.deck-facts", facts(d).filter(Boolean)),
     ]),
   ]);
   decks.push({ d, cs: d.cs, badge, el, slots });
