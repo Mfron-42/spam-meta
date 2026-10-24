@@ -10,15 +10,15 @@
 // address (#tiers, #tiers/speed). A language change redraws the page and keeps the list, the query and the filter.
 // (The tier-grouped view of the 1.22 rankings, with its matchups, withheld and secret decks, is in the git history.)
 
-import { h, icon, pm, pct, pct1, dec, reducedMotion } from "./util.js?v=f04c2f75e4";
-import { DB, loadRanking, loadDecks, deckKey } from "./data.js?v=f04c2f75e4";
-import { on, isOwned, ownedCount } from "./store.js?v=f04c2f75e4";
-import { cardName } from "./cards.js?v=f04c2f75e4";
-import { segmented, scrollToEl, cascade, CURVE } from "./ui.js?v=f04c2f75e4";
-import { t, tx } from "./i18n.js?v=f04c2f75e4";
-import { findRow, terms, namedCards } from "./search.js?v=f04c2f75e4";
-import { introLine, limitParams, gameSpan, medianRounds, provBanner, DECK_TABLE_SHOWN } from "./patch.js?v=f04c2f75e4";
-import { paintOwned, deckSlot, stageCaption, journey } from "./decklist.js?v=f04c2f75e4";
+import { h, icon, pm, pct, pct1, dec, reducedMotion } from "./util.js?v=dfbc09ef8f";
+import { DB, loadRanking, loadDecks, deckKey } from "./data.js?v=dfbc09ef8f";
+import { on, isOwned, ownedCount } from "./store.js?v=dfbc09ef8f";
+import { cardName } from "./cards.js?v=dfbc09ef8f";
+import { segmented, scrollToEl, cascade, CURVE } from "./ui.js?v=dfbc09ef8f";
+import { t, tx } from "./i18n.js?v=dfbc09ef8f";
+import { findRow, terms, namedCards } from "./search.js?v=dfbc09ef8f";
+import { introLine, limitParams, gameSpan, medianRounds, provBanner, DECK_TABLE_SHOWN } from "./patch.js?v=dfbc09ef8f";
+import { paintOwned, deckSlot, stageCaption, journey } from "./decklist.js?v=dfbc09ef8f";
 
 const LISTS = { score: "by_score", speed: "by_speed" };
 let root, R, table = null, rrOf = new Map(), list = "score", query = "", readyOnly = false;
@@ -31,7 +31,8 @@ export async function mount(el) {
   const [r, d] = await Promise.all([loadRanking(), DECK_TABLE_SHOWN ? loadDecks().catch(() => null) : null]);
   R = r;
   table = d ? new Map(d.rows.map((x) => [deckKey(x.cards.map((c) => c.id)), x])) : null;
-  // the round robin's win rate of the 16, for their journey on both lists (a fast deck can be one of them)
+  // the round robin's win rate of the decks that played it (the final's best), for their journey on both lists (a fast deck can
+  // be one of them)
   rrOf = new Map(R.by_score.decks.filter((x) => x.round_robin).map((x) => [deckKey(x.cards), x.round_robin]));
   list = listFromHash() || "score";
   render();
@@ -113,7 +114,7 @@ function methodLines() {
     t("rk.mHow", { v: R.version, ai: R.pilot, pool: R.pool, kept: s.decks_measured, n, per: gameSpan(s.games_per_opponent) }),
     t("rk.mTalents"),
     h("ul.vinfo-l", R.limits.map((l) => h("li", t("rk.limit." + l, limitParams(R))))),
-    t("rk.mRR", { decks: R.round_robin.decks, gpp: gameSpan(R.round_robin.games_per_pair, { atLeast: true }) }),
+    t("rk.mRR", { decks: R.round_robin.decks, field: R.round_robin.field, n, gpp: gameSpan(R.round_robin.games_per_pair, { atLeast: true }) }),
     t("rk.mSpeed", { n: R.by_speed.opponents, median: medianRounds(R) }),
   ];
 }
@@ -152,10 +153,13 @@ function winsIn(ws) {
   return h("p.fig-all", { title: tip }, [t("rk.winsIn", { rounds: dec(ws.rounds, 1) }), h("span.sr", t("ui.sep") + tip)]);
 }
 
-/** The round robin's win rate of a deck of the 16 (null for the others), with its basis as the title. */
+/** The basis of a deck's round-robin win rate: its games against the field (a deck of the field plays the others of it). */
+const rrTip = (rr) => t(rr.opponents < R.round_robin.field ? "rk.rrTipIn" : "rk.rrTip", { games: rr.games, opp: rr.opponents, field: R.round_robin.field });
+
+/** The round robin's win rate of a deck that played it (null for the others), with its basis as the title. */
 function rrNote(d) {
   const rr = rrOf.get(deckKey(d.cards));
-  return rr ? { rate: rr.win_rate, title: t("rk.rrTip", { games: rr.games, opp: R.round_robin.opponents }) } : null;
+  return rr ? { rate: rr.win_rate, title: rrTip(rr) } : null;
 }
 
 /**
@@ -164,7 +168,8 @@ function rrNote(d) {
  * reached and the number's field, which names that stage ("win rate in the final vs 12 benchmark decks"; on the speed list
  * "rounds to win · stopped in the race"); the quiet line; then the journey, the stages it played and its score at each. On the win-rate
  * list every deck is a finalist (its meter is full), so the journey says how it got there and where it ended: its first sort, its
- * race, its final ("#14 of 60": the figure is its final score) and, for the 16, its round-robin place and win rate. On the speed
+ * race, its final ("#14 of 129": the figure is its final score) and, for the decks of the round robin (the final's best, against
+ * the best decks of version 2: "Against the previous top 16"), their place and win rate there. On the speed
  * list the meter says where the deck stopped and the journey carries its race record and, for a finalist, its final rank and score.
  * Without the deck table a row keeps its figure and its quiet lines (the round robin's; on the speed list, the race record and
  * where it went next). The basis of each number is its tooltip.
@@ -181,7 +186,7 @@ function facts(d) {
       ]),
       // how fast it wins (owner, 2026-10-23); its margin is the line's title
       ws ? winsIn(ws) : null,
-      rr && !row ? h("p.fig-all", { title: t("rk.rrTip", { games: rr.games, opp: R.round_robin.opponents }) }, t("rk.rr", { pct: pct1(rr.win_rate), n: R.round_robin.decks })) : null,
+      rr && !row ? h("p.fig-all", { title: rrTip(rr) }, t("rk.rr", { pct: pct1(rr.win_rate) })) : null,
     ]), row ? journey(row, { rr: rrNote(d) }) : null];
   }
   // the figure is rounds, not a stage's score: the caption says where the deck stopped, in words beside its meter

@@ -6,13 +6,13 @@
 // The picks live in memory only (the address holds a tab and, while a card dialog is open, a card key; SPEC.md); the card
 // dialog's "Decks with this card" sets them through pick().
 
-import { h, icon, fmtInt } from "./util.js?v=f04c2f75e4";
-import { DB, loadDecks } from "./data.js?v=f04c2f75e4";
-import { on, isOwned, ownedCount } from "./store.js?v=f04c2f75e4";
-import { cardName, chip } from "./cards.js?v=f04c2f75e4";
-import { t } from "./i18n.js?v=f04c2f75e4";
-import { searchField, announcer, terms, namedCards } from "./search.js?v=f04c2f75e4";
-import { deckRow, paged, legend, paintOwned, tableHead } from "./decklist.js?v=f04c2f75e4";
+import { h, icon, fmtInt } from "./util.js?v=dfbc09ef8f";
+import { DB, loadDecks } from "./data.js?v=dfbc09ef8f";
+import { on, isOwned, ownedCount } from "./store.js?v=dfbc09ef8f";
+import { cardName, chip } from "./cards.js?v=dfbc09ef8f";
+import { t } from "./i18n.js?v=dfbc09ef8f";
+import { searchField, announcer, terms, namedCards } from "./search.js?v=dfbc09ef8f";
+import { deckRow, paged, legend, paintOwned, tableHead } from "./decklist.js?v=dfbc09ef8f";
 
 const MAX = 4;           // four picks are a whole deck
 const PAGE = 10;         // results shown, then ten more on request
@@ -41,7 +41,7 @@ export function pick(keys) {
 }
 
 // ---------------------------------------------------------------- which cards to offer
-/** The cards the 60 finalists of the deck table play most (then by their best rank). */
+/** The cards the finalists of the deck table play most (then by their best rank). */
 function popularCards() {
   const count = new Map();
   D.rows.filter((r) => r.level === 3).forEach((r) => r.cards.forEach((c) => count.set(c, (count.get(c) || 0) + 1)));

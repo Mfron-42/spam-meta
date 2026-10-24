@@ -5,13 +5,13 @@
 // sorted by the furthest stage reached, then the score there (docs/DATA.md, "ranking-decks.json"), so a filter that keeps
 // their order keeps the canonical ranking.
 
-import { h, icon, pct1, pm } from "./util.js?v=f04c2f75e4";
-import { DB } from "./data.js?v=f04c2f75e4";
-import { getLang, isOwned, ownedCount } from "./store.js?v=f04c2f75e4";
-import { gameCard, chip, cardName, L } from "./cards.js?v=f04c2f75e4";
-import { disclosure } from "./ui.js?v=f04c2f75e4";
-import { t, tx } from "./i18n.js?v=f04c2f75e4";
-import { introLine, provBanner, gameSpan } from "./patch.js?v=f04c2f75e4";
+import { h, icon, pct1, pm } from "./util.js?v=dfbc09ef8f";
+import { DB } from "./data.js?v=dfbc09ef8f";
+import { getLang, isOwned, ownedCount } from "./store.js?v=dfbc09ef8f";
+import { gameCard, chip, cardName, L } from "./cards.js?v=dfbc09ef8f";
+import { disclosure } from "./ui.js?v=dfbc09ef8f";
+import { t, tx } from "./i18n.js?v=dfbc09ef8f";
+import { introLine, provBanner, gameSpan } from "./patch.js?v=dfbc09ef8f";
 
 // ---------------------------------------------------------------- stages, in plain words
 // level -> stage of the ranking run: 3 the final (the full AI against the benchmark decks), 2 the race (the same AI and decks,
@@ -54,8 +54,9 @@ export function deckSlot(c, talent, { full = false, miss = false } = {}) {
 /**
  * The stages a deck played and its score at each (owner, 2026-10-23: "à quelle étape du tournoi il s'est arrêté et avec quel
  * score"): the first sort (kept or not; a deck not kept but raced was one of the random checks; a deck the run seeded straight
- * into the race says so on that line), the race (sent to the final or not), the final (its rank among the 60, and its score
- * unless the row's figure is that score), the top-16 round robin (place). Each stage keeps its best `kept` decks by a cautious
+ * into the race says so on that line), the race (sent to the final or not), the final (its rank among the finalists, and its
+ * score unless the row's figure is that score), the round robin of the final's best ("Against the previous top 16": place). Each stage
+ * keeps its best `kept` decks by a cautious
  * reading (DATA.md), so the lines say kept or stopped, never a cut score.
  * `figure`: the stage whose score is the row's figure, so its line drops the number (default the furthest stage, as on My decks
  * and the Deck tier list's win-rate list; null when the figure is not a win rate, as on the speed list, so the final's line then
@@ -197,9 +198,9 @@ export function legend(id, state) {
     h("ul.levels", [
       ...[3, 2, 1].filter((l) => count(l)).map((l) => h("li", [meter(l), h("div", [h("b", t("st." + STAGE[l])),
         h("span.muted", ` · ${t("md.levelDecks", { n: count(l) })} · `), desc[l]])])),
-      // the round robin of the best 16: a second reading that sets no stage
+      // the round robin of the final's best against the best decks of version 2 (its field): a second reading that sets no stage
       st.round_robin && st.round_robin.decks ? h("li", [h("span.meter-gap", { "aria-hidden": "true" }), h("div", [h("b", t("st.rt")),
-        h("span.muted", " · "), t("md.rtDesc", { decks: st.round_robin.decks })])]) : null,
+        h("span.muted", " · "), t("md.rtDesc", { decks: st.round_robin.decks, field: st.round_robin.field || st.round_robin.decks })])]) : null,
     ]),
   ])));
   disclosure(btn, region, { open: state.open, onToggle: (v) => { state.open = v; } });

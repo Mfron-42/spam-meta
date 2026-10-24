@@ -10,15 +10,15 @@
 // levels 1-3), so the presence counts below must move to the 1.26 files with the card rankings before this view returns.
 // A language change rebuilds the page from the same state (measurement, view, filters, rings, open panels).
 
-import { h, $, $$, icon, fmtInt, pct, pct1, sgn, reducedMotion } from "./util.js?v=f04c2f75e4";
-import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=f04c2f75e4";
-import { DB, loadCardTiers, loadTier, loadDecks } from "./data.js?v=f04c2f75e4";
-import { on, getLang } from "./store.js?v=f04c2f75e4";
-import { cardName, otherName, chip, L, ELEMENTS, RARITIES, elName, raName } from "./cards.js?v=f04c2f75e4";
-import { disclosure, filterChip, setChip, cascade, band } from "./ui.js?v=f04c2f75e4";
-import { t, tx, ord } from "./i18n.js?v=f04c2f75e4";
-import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, introLine, suggestedTalent } from "./patch.js?v=f04c2f75e4";
-import { textNodes, hideTip } from "./cardtext.js?v=f04c2f75e4";
+import { h, $, $$, icon, fmtInt, pct, pct1, sgn, reducedMotion } from "./util.js?v=dfbc09ef8f";
+import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=dfbc09ef8f";
+import { DB, loadCardTiers, loadTier, loadDecks } from "./data.js?v=dfbc09ef8f";
+import { on, getLang } from "./store.js?v=dfbc09ef8f";
+import { cardName, otherName, chip, L, ELEMENTS, RARITIES, elName, raName } from "./cards.js?v=dfbc09ef8f";
+import { disclosure, filterChip, setChip, cascade, band } from "./ui.js?v=dfbc09ef8f";
+import { t, tx, ord } from "./i18n.js?v=dfbc09ef8f";
+import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, introLine, suggestedTalent } from "./patch.js?v=dfbc09ef8f";
+import { textNodes, hideTip } from "./cardtext.js?v=dfbc09ef8f";
 
 const AXK = { c: "ct.axC", r: "ct.axR" };
 const ax = (a) => t(AXK[a]);
