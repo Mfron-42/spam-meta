@@ -4,8 +4,8 @@
 // short mark. The marks take the card's tier colour. Data: a cardtiers.json card record and the file's `decks` totals.
 // Decorative: the counts printed beside it say the same in words.
 
-import { h } from "./util.js?v=ba926b596d";
-import { t } from "./i18n.js?v=ba926b596d";
+import { h } from "./util.js?v=a34256d2f5";
+import { t } from "./i18n.js?v=a34256d2f5";
 
 const TC = { "S+": "sp", S: "s", A: "a", B: "b", C: "c", D: "d", E: "e" };
 

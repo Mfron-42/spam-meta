@@ -6,16 +6,16 @@
 // on this page is that file's). No counter is shown per card.
 // A language change rebuilds the page from the same state (view, filters, search).
 
-import { h, $, $$, icon, fmtInt, dec, reducedMotion } from "./util.js?v=ba926b596d";
-import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=ba926b596d";
-import { DB, loadCardTiers, loadRanking } from "./data.js?v=ba926b596d";
-import { on, getLang } from "./store.js?v=ba926b596d";
-import { cardName, otherName, chip, L, ELEMENTS, RARITIES, elName, raName } from "./cards.js?v=ba926b596d";
-import { disclosure, filterChip, setChip, cascade, band } from "./ui.js?v=ba926b596d";
-import { t, tx } from "./i18n.js?v=ba926b596d";
-import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, introLine, provBanner, suggestedTalent } from "./patch.js?v=ba926b596d";
-import { textNodes, hideTip } from "./cardtext.js?v=ba926b596d";
-import { deckStrip } from "./deckstrip.js?v=ba926b596d";
+import { h, $, $$, icon, fmtInt, dec, reducedMotion } from "./util.js?v=a34256d2f5";
+import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=a34256d2f5";
+import { DB, loadCardTiers, loadRanking } from "./data.js?v=a34256d2f5";
+import { on, getLang } from "./store.js?v=a34256d2f5";
+import { cardName, otherName, chip, L, ELEMENTS, RARITIES, elName, raName } from "./cards.js?v=a34256d2f5";
+import { disclosure, filterChip, setChip, cascade, band } from "./ui.js?v=a34256d2f5";
+import { t, tx } from "./i18n.js?v=a34256d2f5";
+import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, introLine, provBanner, suggestedTalent } from "./patch.js?v=a34256d2f5";
+import { textNodes, hideTip } from "./cardtext.js?v=a34256d2f5";
+import { deckStrip } from "./deckstrip.js?v=a34256d2f5";
 
 // a tier's class on the card tier scale; "out" is the row of the cards in no final deck
 const TC = { "S+": "sp", S: "s", A: "a", B: "b", C: "c", D: "d", E: "e", out: "out" };

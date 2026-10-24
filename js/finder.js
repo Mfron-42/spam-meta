@@ -6,13 +6,13 @@
 // The picks live in memory only (the address holds a tab and, while a card dialog is open, a card key; SPEC.md); the card
 // dialog's "Decks with this card" sets them through pick().
 
-import { h, icon, fmtInt } from "./util.js?v=ba926b596d";
-import { DB, loadDecks } from "./data.js?v=ba926b596d";
-import { on, isOwned, ownedCount } from "./store.js?v=ba926b596d";
-import { cardName, chip } from "./cards.js?v=ba926b596d";
-import { t } from "./i18n.js?v=ba926b596d";
-import { searchField, announcer, terms, namedCards } from "./search.js?v=ba926b596d";
-import { deckRow, paged, legend, paintOwned, tableHead } from "./decklist.js?v=ba926b596d";
+import { h, icon, fmtInt } from "./util.js?v=a34256d2f5";
+import { DB, loadDecks } from "./data.js?v=a34256d2f5";
+import { on, isOwned, ownedCount } from "./store.js?v=a34256d2f5";
+import { cardName, chip } from "./cards.js?v=a34256d2f5";
+import { t } from "./i18n.js?v=a34256d2f5";
+import { searchField, announcer, terms, namedCards } from "./search.js?v=a34256d2f5";
+import { deckRow, paged, paintOwned, tableHead } from "./decklist.js?v=a34256d2f5";
 
 const MAX = 4;           // four picks are a whole deck
 const PAGE = 10;         // results shown, then ten more on request
@@ -21,7 +21,6 @@ const OFTEN_FROM = 40;   // "Often with" counts the cards of the best results on
 
 let root, D, popular = [];
 let picks = [], query = "", mineOnly = false;
-const legendState = { open: false };
 let field, sugEl, slotsEl, resEl, voice;
 
 export async function mount(el) {
@@ -198,7 +197,6 @@ function paintResults() {
   }
   if (head) {
     parts.push(h("div.fd-head", [h("h2#fd-res-h", { tabindex: "-1" }, head), mineBtn]));
-    parts.push(legend("fd-legend", legendState));
     parts.push(items.length ? paged(items, mk, PAGE) : h("p.fd-none", t("fd.mineNone")));
   }
   resEl.replaceChildren(...parts);

@@ -4,14 +4,14 @@
 // are the best). A deck of the top 30 by score carries its rank there. The card search (search.js) keeps only the decks of
 // both lists that hold a matching card; the query survives a redraw (a card ticked, a language change).
 
-import { h, icon, fmtInt } from "./util.js?v=ba926b596d";
-import { loadDecks } from "./data.js?v=ba926b596d";
-import { on, isOwned, ownedCount } from "./store.js?v=ba926b596d";
-import { deckRow, missingLine, paged, legend, tableHead } from "./decklist.js?v=ba926b596d";
-import { findRow, terms, namedCards } from "./search.js?v=ba926b596d";
-import { openCollection } from "./dialogs.js?v=ba926b596d";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=ba926b596d";
-import { t } from "./i18n.js?v=ba926b596d";
+import { h, icon, fmtInt } from "./util.js?v=a34256d2f5";
+import { loadDecks } from "./data.js?v=a34256d2f5";
+import { on, isOwned, ownedCount } from "./store.js?v=a34256d2f5";
+import { deckRow, missingLine, paged, tableHead } from "./decklist.js?v=a34256d2f5";
+import { findRow, terms, namedCards } from "./search.js?v=a34256d2f5";
+import { openCollection } from "./dialogs.js?v=a34256d2f5";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=a34256d2f5";
+import { t } from "./i18n.js?v=a34256d2f5";
 
 let root, D, listeners = new Set();
 let result = { build: [], near: [] };
@@ -45,8 +45,6 @@ export async function mount(el) {
 }
 
 // ---------------------------------------------------------------- page
-const legendState = { open: false };
-
 function render() {
   if (!root) return;
   const n = ownedCount();
@@ -74,7 +72,7 @@ function render() {
     onEnter: () => { const x = lists.querySelector(".deck"); if (x && query.trim()) x.scrollIntoView({ block: "start" }); } });
   lists = h("div.md-lists");
   // the search row sits right above the lists it filters, under the collection bar (whose counts are the whole collection's)
-  root.replaceChildren(...[head, notice, summary, legend("md-legend", legendState), find.el, lists].filter(Boolean));
+  root.replaceChildren(...[head, notice, summary, find.el, lists].filter(Boolean));
   paintLists();
 }
 

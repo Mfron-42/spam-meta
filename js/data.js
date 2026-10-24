@@ -1,7 +1,7 @@
 // Loads the generated JSON once and builds the lookups every view needs. Every request carries the publish version
 // (version.js), so a new publish never mixes with data an earlier visit cached.
 
-import { versioned, withQuery } from "./version.js?v=ba926b596d";
+import { versioned, withQuery } from "./version.js?v=a34256d2f5";
 
 const cache = new Map();
 // data paths are resolved from this module, not from the page, so a page in a sub-folder (site/overlay/) reads the same files
@@ -45,7 +45,7 @@ export async function loadCore() {
 export async function loadRanking() {
   if (!DB.ranking) {
     const r = await getJSON("data/ranking.json");
-    for (const list of [r.by_score, r.by_speed]) {
+    for (const list of [r.by_score, r.by_race, r.by_speed].filter(Boolean)) {
       for (const d of list.decks) {
         d.cs = d.cards.map((id) => DB.byId.get(id));
         d.tls = d.cs.map((c, i) => (c && c.talents[d.talents[i]]) || null);

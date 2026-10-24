@@ -3,11 +3,11 @@
 // filled when a value, an ability or a passive changed (the class "mechanical"), hollow when only talents or texts did.
 // The data carries codes and positions; every word comes from i18n.js ("pc.*").
 
-import { h, icon, fmtDate, dec, fmtInt } from "./util.js?v=ba926b596d";
-import { DB } from "./data.js?v=ba926b596d";
-import { L } from "./cards.js?v=ba926b596d";
-import { t } from "./i18n.js?v=ba926b596d";
-import { disclosure } from "./ui.js?v=ba926b596d";
+import { h, icon, fmtDate, dec, fmtInt, reducedMotion } from "./util.js?v=a34256d2f5";
+import { DB } from "./data.js?v=a34256d2f5";
+import { L } from "./cards.js?v=a34256d2f5";
+import { t } from "./i18n.js?v=a34256d2f5";
+import { disclosure } from "./ui.js?v=a34256d2f5";
 
 // Three patches can differ, and each label names the one it is about (SPEC.md, "Patch labels"):
 // - the GAME patch, the client players run today (below; the lab reads it from the game files);
@@ -130,46 +130,99 @@ export function patchNotice({ patch = null } = {}) {
   return h("p.pnotice", { role: "note" }, t("pc.notice", { game: GAME_PATCH.patch, date }));
 }
 
-// which views have their "About the numbers" open: kept across a redraw (a language change)
-const infoOpen = new Set();
+// ---------------------------------------------------------------- explanations live in the footer
+// (owner, 2026-10-24: "trop de texte explicatif en tête"; DESIGN.md "Explanations live in the footer"): every method note, basis,
+// caveat and legend of a ranking view goes to the footer's Method section (#method), one sub-section per tab (#method-<tab>), a
+// text disclosure each; the top of a view keeps its title, the one-line banner, its search and its switch. A pointer is a small
+// link to the sub-section ("How it is measured"), never prose.
+const METHOD_TABS = ["tiers", "card-tiers", "decks", "builder"];
+const METHOD_TITLES = { tiers: "tab.tiers", "card-tiers": "tab.cardTiers", decks: "tab.decks", builder: "fd.title" };
+const methodOpen = new Set();               // the sub-sections open: kept across a redraw (a language change)
+let methodWanted = null;                    // a sub-section asked for before its view filled it (a #method-<tab> address)
 
-/**
- * A ranking view's intro line (DESIGN.md "Intro line"): the one short `lede`, then, when there is something more to say (the
- * patch notice, the view's `method` sentence), a quiet "About the numbers" text disclosure at its end that opens those lines
- * under it. Returns the nodes to put under the h1: the line, and the region when there is one. `key` names the view;
- * `method` is one sentence or a list of them (one paragraph each, or a node of its own such as a list); `patch` is the view's
- * rankings patch when it reads the deck ranking (ranking.json).
- */
-export function introLine(key, lede, { method = null, patch = null } = {}) {
-  const parts = [...[].concat(method || []).filter(Boolean).map((m) => (m instanceof Node ? m : h("p", m))), patchNotice({ patch })].filter(Boolean);
-  if (!parts.length) return [h("div.vsub", lede)];
-  const id = "info-" + key;
-  const btn = h("button.tdisc", { type: "button", "aria-controls": id }, [icon("info"), h("span", t("pc.info")), icon("chevron")]);
-  const region = h("div.vinfo-wrap", { id }, h("div.collapse-in", h("div.vinfo", parts)));
-  disclosure(btn, region, { open: infoOpen.has(key), onToggle: (v) => { if (v) infoOpen.add(key); else infoOpen.delete(key); } });
-  return [h("div.vsub", [lede, btn]), region];
+/** The footer sub-section of a view, created in the tabs' order the first time; its disclosure is kept across redraws. */
+function methodSub(key) {
+  const root = document.getElementById("method");
+  if (!root) return null;
+  let sub = document.getElementById("method-" + key);
+  if (!sub) {
+    sub = h("div.msub", { id: "method-" + key });
+    const btn = h("button.tdisc.msub-b", { type: "button", "aria-controls": "method-r-" + key }, [icon("info"), h("span.msub-t"), icon("chevron")]);
+    const region = h("div.vinfo-wrap", { id: "method-r-" + key }, h("div.collapse-in", h("div.vinfo.msub-body")));
+    sub.append(btn, region);
+    sub._disc = disclosure(btn, region, { open: methodOpen.has(key), onToggle: (v) => { if (v) methodOpen.add(key); else methodOpen.delete(key); } });
+    const after = METHOD_TABS.slice(METHOD_TABS.indexOf(key) + 1).map((k) => document.getElementById("method-" + k)).find(Boolean);
+    root.querySelector(".msubs").insertBefore(sub, after || null);
+    root.hidden = false;
+  }
+  return sub;
+}
+
+/** Fills a view's footer sub-section with its explanation (`nodes`: sentences, paragraphs or nodes), titled by the tab. */
+export function methodSection(key, nodes) {
+  const sub = methodSub(key);
+  if (!sub) return;
+  sub.querySelector(".msub-t").textContent = t(METHOD_TITLES[key] || "mt.h");
+  sub.querySelector(".msub-body").replaceChildren(...[].concat(nodes || []).filter(Boolean).map((m) => (m instanceof Node ? m : h("p", m))));
+  // asked for before the view drew: open it once the view's list is laid out (two frames), so the scroll lands on it
+  if (methodWanted === key) { methodWanted = null; requestAnimationFrame(() => requestAnimationFrame(() => openMethod(key))); }
+}
+
+/** Opens a view's footer sub-section and brings it into view, its button focused (no scroll animation under reduced motion). */
+export function openMethod(key) {
+  const sub = document.getElementById("method-" + key);
+  if (!sub || !sub.querySelector(".msub-body").childElementCount) { methodWanted = key; return; }
+  sub._disc.set(true);
+  const b = sub.querySelector(".msub-b");
+  b.scrollIntoView({ block: "start", behavior: reducedMotion() ? "auto" : "smooth" });
+  b.focus({ preventScroll: true });
+}
+
+// The way back from the footer: following the link adds one history entry (the same address), so Back returns to the place the
+// visitor left, the link focused again, instead of leaving the site (the critique of 2026-10-24).
+let methodReturn = null;
+window.addEventListener("popstate", (e) => {
+  if (!methodReturn || (e.state && e.state.method)) return;
+  const { y, link } = methodReturn;
+  methodReturn = null;
+  window.scrollTo(0, y);
+  if (link && link.isConnected) link.focus({ preventScroll: true });
+});
+
+/** The small pointer to a view's footer sub-section ("How it is measured"): a real link (#method-<tab>, which the router
+ * understands on a fresh load) that opens the sub-section in place, Back returning to where it was followed. */
+export function methodLink(key) {
+  const a = h("a.link.mlink", { href: "#method-" + key, onclick: (e) => {
+    if (e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;     // a new tab or window: the router opens it there
+    e.preventDefault();
+    methodReturn = { y: window.scrollY, link: a };
+    try { history.pushState({ ...(history.state || {}), method: key }, "", location.href); } catch (err) { methodReturn = null; }
+    openMethod(key);
+  } }, t("mt.link"));
+  return a;
 }
 
 /**
- * The banner of a temporary ranking (DESIGN.md "Provisional banner"): the clock, "Temporary ranking" as its title, one sentence
- * (which version, by which AI, and what runs now that will update it; never a date or a clock time, which would go stale), and
- * "Why?", which opens the view's "About the
- * numbers" right under it (its first paragraph says why). Not dismissible, no motion. `key` names the view (its intro line's
- * disclosure is "info-<key>"); `sentence` the string of its sentence (the Card tier list's says its card tiers are this
- * version's and come again with the next one).
+ * A ranking view's intro: since 2026-10-24 nothing at the top of the view. Its `lede` (the facts line) and its `method` (sentences,
+ * paragraphs or nodes such as a list), then the patch notice, go to the view's footer sub-section (methodSection). Returns the
+ * nodes to put under the h1: none, or, with `link` (a view without the temporary banner, which carries the link), the small
+ * "How it is measured" link alone.
  */
-export function provBanner(key, { sentence = "rk.bannerP" } = {}) {
-  const R = DB.ranking || {};
-  const why = h("button.btn.ghost.rk-why", { type: "button", "aria-controls": "info-" + key, title: t("rk.bannerWhyT"), onclick: () => {
-    const d = document.querySelector(`.tdisc[aria-controls="info-${key}"]`);
-    if (!d) return;
-    if (d.getAttribute("aria-expanded") !== "true") d.click();
-    d.focus();
-  } }, [icon("info"), t("rk.bannerWhy")]);
-  return h("section.rk-banner", { "aria-labelledby": "rk-banner-h-" + key }, [
+export function introLine(key, lede, { method = null, patch = null, link = false } = {}) {
+  methodSection(key, [lede, ...[].concat(method || []), patchNotice({ patch })]);
+  return link ? [h("p.vsub", methodLink(key))] : [];
+}
+
+/**
+ * The banner of a temporary ranking (DESIGN.md "Provisional banner"; owner, 2026-10-24: one short line, no version wording): the
+ * clock, "Temporary ranking, being refined." and the small link to the view's footer sub-section, where why and how live. Not
+ * dismissible, no motion. `key` names the view (a second argument, the older sentence option, is ignored).
+ */
+export function provBanner(key) {
+  return h("div.rk-banner", { role: "note" }, [
     icon("clock", 24),
-    h("div.rk-banner-t", [h("h2", { id: "rk-banner-h-" + key }, t("rk.bannerH")), h("p", t(sentence, { v: R.version, ai: R.pilot }))]),
-    why,
+    h("p.rk-banner-t", t("rk.bannerLine")),
+    methodLink(key),
   ]);
 }
 

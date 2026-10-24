@@ -295,6 +295,18 @@ body { overflow-x: clip; }          /* the band's 100vw never adds a sideways sc
 /* ---------------------------------------------------------------- footer */
 .foot { flex: none; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; line-height: 1.5; }
 .foot-in { display: grid; gap: 8px; padding-block: 32px 48px; }
+/* the Method section (DESIGN.md "Explanations live in the footer"): its title in Lilita 22, then one text disclosure per ranking
+   tab ("Deck tier list", ...), what it opens in Soft Lavender 16 at the body measure; a hairline closes it before the site lines */
+.foot-method { display: grid; gap: 8px; margin-bottom: 16px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+.foot-method h2 { color: var(--ink); font: 400 22px/1.15 var(--display); letter-spacing: .01em; }
+.msubs { display: grid; gap: 8px; justify-items: start; }
+.msub { display: grid; justify-items: start; width: 100%; }
+.msub .tdisc { margin-left: -12px; color: var(--ink-2); font-size: 16px; }
+.msub .tdisc:hover { color: var(--ink); }
+.msub .vinfo-wrap { width: 100%; }
+.msub .vinfo { font-size: 16px; line-height: 1.5; padding: 4px 0 16px; }
+.msub .vinfo > p, .msub .vinfo-l, .msub .levels { max-width: 60ch; }      /* about 80 characters a line, French included */
+.msub .lede { font-size: inherit; color: inherit; }
 .foot-ai b { color: var(--ink); }
 .foot-ai, .foot-meta, .foot-count, .foot-legal { max-width: 78ch; }
 .foot-legal { color: var(--ink-2); }

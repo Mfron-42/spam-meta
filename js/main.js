@@ -4,16 +4,16 @@
 // the same run's deck table (DECK_TABLE_SHOWN), else they have no tab; the Card tier list reads the same run's card tiers
 // (CARD_TIERS_SHOWN), else it draws the placeholder.
 
-import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=ba926b596d";
-import { t, applyStatic, millions } from "./i18n.js?v=ba926b596d";
-import { copyText } from "./ui.js?v=ba926b596d";
-import { DB, loadCore, loadRanking } from "./data.js?v=ba926b596d";
-import { patchLine, dataDate, deckRanking, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN } from "./patch.js?v=ba926b596d";
-import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=ba926b596d";
-import { versioned, withQuery } from "./version.js?v=ba926b596d";
-import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=ba926b596d";
-import { holdTiles } from "./cardtilt.js?v=ba926b596d";
-import { ambient } from "./ambient.js?v=ba926b596d";
+import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=a34256d2f5";
+import { t, applyStatic, millions } from "./i18n.js?v=a34256d2f5";
+import { copyText } from "./ui.js?v=a34256d2f5";
+import { DB, loadCore, loadRanking } from "./data.js?v=a34256d2f5";
+import { patchLine, dataDate, deckRanking, openMethod, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN } from "./patch.js?v=a34256d2f5";
+import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=a34256d2f5";
+import { versioned, withQuery } from "./version.js?v=a34256d2f5";
+import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=a34256d2f5";
+import { holdTiles } from "./cardtilt.js?v=a34256d2f5";
+import { ambient } from "./ambient.js?v=a34256d2f5";
 
 // Five tabs, one view each; the Deck builder (#builder) sits next to My decks. TABS are the ones shown.
 const ALL_TABS = ["tiers", "card-tiers", "codex", "decks", "builder"];
@@ -87,7 +87,13 @@ function findCard(key) {
 // and is replaced in place by the canonical hash. A tab that is not shown opens the landing view, its hash replaced in place.
 const ALIASES = { "my-decks": "decks", "mes-decks": "decks", mydecks: "decks", finder: "builder", "deck-finder": "builder", trouver: "builder", "deck-builder": "builder" };
 function parseHash() {
-  const [raw, ...rest] = location.hash.replace(/^#/, "").split("/");
+  let [raw, ...rest] = location.hash.replace(/^#/, "").split("/");
+  // "#method-<tab>": that tab, with its footer Method sub-section opened (patch.js methodLink, openMethod)
+  // (the address becomes the tab's own, so the view's later changes, such as a sort, write theirs)
+  if (/^method-/.test(raw) && ALL_TABS.includes(raw.slice(7))) {
+    pendingMethod = raw.slice(7); raw = pendingMethod; rest = [];
+    history.replaceState(history.state, "", "#" + raw);
+  }
   let t = ALIASES[raw.toLowerCase()] || raw;
   if (ALL_TABS.includes(t) && !TABS.includes(t)) t = HOME;
   if (t !== raw) history.replaceState(history.state, "", "#" + [t, ...rest].join("/"));
@@ -95,6 +101,14 @@ function parseHash() {
   return { tab: TABS.includes(t) ? t : HOME, key: key && DB.byKey.has(key) ? key : null };
 }
 const tabFromHash = () => parseHash().tab;
+let pendingMethod = null;
+/** Opens the footer Method sub-section a #method-<tab> address asked for, once (its view fills it when it renders). */
+function takeMethod() {
+  if (!pendingMethod) return;
+  const key = pendingMethod;
+  pendingMethod = null;
+  openMethod(key);
+}
 
 function go(tab) {
   if (location.hash !== "#" + tab) location.hash = tab;   // hashchange does the rest
@@ -274,7 +288,7 @@ function copyHandle() {
 function paintFooter() {
   const m = DB.meta, R = deckRanking();
   // the method and the games describe the rankings shown: the deck ranking's while it is the only one, nothing with none
-  $("#foot-method").textContent = CARD_RANKINGS_SHOWN ? t("foot.method", { patch: m.patch, games: millions(m.totals.patch_games) })
+  $("#foot-rk").textContent = CARD_RANKINGS_SHOWN ? t("foot.method", { patch: m.patch, games: millions(m.totals.patch_games) })
     : R ? t(R.final ? "foot.methodRk" : "foot.methodRkProv", { patch: R.patch, games: R.games, ai: R.pilot }) : "";
   $("#foot-games").textContent = CARD_RANKINGS_SHOWN ? gamesLine(m) : "";
   $("#foot-games").hidden = !CARD_RANKINGS_SHOWN;
@@ -336,10 +350,11 @@ async function boot() {
   if (window.ResizeObserver) new ResizeObserver(() => revealTab(current || HOME)).observe($(".tabs"));
   if (document.fonts) document.fonts.ready.then(() => revealTab(current || HOME));
   $(".brand").addEventListener("click", (e) => { if (plain(e)) { e.preventDefault(); go(HOME); } });
-  window.addEventListener("hashchange", () => { const { tab, key } = parseHash(); show(tab); if (key) openCard(key, "url"); });
+  window.addEventListener("hashchange", () => { const { tab, key } = parseHash(); show(tab); if (key) openCard(key, "url"); takeMethod(); });
 
   show(tabFromHash(), true);
   if (parseHash().key) openCard(parseHash().key, "url");
+  takeMethod();
   const idle = window.requestIdleCallback || ((f) => setTimeout(f, 300));
   idle(() => { for (const v of TABS) ensure(v); });
 }

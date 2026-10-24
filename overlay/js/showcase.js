@@ -2,16 +2,16 @@
 // own modules (store, i18n, data, cards), so it draws the same game cards from the same data, speaks the same two languages
 // and shares the visitor's language choice with SPAM Meta. Its strings are the "ov." keys of js/i18n.js.
 
-import { setLang, langChosen, on, getLang } from "../../js/store.js?v=ba926b596d";
-import { t, tx, applyStatic } from "../../js/i18n.js?v=ba926b596d";
-import { h, pct, pct1, dec, icon } from "../../js/util.js?v=ba926b596d";
-import { DB, loadCore, loadRanking, loadCardTiers } from "../../js/data.js?v=ba926b596d";
-import { gameCard, cardName } from "../../js/cards.js?v=ba926b596d";
-import { GAME_PATCH, DECK_RANKING_SHOWN, CARD_TIERS_SHOWN } from "../../js/patch.js?v=ba926b596d";
-import { ambient } from "../../js/ambient.js?v=ba926b596d";
-import { copyText, disclosure } from "../../js/ui.js?v=ba926b596d";
-import { createStage } from "./stage.js?v=ba926b596d";
-import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=ba926b596d";
+import { setLang, langChosen, on, getLang } from "../../js/store.js?v=a34256d2f5";
+import { t, tx, applyStatic } from "../../js/i18n.js?v=a34256d2f5";
+import { h, pct, pct1, dec, icon } from "../../js/util.js?v=a34256d2f5";
+import { DB, loadCore, loadRanking, loadCardTiers } from "../../js/data.js?v=a34256d2f5";
+import { gameCard, cardName } from "../../js/cards.js?v=a34256d2f5";
+import { GAME_PATCH, DECK_RANKING_SHOWN, CARD_TIERS_SHOWN } from "../../js/patch.js?v=a34256d2f5";
+import { ambient } from "../../js/ambient.js?v=a34256d2f5";
+import { copyText, disclosure } from "../../js/ui.js?v=a34256d2f5";
+import { createStage } from "./stage.js?v=a34256d2f5";
+import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=a34256d2f5";
 
 // The overlay's own display: four crops of the real renderer's output over a stand-in board with made-up figures (tools/overlay_media/:
 // shoot.js drives the overlay build's UX harness, crop.py writes these files), so every one is a composite and carries

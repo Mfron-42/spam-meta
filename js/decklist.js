@@ -1,17 +1,16 @@
 // The one way to list measured decks (the ranking run's deck table, ranking-decks.json), shared by My decks and the Deck
 // builder, and the deck parts the Deck tier list reuses: a deck's card with its talent under it, the stage meter, a deck's facts
-// (its last completed phase and win rate, big, then its other phases, small), the owned badge; and, for the two deck table views,
-// the paging and the "How reliable?" legend. Rows arrive
+// (one number big, the others small), the owned badge; and, for the two deck table views, the paging and their footer Method
+// sub-section (what each round of the tournament means, which "How reliable?" said above the list until 2026-10-24). Rows arrive
 // sorted by the furthest stage reached, then the score there (docs/DATA.md, "ranking-decks.json"), so a filter that keeps
 // their order keeps the canonical ranking.
 
-import { h, icon, pct1, pm, dec } from "./util.js?v=ba926b596d";
-import { DB, deckKey } from "./data.js?v=ba926b596d";
-import { getLang, isOwned, ownedCount } from "./store.js?v=ba926b596d";
-import { gameCard, chip, cardName, L } from "./cards.js?v=ba926b596d";
-import { disclosure } from "./ui.js?v=ba926b596d";
-import { t, tx } from "./i18n.js?v=ba926b596d";
-import { introLine, provBanner, gameSpan } from "./patch.js?v=ba926b596d";
+import { h, icon, pct, pct1, pm, dec, fmtInt } from "./util.js?v=a34256d2f5";
+import { DB, deckKey } from "./data.js?v=a34256d2f5";
+import { getLang, isOwned, ownedCount } from "./store.js?v=a34256d2f5";
+import { gameCard, chip, cardName, L } from "./cards.js?v=a34256d2f5";
+import { t, tx } from "./i18n.js?v=a34256d2f5";
+import { introLine, provBanner, gameSpan, medianRounds } from "./patch.js?v=a34256d2f5";
 
 // ---------------------------------------------------------------- stages, in plain words
 // level -> stage of the ranking run: 3 the final (the full AI against the benchmark decks), 2 the race (the same AI and decks,
@@ -44,47 +43,53 @@ export function deckSlot(c, talent, { full = false, miss = false } = {}) {
   ]);
 }
 
-// ---------------------------------------------------------------- a deck's phases
+// ---------------------------------------------------------------- a deck's results
+// the rounds of the tournament a deck can have played, in order (owner, 2026-10-24: every figure is named by the round it comes
+// from, never by a version): the first sort, the race, the final (all three against the 12 benchmark decks), then "Top 30" (the
+// round robin of the final's 30 best), then how fast it wins
 const PHASES = ["screen", "race", "final"];
 const cap = (x) => x.charAt(0).toUpperCase() + x.slice(1);
-let rrByKey = null;
+let topByKey = null;
 
-/** A deck's win rate against the previous top 16 (ranking.json, the 30 best by win rate: the deck table holds the place only). */
-function rtReading(cards) {
+/** A deck's "Top 30" reading (ranking.json: its win rate against the other decks of the final's best 30), or null. */
+export function topReading(cards) {
   const R = DB.ranking;
-  if (!R) return null;
-  if (!rrByKey) rrByKey = new Map(R.by_score.decks.filter((x) => x.round_robin).map((x) => [deckKey(x.cards), x.round_robin]));
-  return rrByKey.get(deckKey(cards.map((c) => c.id))) || null;
+  if (!R || !R.by_score.vs_top30) return null;
+  if (!topByKey) topByKey = new Map(R.by_score.decks.filter((x) => x.vs_top30).map((x) => [deckKey(x.cards), x.vs_top30]));
+  return topByKey.get(deckKey(cards.map((c) => (c.id ? c.id : c)))) || null;
+}
+
+/** The title of a "Top 30" reading: its games, the field, the margin; 50% is the level of the top. */
+export function topTip(v) {
+  const R = DB.ranking, gpp = R && R.by_score.vs_top30 ? gameSpan(R.by_score.vs_top30.games_per_pair) : "";
+  return t("vt.tip", { v: pct1(v.win_rate), games: fmtInt(v.games), opp: v.opponents, gpp, pm: pm(v.ci95) });
 }
 
 /**
- * A deck's facts, the one component of every deck row (DESIGN.md "Deck facts"; owner, 2026-10-24: "la dernière phase complétée,
- * son win rate, et en plus petit les autres phases complétées et leur win rate", the same in the tier list, the speed list, My
- * decks and the Deck builder):
- * - the last phase the deck completed, big: the stage meter, the phase's name ("Final", "Race", "First sort") and its win rate,
- *   with the final's margin;
- * - `rounds` (the two tier lists: `{value, pm, title}`), its rounds to win as one quiet line, in the same place on every row;
- * - every other phase it completed, small, as its name and its win rate ("First sort 77.1%", "Race 83.3%", "Final 69.7%"), and
- *   its win rate against the previous top 16 when it played it (the deck table gives the place only: "#31" when no rate is known).
- * The two tier lists pass `head` (owner, 2026-10-24: a win rate that makes more sense than 75% for everyone; the lead's call): the
- * big figure is then "Vs the top 30" (`{value, pm, title}`, the deck's win rate against the other decks of the top 30), and
- * `head: null` (a deck of the speed list outside the top 30) draws no big figure rather than another number in its place; on both,
- * every phase the deck completed is small, the last one first with the stage meter, the final named "Score v2" (its score against
- * the benchmark decks), and the reading against the previous top 16 is left to the headline that holds its games.
- * Games, ranks, where a deck went next and how reliable a stage is are each value's title and follow for screen readers; the row
- * itself carries no sentence. `r` is a deck table row, or a row the Deck tier list builds from ranking.json without the table.
+ * A deck's facts, the one component of every deck row (DESIGN.md "Deck facts"; owner, 2026-10-24: one number big, "less text,
+ * more visual", one uniform component):
+ * - The Deck tier list (`big`): the big number is the active sort's metric, with no label (the sort switch names it), `{value,
+ *   unit, pm, name, title[, bar]}`: the Top 30 win rate with its margin and the Top-level bar, the race win rate, or the rounds
+ *   to win; then the stage meter (how far the deck went) and its other results, small, each with a one-word label, in the
+ *   tournament's order: First sort, Race, Final, Top 30 (`top30` `{win_rate, ci95, games, opponents}`), then its rounds to win
+ *   (`rounds` `{value, pm, wins}`), the active one left out (`omit`: "race", "top30" or "rounds"). Percentages small are whole
+ *   numbers; every exact value, its games and margin are its title and its screen-reader text.
+ * - My decks and the Deck builder (no `big`): the last round the deck completed, big, with the stage meter, its name ("Final",
+ *   "Race", "First sort") and its win rate (the final's margin), then its other rounds small, and its Top 30 win rate when it
+ *   has one.
+ * The row itself carries no sentence. `r` is a deck table row, or a row the Deck tier list builds from ranking.json without the
+ * table.
  */
-export function deckFacts(r, { rounds = null, head = undefined } = {}) {
+export function deckFacts(r, { big = null, top30 = undefined, rounds = null, omit = null } = {}) {
   const s = r.stages, n = DB.decks ? DB.decks.stages : null, last = STAGE[r.level];
-  const tier = head !== undefined;          // the two tier lists: the headline (or none), every phase small
+  const bench = DB.ranking ? DB.ranking.by_score.opponents : 12;
   const rate = (st) => (st === "final" ? s.final.score : s[st].rate);
   const games = (x) => (x && x.games ? t("ui.comma") + t("jy.games", { games: x.games }) : "");
-  const bench = DB.ranking ? DB.ranking.by_score.opponents : "";
   const basis = (st) => {
     const x = s[st];
     if (st === "final") {
       return (n ? t("jy.final", { rank: x.rank, n: n.final.decks }) : "#" + x.rank) + games(x) +
-        (tier && x.ci95 != null ? t("ui.comma") + t("vt.margin", { pm: pm(x.ci95) }) : "");
+        (big && x.ci95 != null ? t("ui.comma") + t("vt.margin", { pm: pm(x.ci95) }) : "");
     }
     if (st === "race") {
       return cap(t("jy.games", { games: x.games })) + t("ui.comma") + t(x.kept ? "jy.toFinal" : "jy.stopped") +
@@ -92,71 +97,84 @@ export function deckFacts(r, { rounds = null, head = undefined } = {}) {
     }
     return cap(t("jy.games", { games: x.games })) + t("ui.comma") + t(x.kept ? "jy.kept" : s.race ? "jy.check" : "jy.stopped");
   };
-  const name = (st) => (tier && st === "final" ? t("st.scoreV2") : t("st." + st));
-  const small = (label, value, title, sr = title) => h("li", { title }, [
-    h("span.ms-k", label), h("b.ms-n", value), h("span.sr", t("ui.sep") + sr)]);
-  // on the tier lists the final is "Score v2": its title names its field ("Score v2 (12 benchmark decks): #1 of 129, ..."), its
-  // hidden text the field only (the visible name is not read twice)
-  const step = (st, tip) => (tier && st === "final"
-    ? small(name(st), pct1(rate(st)), t("vt.scoreName", { n: bench }) + t("jy.sep") + tip, t("vt.scoreSr", { n: bench }) + t("ui.comma") + tip)
-    : small(name(st), pct1(rate(st)), tip));
-  const figTitle = basis(last) + t("ui.dot") + t("ev." + r.level);
-  // the tier lists: the last phase first (the stage meter stands before the list), then the others in the run's order
-  const items = tier ? [step(last, figTitle)] : [];
-  items.push(...PHASES.filter((st) => st !== last && s[st]).map((st) => step(st, basis(st))));
-  const rr = !head && (s.rt || r.rr) ? (r.rr || rtReading(r.cards)) : null;
-  if (!head && (rr || s.rt)) {
-    const place = s.rt && n ? t("jy.rt", { place: s.rt, n: n.round_robin.decks }) : null;
-    const tip = rr ? rtTip(rr) : "";
-    items.push(small(t("st.rtShort"), rr ? pct1(rr.win_rate) : "#" + s.rt, [place, tip].filter(Boolean).join(t("ui.comma"))));
+  const small = (label, value, title) => h("li", { title }, [
+    h("span.ms-k", label), h("b.ms-n", value), h("span.sr", t("ui.sep") + title)]);
+  const top = top30 === undefined ? topReading(r.cards) : top30;
+  if (big) {
+    // the tournament's order, the active sort's metric left out; whole percentages, the exact value in the title
+    const tip = (st) => t(st === "screen" ? "ms.tipScreen" : "ms.tipBench", { v: pct1(rate(st)), n: bench, basis: basis(st) }) +
+      (st === last ? t("ui.dot") + t("ev." + r.level) : "");
+    const items = PHASES.filter((st) => s[st] && omit !== st).map((st) => small(t("st." + st), pct(rate(st), 0), tip(st)));
+    if (top && omit !== "top30") items.push(small(t("st.top30"), pct(top.win_rate, 0), topTip(top)));
+    if (rounds && omit !== "rounds") {
+      const tipR = t("rk.winsInTip", { v: dec(rounds.value, 1), pm: dec(rounds.pm, 1), wins: rounds.wins, median: DB.ranking ? medianRounds(DB.ranking) : "" });
+      items.push(h("li.ms-u", { title: tipR }, [h("b.ms-n", dec(rounds.value, 0)), h("span.ms-k", t("ms.roundsUnit")), h("span.sr", t("ui.sep") + tipR)]));
+    }
+    return h("div.dfacts", [
+      h("div.dr-fig", { title: big.title }, [
+        h("p.fig-line", [
+          // the number and its unit never part ("10.8 rounds")
+          h("span.fig-n", [h("b.stat-v", big.value), big.unit ? h("span.fig-u", big.unit) : null]),
+          big.pm ? h("span.fig-pm", big.pm) : null,
+          h("span.sr", t("ui.sep") + big.name + t("ui.sep") + big.title),
+        ]),
+        big.bar ? topBar(big.bar) : null,
+      ]),
+      // role="list": a list drawn without markers loses its list role in WebKit; the stage meter stands in its own column
+      // before it, so a pair that wraps lines up under the first one
+      items.length ? h("div.ms-row", [meter(r.level), h("ol.ms", { role: "list", "aria-label": t("jy.aria") }, items)]) : null,
+    ]);
   }
-  const fig = tier
-    ? (head ? h("div.dr-fig", { title: head.title }, h("p.fig-line", [
-      h("span.fig-k", t("vt.name")),
-      h("b.stat-v", pct1(head.value)),
-      head.pm != null ? h("span.fig-pm", pm(head.pm)) : null,
-      h("span.sr", t("ui.sep") + head.title),
-    ])) : null)
-    : h("div.dr-fig", { title: figTitle }, h("p.fig-line", [
+  const figTitle = basis(last) + t("ui.dot") + t("ev." + r.level);
+  const items = PHASES.filter((st) => st !== last && s[st]).map((st) => small(t("st." + st), pct1(rate(st)), basis(st)));
+  if (top) items.push(small(t("st.top30"), pct1(top.win_rate), topTip(top)));
+  return h("div.dfacts", [
+    h("div.dr-fig", { title: figTitle }, h("p.fig-line", [
       meter(r.level),
-      h("span.fig-k", name(last)),
+      h("span.fig-k", t("st." + last)),
       h("b.stat-v", pct1(rate(last))),
       last === "final" && s.final.ci95 != null ? h("span.fig-pm", pm(s.final.ci95)) : null,
       h("span.sr", t("ui.sep") + figTitle),
-    ]));
-  return h("div.dfacts", [
-    fig,
-    rounds ? h("p.ms-line", { title: rounds.title }, [h("span.ms-k", t("ms.rounds")), h("b.ms-n", dec(rounds.value, 1)),
-      h("span.ms-pm", "±" + dec(rounds.pm, 1)), h("span.sr", t("ui.sep") + rounds.title)]) : null,
-    // role="list": a list drawn without markers loses its list role in WebKit; on the tier lists the stage meter stands in its
-    // own column before it, so a pair that wraps lines up under the first one
-    items.length ? (tier ? h("div.ms-row", [meter(r.level), h("ol.ms", { role: "list", "aria-label": t("jy.aria") }, items)])
-      : h("ol.ms", { role: "list", "aria-label": t("jy.aria") }, items)) : null,
+    ])),
+    items.length ? h("ol.ms", { role: "list", "aria-label": t("jy.aria") }, items) : null,
   ]);
 }
 
-/** The basis of a win rate against the previous top 16: its games against that field (a deck of it plays the others). */
-function rtTip(rr) {
-  const R = DB.ranking, field = R && R.round_robin ? R.round_robin.field : null;
-  if (!field || rr.opponents == null) return "";
-  return t(rr.opponents < field ? "rk.rrTipIn" : "rk.rrTip", { games: rr.games, opp: rr.opponents, field });
+// the shared axis of the top-level bar: every row of the list on the same scale, 25% to 75% (the 50% mark in the middle); a
+// value or a margin past an end stops at that end
+export const BAR_AXIS = [0.25, 0.75];
+
+/**
+ * The top-level bar (DESIGN.md "Top-level bar"): a quiet sunken track on a shared axis, the 50% mark (the level of the top), the
+ * deck's margin as a lighter band and its value as a short upright line. A picture of the figure above it, so it is one image for
+ * screen readers whose name says the value, its margin and the mark (`label`); no motion, no colour of its own.
+ */
+export function topBar({ v, lo, hi, label }) {
+  const [a, b] = BAR_AXIS;
+  const at = (x) => (Math.min(b, Math.max(a, x)) - a) / (b - a);
+  return h("span.vt-bar", { role: "img", "aria-label": label, title: label,
+    style: `--lo:${at(lo).toFixed(4)};--hi:${at(hi).toFixed(4)};--v:${at(v).toFixed(4)}` }, [
+    h("i.vt-band"), h("i.vt-mid"), h("i.vt-v"),
+  ]);
 }
 
 /**
- * The head of a view that lists the deck table (My decks, the Deck builder): the title, the temporary-ranking banner while
- * the run is not final, and the intro line whose "About the numbers" says why it is temporary and what the table holds.
+ * The head of a view that lists the deck table (My decks, the Deck builder): the title and, while the run is not final, the
+ * one-line temporary banner. Everything that explains (what the table holds, the decks it does not list, what each round of the
+ * tournament means, its games) goes to the view's footer Method sub-section (patch.js introLine; owner, 2026-10-24).
  */
 export function tableHead(key, h1, lede) {
-  const D = DB.decks.raw, R = DB.ranking;
+  const D = DB.decks.raw;
   const method = [
-    D.final ? null : h("p", [...tx("rk.mWhy"), R ? " " + t("rk.mBench", { n: R.by_score.opponents }) : ""]),
+    D.final ? null : h("p", [...tx("rk.mWhy")]),
     t("md.mTable", { n: DB.decks.rows.length }),
     D.not_listed ? t("md.mNotListed", { n: D.not_listed }) : null,
+    ...legendNodes(),
   ];
   return h("div.vhead", [
     h("h1", h1),
     D.final ? null : provBanner(key),
-    ...introLine(key, h("p.lede", lede), { method, patch: D.patch }),
+    ...introLine(key, h("p", lede), { method, patch: D.patch, link: D.final }),
   ]);
 }
 
@@ -226,10 +244,10 @@ export function paged(items, mk, page = 8) {
   return h("div", [list, items.length > page ? h("div.more", [count, btn]) : null]);
 }
 
-// ---------------------------------------------------------------- legend
-/** The "How reliable?" disclosure: what each stage of the ranking run means. `state.open` survives a redraw. */
-export function legend(id, state) {
-  const btn = h("button.btn.ghost.disc", { type: "button", "aria-controls": id }, [icon("info"), t("md.legend"), icon("chevron")]);
+// ---------------------------------------------------------------- what each round means (footer)
+/** What each round of the tournament means, for the footer Method sub-sections of My decks and the Deck builder (until
+ * 2026-10-24 the "How reliable?" disclosure above their lists): the stage meter before each round, its decks and games. */
+export function legendNodes() {
   const st = DB.decks.stages, race = st.race;
   const count = (l) => DB.decks.rows.filter((r) => r.level === l).length;
   const desc = {
@@ -238,17 +256,15 @@ export function legend(id, state) {
       screen: race.from_screen, direct: race.direct, checks: race.checks, keep: race.kept }),
     1: st.screen ? t("ev.1.desc", { min: st.screen.games_min, max: st.screen.games_max, decks: st.screen.decks, keep: st.screen.kept }) : "",
   };
-  const region = h("div", { id }, h("div.collapse-in", h("div.guide", [
-    h("p", t("md.legendP")),
-    h("p.muted", t("md.mCut")),
+  const R = DB.ranking, vt = R && R.by_score.vs_top30;
+  return [
+    t("md.legendP"),
     h("ul.levels", [
       ...[3, 2, 1].filter((l) => count(l)).map((l) => h("li", [meter(l), h("div", [h("b", t("st." + STAGE[l])),
         h("span.muted", ` · ${t("md.levelDecks", { n: count(l) })} · `), desc[l]])])),
-      // the round robin of the final's best against the best decks of version 2 (its field): a second reading that sets no stage
-      st.round_robin && st.round_robin.decks ? h("li", [h("span.meter-gap", { "aria-hidden": "true" }), h("div", [h("b", t("st.rt")),
-        h("span.muted", " · "), t("md.rtDesc", { decks: st.round_robin.decks, field: st.round_robin.field || st.round_robin.decks })])]) : null,
+      vt ? h("li", [h("span.meter-gap", { "aria-hidden": "true" }), h("div", [h("b", t("st.top30")), h("span.muted", " · "),
+        t("md.topDesc", { decks: R.by_score.decks.length, gpp: gameSpan(vt.games_per_pair) })])]) : null,
     ]),
-  ])));
-  disclosure(btn, region, { open: state.open, onToggle: (v) => { state.open = v; } });
-  return h("div.guide-wrap", [btn, region]);
+    t("md.mCut"),
+  ];
 }
