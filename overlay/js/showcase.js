@@ -2,16 +2,16 @@
 // own modules (store, i18n, data, cards), so it draws the same game cards from the same data, speaks the same two languages
 // and shares the visitor's language choice with SPAM Meta. Its strings are the "ov." keys of js/i18n.js.
 
-import { setLang, langChosen, on, getLang } from "../../js/store.js?v=9ebc121220";
-import { t, tx, applyStatic } from "../../js/i18n.js?v=9ebc121220";
-import { h, pct, pct1, dec, icon } from "../../js/util.js?v=9ebc121220";
-import { DB, loadCore, loadRanking, loadCardTiers } from "../../js/data.js?v=9ebc121220";
-import { gameCard, cardName } from "../../js/cards.js?v=9ebc121220";
-import { GAME_PATCH, DECK_RANKING_SHOWN, CARD_TIERS_SHOWN } from "../../js/patch.js?v=9ebc121220";
-import { ambient } from "../../js/ambient.js?v=9ebc121220";
-import { copyText, disclosure } from "../../js/ui.js?v=9ebc121220";
-import { createStage } from "./stage.js?v=9ebc121220";
-import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=9ebc121220";
+import { setLang, langChosen, on, getLang } from "../../js/store.js?v=c59ee4eacb";
+import { t, tx, applyStatic } from "../../js/i18n.js?v=c59ee4eacb";
+import { h, pct, pct1, dec, icon } from "../../js/util.js?v=c59ee4eacb";
+import { DB, loadCore, loadRanking, loadCardTiers } from "../../js/data.js?v=c59ee4eacb";
+import { gameCard, cardName } from "../../js/cards.js?v=c59ee4eacb";
+import { GAME_PATCH, DECK_RANKING_SHOWN, CARD_TIERS_SHOWN } from "../../js/patch.js?v=c59ee4eacb";
+import { ambient } from "../../js/ambient.js?v=c59ee4eacb";
+import { copyText, disclosure } from "../../js/ui.js?v=c59ee4eacb";
+import { createStage } from "./stage.js?v=c59ee4eacb";
+import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=c59ee4eacb";
 
 // The overlay's own display: four crops of the real renderer's output over a stand-in board with made-up figures (tools/overlay_media/:
 // shoot.js drives the overlay build's UX harness, crop.py writes these files), so every one is a composite and carries
@@ -343,10 +343,10 @@ const visible = (d) => Array.isArray(d.cards) && d.cards.length === 4 && !d.with
 // `tier`, `rank`); a tier shows at most CARD_ROW cells, its first cards by rank and a "+N" cell for the rest, so a crowded tier
 // keeps the panel short
 const CARD_ROW = 4;
-/** A deck's headline, as the Deck tier list reads it: its win rate against the rest of the top 30 once the export carries it
- *  (`vs_top30`), else its win rate in the final against the benchmark decks (`score`). */
-const headline = (d) => (d.vs_top30
-  ? { rate: d.vs_top30.win_rate, games: d.vs_top30.games, key: "ov.meta.vsTop30" }
+/** A deck's headline, as the Deck tier list reads it: its win rate against the rest of the top (the final round robin) once the
+ *  export carries it (`vs_top`), else its win rate in the final against the benchmark decks (`score`). */
+const headline = (d) => (d.vs_top
+  ? { rate: d.vs_top.win_rate, games: d.vs_top.games, key: "ov.meta.vsTop", top: ranking.by_score.decks.length }
   : { rate: d.score, games: d.games, key: "ov.meta.final" });
 
 function drawMeta() {
@@ -370,7 +370,7 @@ function drawMeta() {
       return h("div.mp-deck", [
         h("span.mp-rank", t("ov.meta.rank", { n: d.rank })),
         h("div.mp-cards", d.cs.filter(Boolean).map((c) => gameCard(c, { size: "list", interactive: false }))),
-        h("div.mp-stat", [h("b", pct1(m.rate)), h("span", t(m.key, { games: m.games }))]),
+        h("div.mp-stat", [h("b", pct1(m.rate)), h("span", t(m.key, { games: m.games, top: m.top }))]),
       ]);
     }));
   }

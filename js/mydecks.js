@@ -1,17 +1,17 @@
 // My decks tab: the best decks the visitor can build from the cards they marked as owned, plus the best decks that are
 // exactly one card away, read from the ranking run's deck table (ranking-decks.json). Order is the one docs/DATA.md defines:
 // the furthest stage reached first, then the score there (the rows are already sorted that way, so the first rows that fit
-// are the best). A deck of the top 30 by score carries its rank there. The card search (search.js) keeps only the decks of
+// are the best). A deck of the final round robin (the Top 50) carries its place there. The card search (search.js) keeps only the decks of
 // both lists that hold a matching card; the query survives a redraw (a card ticked, a language change).
 
-import { h, icon, fmtInt } from "./util.js?v=9ebc121220";
-import { loadDecks } from "./data.js?v=9ebc121220";
-import { on, isOwned, ownedCount } from "./store.js?v=9ebc121220";
-import { deckRow, missingLine, paged, tableHead } from "./decklist.js?v=9ebc121220";
-import { findRow, terms, namedCards } from "./search.js?v=9ebc121220";
-import { openCollection } from "./dialogs.js?v=9ebc121220";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=9ebc121220";
-import { t } from "./i18n.js?v=9ebc121220";
+import { h, icon, fmtInt } from "./util.js?v=c59ee4eacb";
+import { loadDecks } from "./data.js?v=c59ee4eacb";
+import { on, isOwned, ownedCount } from "./store.js?v=c59ee4eacb";
+import { deckRow, missingLine, paged, tableHead } from "./decklist.js?v=c59ee4eacb";
+import { findRow, terms, namedCards } from "./search.js?v=c59ee4eacb";
+import { openCollection } from "./dialogs.js?v=c59ee4eacb";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=c59ee4eacb";
+import { t } from "./i18n.js?v=c59ee4eacb";
 
 let root, D, listeners = new Set();
 let result = { build: [], near: [] };

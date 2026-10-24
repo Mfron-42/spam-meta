@@ -178,7 +178,7 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .slot { position: relative; min-width: 0; }
 .deck-facts { display: grid; gap: 16px; align-content: start; }
 /* a deck's facts, the one component of every deck row (decklist.js deckFacts, DESIGN.md "Deck facts"): big, on the Deck tier
-   list the active sort's number with no label (the Top 30 win rate with its bar, the race win rate, the rounds to win with their
+   list the active sort's number with no label (the Top 50 win rate with its bar, the race win rate, the rounds to win with their
    unit), on My decks and the Deck builder the last completed round (the stage meter, its name in Title 22, the value in Headline
    28, the margin); then the stage meter and the other results small, each its one-word name (Dusk Lavender 14) and its value
    (Lilita 18 Soft Lavender); every value's basis is its title, so the cursor says there is more */
@@ -198,7 +198,7 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 @media (max-width: 640px) { .ms { display: grid; grid-template-columns: repeat(2, max-content); gap: 4px 24px; } }      /* pairs in two columns, no orphan */
 .ms-k { color: var(--muted); font: 600 14px/1.4 var(--text); }
 .ms-n { color: var(--ink-2); font: 400 18px/1 var(--display); letter-spacing: .01em; }
-/* the top-level bar (DESIGN.md "Top-level bar"): under the Top 30 number, a plot, not a control (the critique of 2026-10-24: the
+/* the top-level bar (DESIGN.md "Top-level bar"): under the Top 50 number, a plot, not a control (the critique of 2026-10-24: the
    sunken groove and its knob read as a slider): a 2px Line Indigo axis on one scale for every row (25% to 75%, decklist.js
    BAR_AXIS), the 50% mark (the level of the top) a 2 x 16 Dusk Lavender upright across it, the margin a 4px Field Edge band on
    the axis, the value an 8px Cream Lavender dot in front, ringed in Night so the mark stays visible beside it; 12px above it,
@@ -231,7 +231,7 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .dr-miss { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
 /* every deck row (the Deck tier list, My decks, the Deck builder): its facts, then a "Missing:" line, 12px apart */
 .rk-list .deck-facts { gap: 12px; }
-.levels .meter-gap { width: 24px; }      /* the Top 30's line: no stage meter, its text in the column of the others */
+.levels .meter-gap { width: 24px; }      /* the Top 50's line: no stage meter, its text in the column of the others */
 .msub .levels { display: grid; gap: 12px; padding: 0; list-style: none; }
 .meter { display: inline-flex; gap: 3px; align-items: flex-end; }
 /* an empty bar is hollow (a 1px Dusk Lavender edge, 7:1 on the ground), a filled one solid Soft Lavender: the patch mark's

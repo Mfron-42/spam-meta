@@ -3,11 +3,11 @@
 // filled when a value, an ability or a passive changed (the class "mechanical"), hollow when only talents or texts did.
 // The data carries codes and positions; every word comes from i18n.js ("pc.*").
 
-import { h, icon, fmtDate, dec, fmtInt, reducedMotion } from "./util.js?v=9ebc121220";
-import { DB } from "./data.js?v=9ebc121220";
-import { L } from "./cards.js?v=9ebc121220";
-import { t } from "./i18n.js?v=9ebc121220";
-import { disclosure } from "./ui.js?v=9ebc121220";
+import { h, icon, fmtDate, dec, fmtInt, reducedMotion } from "./util.js?v=c59ee4eacb";
+import { DB } from "./data.js?v=c59ee4eacb";
+import { L } from "./cards.js?v=c59ee4eacb";
+import { t } from "./i18n.js?v=c59ee4eacb";
+import { disclosure } from "./ui.js?v=c59ee4eacb";
 
 // Three patches can differ, and each label names the one it is about (SPEC.md, "Patch labels"):
 // - the GAME patch, the client players run today (below; the lab reads it from the game files);
@@ -50,10 +50,11 @@ const rankingsBehindGame = (patch) => {
 export const deckRanking = () => (DECK_RANKING_SHOWN && DB.ranking) || null;
 
 /** What the deck ranking's caveats quote (i18n "rk.limit.*"): the narrowest and widest margins of the number its win-rate list
- * is ordered by ("Vs the top 30" when the export has it, else the score), in points to one decimal. */
+ * is ordered by (its win rate against the top, `vs_top`, when the export has it, else the score), in points to one decimal, and
+ * the size of that list (the Top round). */
 export function limitParams(R) {
-  const ci = R.by_score.decks.map((d) => (R.by_score.vs_top30 && d.vs_top30 ? d.vs_top30.ci95 : d.ci95) * 100);
-  return { lo: dec(Math.min(...ci), 1), hi: dec(Math.max(...ci), 1) };
+  const ci = R.by_score.decks.map((d) => (R.by_score.vs_top && d.vs_top ? d.vs_top.ci95 : d.ci95) * 100);
+  return { lo: dec(Math.min(...ci), 1), hi: dec(Math.max(...ci), 1), top: R.by_score.decks.length };
 }
 
 /** The median round of a won race game (ranking.json by_speed.median_rounds): "18" when whole (a round count), else "18.5". */

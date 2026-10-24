@@ -5,12 +5,12 @@
 // sorted by the furthest stage reached, then the score there (docs/DATA.md, "ranking-decks.json"), so a filter that keeps
 // their order keeps the canonical ranking.
 
-import { h, icon, pct, pct1, pm, dec, fmtInt } from "./util.js?v=9ebc121220";
-import { DB, deckKey } from "./data.js?v=9ebc121220";
-import { getLang, isOwned, ownedCount } from "./store.js?v=9ebc121220";
-import { gameCard, chip, cardName, L } from "./cards.js?v=9ebc121220";
-import { t, tx } from "./i18n.js?v=9ebc121220";
-import { introLine, provBanner, gameSpan, medianRounds, isMatchupTalent, matchupMark } from "./patch.js?v=9ebc121220";
+import { h, icon, pct, pct1, pm, dec, fmtInt } from "./util.js?v=c59ee4eacb";
+import { DB, deckKey } from "./data.js?v=c59ee4eacb";
+import { getLang, isOwned, ownedCount } from "./store.js?v=c59ee4eacb";
+import { gameCard, chip, cardName, L } from "./cards.js?v=c59ee4eacb";
+import { t, tx } from "./i18n.js?v=c59ee4eacb";
+import { introLine, provBanner, gameSpan, medianRounds, isMatchupTalent, matchupMark } from "./patch.js?v=c59ee4eacb";
 
 // ---------------------------------------------------------------- stages, in plain words
 // level -> stage of the ranking run: 3 the final (the full AI against the benchmark decks), 2 the race (the same AI and decks,
@@ -47,42 +47,55 @@ export function deckSlot(c, talent, { full = false, miss = false } = {}) {
 
 // ---------------------------------------------------------------- a deck's results
 // the rounds of the tournament a deck can have played, in order (owner, 2026-10-24: every figure is named by the round it comes
-// from, never by a version): the first sort, the race, the final (all three against the 12 benchmark decks), then "Top 30" (the
-// round robin of the final's 30 best), then how fast it wins
+// from, never by a version): the first sort, the race, the final (all three against the 12 benchmark decks), then "Top 50" (the
+// round robin of the final's best, named by its size: 50 since 2026-10-24), then how fast it wins
 const PHASES = ["screen", "race", "final"];
 const cap = (x) => x.charAt(0).toUpperCase() + x.slice(1);
 let topByKey = null;
 
-/** A deck's "Top 30" reading (ranking.json: its win rate against the other decks of the final's best 30), or null. */
+/** The size of the Top round (ranking.json `by_score`: the final's best decks that played each other), 0 without the ranking. */
+export const topSize = () => (DB.ranking && DB.ranking.by_score ? DB.ranking.by_score.decks.length : 0);
+
+/** A deck's "Top" reading (ranking.json `vs_top`: its win rate against the other decks of the final's best), or null. */
 export function topReading(cards) {
   const R = DB.ranking;
-  if (!R || !R.by_score.vs_top30) return null;
-  if (!topByKey) topByKey = new Map(R.by_score.decks.filter((x) => x.vs_top30).map((x) => [deckKey(x.cards), x.vs_top30]));
+  if (!R || !R.by_score.vs_top) return null;
+  if (!topByKey) topByKey = new Map(R.by_score.decks.filter((x) => x.vs_top).map((x) => [deckKey(x.cards), x.vs_top]));
   return topByKey.get(deckKey(cards.map((c) => (c.id ? c.id : c)))) || null;
 }
 
-/** The title of a "Top 30" reading: its games, the field, the margin; 50% is the level of the top. */
+/** Which AI played which round (ranking.json `pilots`, in the order the run used them), one line for a footer Method sub-section
+ * (the lead, 2026-10-24: "say plainly which AI played which stage"); nothing for an export without them. A round two AIs played
+ * names the second as the wider search's. */
+export function aiLine() {
+  const R = DB.ranking, P = R && R.pilots;
+  if (!P) return null;
+  const names = (xs) => (xs.length > 1 ? t("rk.aiLater", { a: xs[0], b: xs[1] }) : xs[0]);
+  return h("p", tx("rk.mAIs", { race: names(P.race), top: topSize(), top_ai: names(P.top) }));
+}
+
+/** The title of a "Top" reading: its games, the field, the margin; 50% is the level of the top. */
 export function topTip(v) {
-  const R = DB.ranking, gpp = R && R.by_score.vs_top30 ? gameSpan(R.by_score.vs_top30.games_per_pair) : "";
-  return t("vt.tip", { v: pct1(v.win_rate), games: fmtInt(v.games), opp: v.opponents, gpp, pm: pm(v.ci95) });
+  const R = DB.ranking, gpp = R && R.by_score.vs_top ? gameSpan(R.by_score.vs_top.games_per_pair) : "";
+  return t("vt.tip", { v: pct1(v.win_rate), games: fmtInt(v.games), opp: v.opponents, gpp, pm: pm(v.ci95), top: topSize() });
 }
 
 /**
  * A deck's facts, the one component of every deck row (DESIGN.md "Deck facts"; owner, 2026-10-24: one number big, "less text,
  * more visual", one uniform component):
  * - The Deck tier list (`big`): the big number is the active sort's metric, with no label (the sort switch names it), `{value,
- *   unit, pm, name, title[, bar]}`: the Top 30 win rate with its margin and the Top-level bar, the race win rate, or the rounds
+ *   unit, pm, name, title[, bar]}`: the Top 50 win rate with its margin and the Top-level bar, the race win rate, or the rounds
  *   to win; then the stage meter (how far the deck went) and its other results, small, each with a one-word label, in the
- *   tournament's order: First sort, Race, Final, Top 30 (`top30` `{win_rate, ci95, games, opponents}`), then its rounds to win
- *   (`rounds` `{value, pm, wins}`), the active one left out (`omit`: "race", "top30" or "rounds"). Percentages small are whole
+ *   tournament's order: First sort, Race, Final, Top 50 (`vsTop` `{win_rate, ci95, games, opponents}`, ranking.json `vs_top`), then
+ *   its rounds to win (`rounds` `{value, pm, wins}`), the active one left out (`omit`: "race", "top" or "rounds"). Percentages small are whole
  *   numbers; every exact value, its games and margin are its title and its screen-reader text.
  * - My decks and the Deck builder (no `big`): the last round the deck completed, big, with the stage meter, its name ("Final",
- *   "Race", "First sort") and its win rate (the final's margin), then its other rounds small, and its Top 30 win rate when it
+ *   "Race", "First sort") and its win rate (the final's margin), then its other rounds small, and its Top 50 win rate when it
  *   has one.
  * The row itself carries no sentence. `r` is a deck table row, or a row the Deck tier list builds from ranking.json without the
  * table.
  */
-export function deckFacts(r, { big = null, top30 = undefined, rounds = null, omit = null } = {}) {
+export function deckFacts(r, { big = null, vsTop = undefined, rounds = null, omit = null } = {}) {
   const s = r.stages, n = DB.decks ? DB.decks.stages : null, last = STAGE[r.level];
   const bench = DB.ranking ? DB.ranking.by_score.opponents : 12;
   const rate = (st) => (st === "final" ? s.final.score : s[st].rate);
@@ -101,13 +114,13 @@ export function deckFacts(r, { big = null, top30 = undefined, rounds = null, omi
   };
   const small = (label, value, title) => h("li", { title }, [
     h("span.ms-k", label), h("b.ms-n", value), h("span.sr", t("ui.sep") + title)]);
-  const top = top30 === undefined ? topReading(r.cards) : top30;
+  const top = vsTop === undefined ? topReading(r.cards) : vsTop;
   if (big) {
     // the tournament's order, the active sort's metric left out; whole percentages, the exact value in the title
     const tip = (st) => t(st === "screen" ? "ms.tipScreen" : "ms.tipBench", { v: pct1(rate(st)), n: bench, basis: basis(st) }) +
       (st === last ? t("ui.dot") + t("ev." + r.level) : "");
     const items = PHASES.filter((st) => s[st] && omit !== st).map((st) => small(t("st." + st), pct(rate(st), 0), tip(st)));
-    if (top && omit !== "top30") items.push(small(t("st.top30"), pct(top.win_rate, 0), topTip(top)));
+    if (top && omit !== "top") items.push(small(t("st.top", { n: topSize() }), pct(top.win_rate, 0), topTip(top)));
     if (rounds && omit !== "rounds") {
       const tipR = t("rk.winsInTip", { v: dec(rounds.value, 1), pm: dec(rounds.pm, 1), wins: rounds.wins, median: DB.ranking ? medianRounds(DB.ranking) : "" });
       items.push(h("li.ms-u", { title: tipR }, [h("b.ms-n", dec(rounds.value, 0)), h("span.ms-k", t("ms.roundsUnit")), h("span.sr", t("ui.sep") + tipR)]));
@@ -129,7 +142,7 @@ export function deckFacts(r, { big = null, top30 = undefined, rounds = null, omi
   }
   const figTitle = basis(last) + t("ui.dot") + t("ev." + r.level);
   const items = PHASES.filter((st) => st !== last && s[st]).map((st) => small(t("st." + st), pct1(rate(st)), basis(st)));
-  if (top) items.push(small(t("st.top30"), pct1(top.win_rate), topTip(top)));
+  if (top) items.push(small(t("st.top", { n: topSize() }), pct1(top.win_rate), topTip(top)));
   return h("div.dfacts", [
     h("div.dr-fig", { title: figTitle }, h("p.fig-line", [
       meter(r.level),
@@ -171,6 +184,7 @@ export function tableHead(key, h1, lede) {
     D.final ? null : h("p", [...tx("rk.mWhy")]),
     t("md.mTable", { n: DB.decks.rows.length }),
     D.not_listed ? t("md.mNotListed", { n: D.not_listed }) : null,
+    aiLine(),
     DB.ranking && DB.ranking.matchup_talents ? matchupLine() : null,
     ...legendNodes(),
   ];
@@ -265,13 +279,13 @@ export function legendNodes() {
       screen: race.from_screen, direct: race.direct, checks: race.checks, keep: race.kept }),
     1: st.screen ? t("ev.1.desc", { min: st.screen.games_min, max: st.screen.games_max, decks: st.screen.decks, keep: st.screen.kept }) : "",
   };
-  const R = DB.ranking, vt = R && R.by_score.vs_top30;
+  const R = DB.ranking, vt = R && R.by_score.vs_top;
   return [
     t("md.legendP"),
     h("ul.levels", [
       ...[3, 2, 1].filter((l) => count(l)).map((l) => h("li", [meter(l), h("div", [h("b", t("st." + STAGE[l])),
         h("span.muted", ` · ${t("md.levelDecks", { n: count(l) })} · `), desc[l]])])),
-      vt ? h("li", [h("span.meter-gap", { "aria-hidden": "true" }), h("div", [h("b", t("st.top30")), h("span.muted", " · "),
+      vt ? h("li", [h("span.meter-gap", { "aria-hidden": "true" }), h("div", [h("b", t("st.top", { n: topSize() })), h("span.muted", " · "),
         t("md.topDesc", { decks: R.by_score.decks.length, gpp: gameSpan(vt.games_per_pair) })])]) : null,
     ]),
     t("md.mCut"),

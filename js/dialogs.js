@@ -3,17 +3,17 @@
 // drawn as a full-screen card view (card.css); its enter and exit (the card flying from its tile) are played by
 // cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, pct1, fmtDate, fmtInt } from "./util.js?v=9ebc121220";
-import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=9ebc121220";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=9ebc121220";
-import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=9ebc121220";
-import { encode, decode } from "./code.js?v=9ebc121220";
-import { copyText, disclosure } from "./ui.js?v=9ebc121220";
-import { t, tx, millions } from "./i18n.js?v=9ebc121220";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, gameSpan, medianRounds, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, GAME_PATCH, isMatchupTalent, matchupMark } from "./patch.js?v=9ebc121220";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=9ebc121220";
-import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=9ebc121220";
-import { attachTilt } from "./cardtilt.js?v=9ebc121220";
+import { h, $, icon, reducedMotion, pct, pct1, fmtDate, fmtInt } from "./util.js?v=c59ee4eacb";
+import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=c59ee4eacb";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=c59ee4eacb";
+import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=c59ee4eacb";
+import { encode, decode } from "./code.js?v=c59ee4eacb";
+import { copyText, disclosure } from "./ui.js?v=c59ee4eacb";
+import { t, tx, millions } from "./i18n.js?v=c59ee4eacb";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, gameSpan, medianRounds, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, GAME_PATCH, isMatchupTalent, matchupMark } from "./patch.js?v=c59ee4eacb";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=c59ee4eacb";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=c59ee4eacb";
+import { attachTilt } from "./cardtilt.js?v=c59ee4eacb";
 
 let openDlg = null, pushed = false;
 
@@ -425,24 +425,25 @@ function counterSection(c) {
 const TC = { "S+": "sp", S: "s", A: "a", B: "b", C: "c", D: "d", E: "e" };
 
 /**
- * The card's tier in both views of the Card tier list (data/cardtiers.json, one line each, Top 30 first, the list's default): the
+ * The card's tier in both views of the Card tier list (data/cardtiers.json, one line each, Top first, the list's default): the
  * tier chip, the view's one-word name, its figure (the average win rate of the card's best decks in that view) and its deck count;
  * a card with no deck in a view has the dash chip and "none". The place among the view's cards is the line's title.
  */
 function cardTierRows(c, T) {
   const r = T.cards.find((x) => x.id === c.id);
   if (!r) return [];
-  return ["top30", "race"].map((v) => {
-    const x = r[v], name = t(v === "top30" ? "ct.vTop30" : "ct.vRace");
+  const top = T.decks.top;
+  return ["top", "race"].map((v) => {
+    const x = r[v], name = t(v === "top" ? "ct.vTop" : "ct.vRace", { n: top });
     if (!x.tier) {
       return h("li.cd-ct", [h("span.ct-tchip.tc-out", { "aria-hidden": "true" }, "–"), h("span.cd-ct-v", name),
-        h("span", t(v === "top30" ? "ct.outTop30" : "ct.outRace"))]);
+        h("span", t(v === "top" ? "ct.outTop" : "ct.outRace", { n: top }))]);
     }
     const tip = t("ct.rankOf", { r: x.rank, m: T.placed[v] });
     return h("li.cd-ct", { title: tip }, [
       h("span.ct-tchip.tc-" + TC[x.tier], x.tier),
       h("span.cd-ct-v", name),
-      h("span", [h("b", pct1(x.score)), " ", t(v === "top30" ? "ct.decksTop" : "ct.decksRace", { n: x.decks }), h("span.sr", t("ui.sep") + tip)]),
+      h("span", [h("b", pct1(x.score)), " ", t(v === "top" ? "ct.decksTop" : "ct.decksRace", { n: x.decks, top }), h("span.sr", t("ui.sep") + tip)]),
     ]);
   });
 }
@@ -606,7 +607,7 @@ function buildAbout() {
     h("section", [h("h3", t("about.whatH")), h("p", t((R.final ? "about.whatRk" : "about.whatRkProv") + (CARD_TIERS_SHOWN ? "Ct" : ""), { patch: R.patch }))]),
     h("section", [
       h("h3", t("about.howH")),
-      h("p", t("about.rkHow", { ai: R.pilot, games: R.games, pool: R.pool, kept: R.by_score.decks_measured,
+      h("p", t("about.rkHow", { ai: R.pilot, top: R.by_score.decks.length, games: R.games, pool: R.pool, kept: R.by_score.decks_measured,
         n: R.by_score.opponents, per: gameSpan(R.by_score.games_per_opponent) })),
       h("p", t("about.rkSpeed", { median: medianRounds(R) })),
     ]),
