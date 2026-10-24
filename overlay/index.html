@@ -17,12 +17,12 @@
 
 <link rel="preload" href="../fonts/lilita-one-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../fonts/nunito-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="../data/cards.json?v=f8fc5ae49b" as="fetch" crossorigin>
-<link rel="stylesheet" href="../css/base.css?v=f8fc5ae49b">
-<link rel="stylesheet" href="../css/ambient.css?v=f8fc5ae49b">
-<link rel="stylesheet" href="../css/cards.css?v=f8fc5ae49b">
-<link rel="stylesheet" href="css/overlay.css?v=f8fc5ae49b">
-<link rel="modulepreload" href="js/showcase.js?v=f8fc5ae49b">
+<link rel="preload" href="../data/cards.json?v=9ebc121220" as="fetch" crossorigin>
+<link rel="stylesheet" href="../css/base.css?v=9ebc121220">
+<link rel="stylesheet" href="../css/ambient.css?v=9ebc121220">
+<link rel="stylesheet" href="../css/cards.css?v=9ebc121220">
+<link rel="stylesheet" href="css/overlay.css?v=9ebc121220">
+<link rel="modulepreload" href="js/showcase.js?v=9ebc121220">
 </head>
 <body class="ov" data-dl="loading">
 <a class="skip" href="#main" data-i18n="head.skip">Aller au contenu</a>
@@ -100,7 +100,8 @@
         </div>
         <!-- stand-ins for the game's own END TURN disc and timer ring: they only place the readout and the end-turn dot where the game does -->
         <div class="dock" aria-hidden="true">
-          <div class="ol-win"><svg class="ico crown" viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M2 12.5 1.7 5.2 5.4 8 8 3.2 10.6 8l3.7-2.8L14 12.5z"/></svg><b id="g-now">~58 %</b></div>
+          <!-- the readout as overlay 0.1.20 draws it: the crown, the figure, and its gauge under them (the win chance from the left, a tick at 50%) -->
+          <div class="ol-win"><svg class="ico crown" viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M2 12.5 1.7 5.2 5.4 8 8 3.2 10.6 8l3.7-2.8L14 12.5z"/></svg><b id="g-now">~58 %</b><span class="ol-gauge"><i id="g-fill"></i></span></div>
           <div class="hud">
             <span class="mk mk-dot dot-end" id="dot-end"></span>
             <span class="hud-timer"></span>
@@ -165,7 +166,7 @@
               <div class="feat-t"><h4 data-i18n="ov.f.gauge">Ta chance de gagner, au-dessus de Fin du tour</h4></div>
               <p data-i18n="ov.f.gaugeT">Un chiffre couronné au-dessus de Fin du tour : ta chance de gagner, vue par l’IA. Laisse le curseur dessus pour le détail.</p>
               <!-- the overlay's own hedge since 0.1.14: one figure at rest, "~" before it -->
-              <span class="sample ol-voice" aria-hidden="true"><svg class="ico crown" viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M2 12.5 1.7 5.2 5.4 8 8 3.2 10.6 8l3.7-2.8L14 12.5z"/></svg><b data-num="0.58" data-hedge="~">~58 %</b></span>
+              <span class="sample ol-voice s-wr" aria-hidden="true"><svg class="ico crown" viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M2 12.5 1.7 5.2 5.4 8 8 3.2 10.6 8l3.7-2.8L14 12.5z"/></svg><b data-num="0.58" data-hedge="~">~58 %</b><span class="ol-gauge"><i></i></span></span>
             </li>
             <li class="feat">
               <div class="feat-t"><h4 data-i18n="ov.f.best">Un point sur le coup de l’IA</h4></div>
@@ -207,7 +208,7 @@
         <li><span class="step-n" aria-hidden="true">3</span><div><h3 data-i18n="ov.how.3">Notre meilleure IA choisit son coup</h3><p data-i18n-p="ov.how.3t">v3s9, la meilleure IA actuelle du labo, décide aussitôt ; des parties jouées jusqu’au bout vérifient ensuite chaque option.</p></div></li>
       </ol>
       <dl class="ai-facts">
-        <div><dt id="ai-time">0,26 s</dt><dd id="ai-speed">Temps médian pour afficher son coup.</dd></div>
+        <div><dt id="ai-time">0,51 s</dt><dd id="ai-speed">De la dernière mise à jour du jeu au coup de l’IA, en médiane.</dd></div>
         <div><dt id="ai-patch">Patch 1.26</dt><dd id="ai-patchT">Son moteur est reconstruit à partir de ton jeu après chaque mise à jour.</dd></div>
       </dl>
     </div>
@@ -372,6 +373,6 @@
 
 <noscript><div class="wrap noscript"><p lang="fr">Cette page a besoin de JavaScript pour dessiner les cartes.</p><p lang="en">This page needs JavaScript to draw the cards.</p></div></noscript>
 
-<script type="module" src="js/showcase.js?v=f8fc5ae49b"></script>
+<script type="module" src="js/showcase.js?v=9ebc121220"></script>
 </body>
 </html>

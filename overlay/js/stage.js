@@ -12,9 +12,9 @@
 // mark stays in the page and only its opacity changes. The loop runs only while the stage is on screen and the tab is
 // visible, stops on the pause button, and never starts with reduced motion (the stage then holds one informative frame).
 
-import { t } from "../../js/i18n.js?v=f8fc5ae49b";
-import { h, pct, reducedMotion } from "../../js/util.js?v=f8fc5ae49b";
-import { gameCard, L } from "../../js/cards.js?v=f8fc5ae49b";
+import { t } from "../../js/i18n.js?v=9ebc121220";
+import { h, pct, reducedMotion } from "../../js/util.js?v=9ebc121220";
+import { gameCard, L } from "../../js/cards.js?v=9ebc121220";
 
 const NOW = 0.58;
 const per = (p) => pct(p, 0);
@@ -136,6 +136,7 @@ export function createStage(stage, { onPlaying = () => {} } = {}) {
     marks.out.querySelector(".fate").replaceChildren(glyph("skull"), h("b", per(m.kill)));
     marks.out.querySelector(".dmg").replaceChildren(h("span.lost", ["▾ ", h("b", `${m.lo}–${m.hi}`)]));
     $("g-now").textContent = "~" + per(NOW);        // the readout's hedge since overlay 0.1.14: one figure, "~" before it
+    $("g-fill").style.transform = `scaleX(${NOW})`; // its gauge since overlay 0.1.20
     $("hud-end").textContent = t("ov.stage.end");
     if (cur) show(cur);
     // the card faces were built in the previous language: rebuilt by the page's relabel (showcase.js), the spell line moves with them

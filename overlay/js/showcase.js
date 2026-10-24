@@ -2,16 +2,16 @@
 // own modules (store, i18n, data, cards), so it draws the same game cards from the same data, speaks the same two languages
 // and shares the visitor's language choice with SPAM Meta. Its strings are the "ov." keys of js/i18n.js.
 
-import { setLang, langChosen, on, getLang } from "../../js/store.js?v=f8fc5ae49b";
-import { t, tx, applyStatic } from "../../js/i18n.js?v=f8fc5ae49b";
-import { h, pct, pct1, dec, icon } from "../../js/util.js?v=f8fc5ae49b";
-import { DB, loadCore, loadRanking, loadCardTiers } from "../../js/data.js?v=f8fc5ae49b";
-import { gameCard, cardName } from "../../js/cards.js?v=f8fc5ae49b";
-import { GAME_PATCH, DECK_RANKING_SHOWN, CARD_TIERS_SHOWN } from "../../js/patch.js?v=f8fc5ae49b";
-import { ambient } from "../../js/ambient.js?v=f8fc5ae49b";
-import { copyText, disclosure } from "../../js/ui.js?v=f8fc5ae49b";
-import { createStage } from "./stage.js?v=f8fc5ae49b";
-import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=f8fc5ae49b";
+import { setLang, langChosen, on, getLang } from "../../js/store.js?v=9ebc121220";
+import { t, tx, applyStatic } from "../../js/i18n.js?v=9ebc121220";
+import { h, pct, pct1, dec, icon } from "../../js/util.js?v=9ebc121220";
+import { DB, loadCore, loadRanking, loadCardTiers } from "../../js/data.js?v=9ebc121220";
+import { gameCard, cardName } from "../../js/cards.js?v=9ebc121220";
+import { GAME_PATCH, DECK_RANKING_SHOWN, CARD_TIERS_SHOWN } from "../../js/patch.js?v=9ebc121220";
+import { ambient } from "../../js/ambient.js?v=9ebc121220";
+import { copyText, disclosure } from "../../js/ui.js?v=9ebc121220";
+import { createStage } from "./stage.js?v=9ebc121220";
+import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=9ebc121220";
 
 // The overlay's own display: four crops of the real renderer's output over a stand-in board with made-up figures (tools/overlay_media/:
 // shoot.js drives the overlay build's UX harness, crop.py writes these files), so every one is a composite and carries
@@ -27,17 +27,18 @@ const mediaUrl = (name, w) => new URL(`../media/${name}-${w}.webp`, import.meta.
 
 // The AI the published overlay plays with, and its measured figures: the one place the page names them (step 3 and the facts of
 // "How it works", two FAQ answers). Sources, to re-read at every overlay release that changes the AI or its search:
-// spam-overlay SPEC.md 6.33 and its release notes (overlay 0.1.19: the default stack v3s9, `ai_pick` full by default);
-// spam-lab ai/weights/BEST_AI.md (v3s9 is the lab's current best AI; the full search against the fast one, m=8 n=64 against m=4
-// n=16, read 0.541 head to head on an earlier generation, v3s5 against v3s4); spam-lab overlay/contract.md 4.1 (first move with
-// v3s9 full, 186 decisions of the owner's 1.26 matches on his PC under a lab ranking holding every thread: p50 259 ms, p90 477 ms;
-// `fast` about 0.15 s sooner). No gain of v3s9 over v3s8 is quoted: BEST_AI.md's +0.038 was read against an exact champion that
-// aimed its own cards (the AI PC's CHANGELOG entry of 2026-10-24 15:03: fair yardstick 0.607 instead of 0.784); quote one only
-// once the lab publishes the fair re-read. The game patch is the site's (patch.js).
-const AI = { name: "v3s9", firstS: 0.26, p90S: 0.48, fastSoonerS: 0.15, fullShare: 54 };
+// spam-overlay SPEC.md 6.34 and its release notes (overlay 0.1.20: the default stack v3s9, `ai_pick` full by default, the
+// analysis started during the game's settle, SPEC 5.25); spam-lab ai/weights/BEST_AI.md (v3s9 is the lab's current best AI; the
+// full search against the fast one, m=8 n=64 against m=4 n=16, read 0.541 head to head on an earlier generation, v3s5 against
+// v3s4). The time: from the game's last update that changed the position (its last packet) to the AI's move on screen, 195
+// decisions of two of the owner's 1.26 matches replayed in real time through the 0.1.20 bridge under a lab ranking holding every
+// thread (CPU 100%): p50 513 ms, p90 576 ms; the game's own settle (0.5 s) is most of it. No "sooner" is quoted for `fast` any
+// more: the move now lands with the settle on main and shop decisions. No gain of v3s9 over v3s8 is quoted: BEST_AI.md's +0.038
+// was read against an exact champion that aimed its own cards (the AI PC's CHANGELOG entry of 2026-10-24 15:03: fair yardstick
+// 0.607 instead of 0.784); quote one only once the lab publishes the fair re-read. The game patch is the site's (patch.js).
+const AI = { name: "v3s9", firstS: 0.51, p90S: 0.58, fullShare: 54 };
 const secs = (s) => `${dec(s, 2)}\u00a0s`;
-const aiParams = () => ({ ai: AI.name, first: secs(AI.firstS), p90: secs(AI.p90S), sooner: secs(AI.fastSoonerS),
-  share: AI.fullShare });
+const aiParams = () => ({ ai: AI.name, first: secs(AI.firstS), p90: secs(AI.p90S), share: AI.fullShare });
 
 const FAQ = [1, 2, 3, 4, 5, 6, 7, 8];
 const FAQ_P = new Set([2, 4]);     // the answers that quote the AI (aiParams; data-i18n-p, as step 3 of "How it works")

@@ -11,8 +11,8 @@
 // {one, other} chosen by Intl.PluralRules on the parameter `count`, else `n` (French: 0 to 1.99 are "one"). `**bold**` is honoured by tx()
 // only. French copy uses plain spaces before : ; ? ! - they become no-break spaces when the table loads.
 
-import { h, fmtInt, dec } from "./util.js?v=f8fc5ae49b";
-import { getLang } from "./store.js?v=f8fc5ae49b";
+import { h, fmtInt, dec } from "./util.js?v=9ebc121220";
+import { getLang } from "./store.js?v=9ebc121220";
 
 const EN = {
   // ---- document and header
@@ -582,7 +582,7 @@ const EN = {
   "ov.inst.1t.soon": "One download, for Windows, once it is out.",
   "ov.inst.1t.zip": "One ZIP, for Windows. Extract it wherever you like.",
   "ov.inst.1t.setup": "One installer, for Windows.",
-  "ov.inst.2t.soon": "It finds SPAM in your Steam libraries and prepares its engine from your own copy, in one to three minutes, and installs nothing in Windows. If Npcap is missing, it offers to fetch its installer.",
+  "ov.inst.2t.soon": "It finds SPAM in your Steam libraries and prepares its engine from your own copy in one to three minutes. If Npcap is missing, it offers to fetch it.",
   "ov.inst.2t.zip": "It finds SPAM in your Steam libraries and prepares its engine from your own copy, in one to three minutes, and installs nothing in Windows. If Npcap is missing, it offers to fetch its installer.",
   "ov.inst.2t.setup": "It finds SPAM in your Steam libraries and prepares its engine from your own copy, in one to three minutes. If Npcap is missing, it offers to fetch its installer.",
   "ov.faq.a5.soon": "Not yet. It is a test version, with no public download for now. This page will say so when there is one.",
@@ -606,8 +606,8 @@ const EN = {
   "ov.k.oddsT": "Under Reroll, the chance of each rarity on the next roll, at your luck level.",
   "ov.cap.odds": "Next roll: 52% common, 30% rare, 13% epic, 5% legendary.",
   "ov.k.win": "Each choice, in win-chance points",
-  "ov.k.winT": "On each tox, under Reroll and beside Skip: what the choice changes in your win chance, in points (wr, for win rate).",
-  "ov.cap.win": "+3 and +7 wr on two tox (≈: less certain), the cyan dot on the best one, −1 for skipping.",
+  "ov.k.winT": "On each tox, under Reroll and beside Skip: what the choice changes in your win chance, in points, with the crown.",
+  "ov.cap.win": "+3 and +7 on two tox (≈: less certain), the cyan dot on the best one, −1 for skipping.",
   "ov.grp.more": "And also",
   "ov.f.honest": "Never more precise than its data",
   "ov.f.honestT": "A figure is never finer than its data: “<8%” rather than “0%”.",
@@ -617,7 +617,7 @@ const EN = {
   "ov.alt.odds": "Close-up of the Reroll button with +2 wr under it, then the odds of each rarity on two lines: 52% common, 30% rare, 13% epic, 5% legendary, each with its pips.",
   "ov.alt.win": "The shop with the overlay: ≈ +3 and +7 wr above two tox with a cyan dot on the second, −1 wr beside Skip.",
   "ov.f.gauge": "Your win chance, above End turn",
-  "ov.f.gaugeT": "One crowned figure above End turn: your chance to win, as the AI sees it. Rest the cursor on it for the details.",
+  "ov.f.gaugeT": "A crowned figure and its gauge above End turn: your chance to win, as the AI sees it. Rest the cursor on it for the details.",
   "ov.f.best": "One dot on the AI’s move",
   "ov.f.bestT": "The cyan dot marks the move the AI would play: on the spell’s line, then on its best target, or left of the timer when ending the turn is best.",
   "ov.f.safe": "Safe or greedy",
@@ -643,7 +643,7 @@ const EN = {
   "ov.how.2t": "What the game server sends to your game, read passively on your PC.",
   "ov.how.3": "Our best AI picks its move",
   "ov.how.3t": "{ai}, the lab’s current best AI, decides at once; games played to the end then check every option.",
-  "ov.ai.speed": "Median time to show its move.",
+  "ov.ai.speed": "From the game’s last update to the AI’s move, at the median.",
   "ov.ai.patchV": "Patch {patch}",
   "ov.ai.patch": "Its engine is rebuilt from your own game after each update.",
   "ov.trust.h": "Privacy",
@@ -677,7 +677,7 @@ const EN = {
   "ov.faq.q3": "Does it send my data anywhere?",
   "ov.faq.a3": "No. Everything is computed on your PC and nothing from your game is sent. The overlay goes online only when you press one of its buttons: “Check for updates” and “Update and restart” (GitHub), or “Install Npcap for me” (npcap.com).",
   "ov.faq.q4": "Will it slow my PC down?",
-  "ov.faq.a4": "The simulator runs at low priority, on two cores, with a memory cap, and it stops after two minutes without a decision. On our test PC, under a heavy background load, the AI’s move showed in {first} at the median, 9 times in 10 within {p90}. For a lighter search, put {key} in {file}: the move shows about {sooner} sooner, but in the lab’s tests the full search won {share} games in 100 against the quick one.",
+  "ov.faq.a4": "The simulator runs at low priority, on two cores, with a memory cap, and it stops after two minutes without a decision. It starts on your position while the game finishes its animations: on our test PC, under a heavy background load, the AI’s move showed {first} after the game’s last update at the median, 9 times in 10 within {p90}. For a lighter search on a slow PC, put {key} in {file}: in the lab’s tests the full search won {share} games in 100 against it.",
   "ov.faq.q5": "Can I install it?",
   "ov.faq.q6": "Which systems?",
   "ov.faq.a6": "Windows only. To read the game’s traffic it needs Npcap, a free network driver; the setup can fetch its official installer for you. Without it, it reads the game window, approximately. A processor without AVX2 gets an older, weaker AI.",
@@ -1264,7 +1264,7 @@ const FR = {
   "ov.inst.1t.soon": "Un seul téléchargement, pour Windows, dès sa sortie.",
   "ov.inst.1t.zip": "Un seul ZIP, pour Windows. Extrais-le où tu veux.",
   "ov.inst.1t.setup": "Un seul installateur, pour Windows.",
-  "ov.inst.2t.soon": "Elle trouve SPAM dans tes bibliothèques Steam et prépare son moteur à partir de ta copie, en une à trois minutes, sans rien installer dans Windows. Si Npcap manque, elle propose d’aller chercher son installateur.",
+  "ov.inst.2t.soon": "Elle trouve SPAM dans tes bibliothèques Steam et prépare son moteur à partir de ta copie, en une à trois minutes. Si Npcap manque, elle propose d’aller le chercher.",
   "ov.inst.2t.zip": "Elle trouve SPAM dans tes bibliothèques Steam et prépare son moteur à partir de ta copie, en une à trois minutes, sans rien installer dans Windows. Si Npcap manque, elle propose d’aller chercher son installateur.",
   "ov.inst.2t.setup": "Elle trouve SPAM dans tes bibliothèques Steam et prépare son moteur à partir de ta copie, en une à trois minutes. Si Npcap manque, elle propose d’aller chercher son installateur.",
   "ov.faq.a5.soon": "Pas encore. C’est une version de test, sans téléchargement public pour l’instant. Cette page le dira quand il y en aura un.",
@@ -1288,8 +1288,8 @@ const FR = {
   "ov.k.oddsT": "Sous Relancer, la chance de chaque rareté au prochain tirage, à ton niveau de chance.",
   "ov.cap.odds": "Prochain tirage : 52 % commune, 30 % rare, 13 % épique, 5 % légendaire.",
   "ov.k.win": "Chaque choix, en points de victoire",
-  "ov.k.winT": "Sur chaque tox, sous Relancer et près de Passer : ce que le choix change à ta chance de gagner, en points (wr, pour win rate).",
-  "ov.cap.win": "+3 et +7 wr sur deux tox (≈ : moins sûr), le point cyan sur le meilleur, −1 en passant.",
+  "ov.k.winT": "Sur chaque tox, sous Relancer et près de Passer : ce que le choix change à ta chance de gagner, en points, avec la couronne.",
+  "ov.cap.win": "+3 et +7 sur deux tox (≈ : moins sûr), le point cyan sur le meilleur, −1 en passant.",
   "ov.grp.more": "Et aussi",
   "ov.f.honest": "Jamais plus précis que ses données",
   "ov.f.honestT": "Un chiffre n’est jamais plus fin que ses données : « <8 % » plutôt que « 0 % ».",
@@ -1299,7 +1299,7 @@ const FR = {
   "ov.alt.odds": "Gros plan sur le bouton Relancer avec +2 wr dessous, puis les chances de chaque rareté sur deux lignes : 52 % commune, 30 % rare, 13 % épique, 5 % légendaire, chacune avec ses points.",
   "ov.alt.win": "La boutique avec l’overlay : ≈ +3 et +7 wr au-dessus de deux tox avec un point cyan sur le second, −1 wr à côté de Passer.",
   "ov.f.gauge": "Ta chance de gagner, au-dessus de Fin du tour",
-  "ov.f.gaugeT": "Un chiffre couronné au-dessus de Fin du tour : ta chance de gagner, vue par l’IA. Laisse le curseur dessus pour le détail.",
+  "ov.f.gaugeT": "Un chiffre couronné et sa jauge au-dessus de Fin du tour : ta chance de gagner, vue par l’IA. Laisse le curseur dessus pour le détail.",
   "ov.f.best": "Un point sur le coup de l’IA",
   "ov.f.bestT": "Le point cyan marque le coup que jouerait l’IA : sur la ligne du sort, puis sur sa meilleure cible, ou à gauche du minuteur quand finir le tour est le mieux.",
   "ov.f.safe": "Prudent ou gourmand",
@@ -1325,7 +1325,7 @@ const FR = {
   "ov.how.2t": "Ce que le serveur du jeu envoie à ton jeu, lu en écoute passive sur ton PC.",
   "ov.how.3": "Notre meilleure IA choisit son coup",
   "ov.how.3t": "{ai}, la meilleure IA actuelle du labo, décide aussitôt ; des parties jouées jusqu’au bout vérifient ensuite chaque option.",
-  "ov.ai.speed": "Temps médian pour afficher son coup.",
+  "ov.ai.speed": "De la dernière mise à jour du jeu au coup de l’IA, en médiane.",
   "ov.ai.patchV": "Patch {patch}",
   "ov.ai.patch": "Son moteur est reconstruit à partir de ton jeu après chaque mise à jour.",
   "ov.trust.h": "Vie privée",
@@ -1359,7 +1359,7 @@ const FR = {
   "ov.faq.q3": "Est-ce qu’il envoie mes données ?",
   "ov.faq.a3": "Non. Tout est calculé sur ton PC, rien de ton jeu n’est envoyé. L’overlay ne va en ligne que lorsque tu appuies sur un de ses boutons : « Rechercher une mise à jour » et « Mettre à jour et redémarrer » (GitHub), ou « Installer Npcap pour moi » (npcap.com).",
   "ov.faq.q4": "Est-ce que ça ralentit mon PC ?",
-  "ov.faq.a4": "Le simulateur tourne en priorité basse, sur deux cœurs, avec un plafond de mémoire, et s’arrête après deux minutes sans décision. Sur notre PC de test, chargé par un gros calcul, le coup de l’IA s’affichait en {first} en médiane, 9 fois sur 10 en moins de {p90}. Pour une recherche plus légère, mets {key} dans {file} : le coup s’affiche environ {sooner} plus tôt, mais dans les tests du labo la recherche complète a battu la rapide {share} parties sur 100.",
+  "ov.faq.a4": "Le simulateur tourne en priorité basse, sur deux cœurs, avec un plafond de mémoire, et s’arrête après deux minutes sans décision. Il commence sur ta position pendant que le jeu finit ses animations : sur notre PC de test, chargé par un gros calcul, le coup de l’IA s’affichait {first} après la dernière mise à jour du jeu en médiane, 9 fois sur 10 en moins de {p90}. Pour une recherche plus légère sur un PC lent, mets {key} dans {file} : dans les tests du labo, la recherche complète l’a battue {share} parties sur 100.",
   "ov.faq.q5": "Est-ce que je peux l’installer ?",
   "ov.faq.q6": "Sur quels systèmes ?",
   "ov.faq.a6": "Windows seulement. Pour lire le trafic du jeu, il lui faut Npcap, un pilote réseau gratuit ; la configuration peut aller chercher son installateur officiel pour toi. Sans lui, il lit la fenêtre du jeu, de façon approximative. Un processeur sans AVX2 reçoit une IA plus ancienne et plus faible.",

@@ -5,12 +5,12 @@
 // sorted by the furthest stage reached, then the score there (docs/DATA.md, "ranking-decks.json"), so a filter that keeps
 // their order keeps the canonical ranking.
 
-import { h, icon, pct, pct1, pm, dec, fmtInt } from "./util.js?v=f8fc5ae49b";
-import { DB, deckKey } from "./data.js?v=f8fc5ae49b";
-import { getLang, isOwned, ownedCount } from "./store.js?v=f8fc5ae49b";
-import { gameCard, chip, cardName, L } from "./cards.js?v=f8fc5ae49b";
-import { t, tx } from "./i18n.js?v=f8fc5ae49b";
-import { introLine, provBanner, gameSpan, medianRounds, isMatchupTalent, matchupMark } from "./patch.js?v=f8fc5ae49b";
+import { h, icon, pct, pct1, pm, dec, fmtInt } from "./util.js?v=9ebc121220";
+import { DB, deckKey } from "./data.js?v=9ebc121220";
+import { getLang, isOwned, ownedCount } from "./store.js?v=9ebc121220";
+import { gameCard, chip, cardName, L } from "./cards.js?v=9ebc121220";
+import { t, tx } from "./i18n.js?v=9ebc121220";
+import { introLine, provBanner, gameSpan, medianRounds, isMatchupTalent, matchupMark } from "./patch.js?v=9ebc121220";
 
 // ---------------------------------------------------------------- stages, in plain words
 // level -> stage of the ranking run: 3 the final (the full AI against the benchmark decks), 2 the race (the same AI and decks,

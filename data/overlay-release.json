@@ -1,27 +1,27 @@
 {
   "available": true,
-  "version": "0.1.19",
+  "version": "0.1.20",
   "released": "2026-10-24",
-  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.19",
-  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.19",
+  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.20",
+  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.20",
   "notes": {
-    "en": "- A stronger AI: v3s9. The \"do this\" dot, the win chance and the AI's test games now come from v3s9, the lab's newest best AI (v3s8 with a better move net). Against the lab's reference bot it wins about 4 points more often than v3s8 did (two paired reads on fresh games: +3.8 and +4.1 points), measured on game version 1.24.\n- Only what you can see. As before, the AI knows what the game sends your client and nothing more: an opponent's talent stays unknown until it fires.\n- The AI's move comes sooner. Its search is now the published one; the wider search of 0.1.18 gave no measured gain. On our test PC, with a heavy job running in the background, the move showed within half a second on 9 decisions in 10 (0.1.18: about 0.7 s).\n- For a lighter search, put `\"ai_pick\": \"fast\"` in `data\\config.local.json`: it answers about 0.15 s sooner but plays another move on about one decision in six. `\"ai_stack\": \"v3s8\"` brings back the previous AI.",
-    "fr": "- Une IA plus forte : v3s9. Le point \u00ab \u00e0 jouer \u00bb, la chance de victoire et les parties d'essai de l'IA viennent maintenant de v3s9, la nouvelle meilleure IA du labo (v3s8 avec un meilleur r\u00e9seau de coups). Face au bot de r\u00e9f\u00e9rence du labo, elle gagne environ 4 points de plus que v3s8 (deux mesures appari\u00e9es sur de nouvelles parties : +3,8 et +4,1 points), mesur\u00e9 sur la version 1.24 du jeu.\n- Seulement ce que vous voyez. Comme avant, l'IA ne conna\u00eet que ce que le jeu envoie \u00e0 votre client : le talent d'un adversaire reste inconnu tant qu'il ne s'est pas d\u00e9clench\u00e9.\n- Le coup de l'IA arrive plus t\u00f4t. Sa recherche est d\u00e9sormais celle publi\u00e9e ; la recherche plus large de la 0.1.18 n'apportait aucun gain mesur\u00e9. Sur notre PC de test, charg\u00e9 par un gros calcul en arri\u00e8re-plan, le coup s'affichait en moins d'une demi-seconde sur 9 d\u00e9cisions sur 10 (0.1.18 : environ 0,7 s).\n- Pour une recherche plus l\u00e9g\u00e8re, ajoutez `\"ai_pick\": \"fast\"` dans `data\\config.local.json` : elle r\u00e9pond environ 0,15 s plus t\u00f4t mais joue un autre coup sur environ une d\u00e9cision sur six. `\"ai_stack\": \"v3s8\"` remet l'IA pr\u00e9c\u00e9dente."
+    "en": "- Faster advice. The overlay works on your position while the game finishes its animations, and shows everything the moment the position is final: the \"do this\" dot, the win chance, every spell's damage and death marks. On our test PC, under a heavy background job, the AI's move now shows about 0.3 s sooner on fight and shop decisions.\n- More visual, fewer words. A small gauge under the win chance; its changes carry the crown (`+7 \u265b`); one short line for every note over the game; an after-fight card you read at a glance (result, running score, your key move).\n- A clearer status window. Four tiles (overlay, game, engine, match reading) and shorter pages.\n- The overlay never runs above normal priority: your game always comes first.",
+    "fr": "- Des conseils plus rapides. L'overlay travaille sur votre position pendant que le jeu finit ses animations, et affiche tout d\u00e8s que la position est d\u00e9finitive : le point \u00ab \u00e0 jouer \u00bb, la chance de victoire, les d\u00e9g\u00e2ts et la mort de chaque sort. Sur notre PC de test, charg\u00e9 par un gros calcul en arri\u00e8re-plan, le coup de l'IA s'affiche environ 0,3 s plus t\u00f4t sur les d\u00e9cisions de combat et de boutique.\n- Plus visuel, moins de mots. Une petite jauge sous la chance de victoire ; ses variations portent la couronne (`+7 \u265b`) ; une ligne courte pour chaque note sur le jeu ; une carte d'apr\u00e8s combat qui se lit d'un coup d'\u0153il (r\u00e9sultat, score cumul\u00e9, votre coup cl\u00e9).\n- Une fen\u00eatre d'\u00e9tat plus claire. Quatre tuiles (overlay, jeu, moteur, lecture de la partie) et des pages plus courtes.\n- L'overlay ne tourne jamais au-dessus de la priorit\u00e9 normale : votre jeu passe toujours en premier."
   },
   "assets": [
     {
       "kind": "setup",
-      "name": "SPAM-Overlay-Setup-0.1.19.exe",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.19/SPAM-Overlay-Setup-0.1.19.exe",
-      "size_bytes": 164169142,
-      "sha256": "f786e7ef3bb36c17058e580f35c9b4ad65d4de5f32af27e6aa6f8a6a4d8142ea"
+      "name": "SPAM-Overlay-Setup-0.1.20.exe",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.20/SPAM-Overlay-Setup-0.1.20.exe",
+      "size_bytes": 164166081,
+      "sha256": "e7d13d208e8a8c4ce52473bec1238d279ee2296897d4dbf1b3540c2c0d6aac70"
     },
     {
       "kind": "zip",
-      "name": "spam-overlay-0.1.19-win64.zip",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.19/spam-overlay-0.1.19-win64.zip",
-      "size_bytes": 247126772,
-      "sha256": "545fc461177ebf8c63a8e4b17ed5f2222ebdba8cd8bd48e2988b40fc80c79118"
+      "name": "spam-overlay-0.1.20-win64.zip",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.20/spam-overlay-0.1.20-win64.zip",
+      "size_bytes": 247138681,
+      "sha256": "5a824c64b151474d38bf5a017bd4bbafa8a7efd1d1e5a7e1d4e8db7ae24aab2b"
     }
   ]
 }
