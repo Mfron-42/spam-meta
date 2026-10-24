@@ -1,19 +1,19 @@
 // Entry point: loads the core data, wires the header, the tabs and the delegated clicks, and mounts the views. The switches of
 // patch.js decide what shows: the Deck tier list draws the deck ranking of the game patch (DECK_RANKING_SHOWN, tiers.js) and is
 // the landing view, else the "being computed" placeholder (pending.js) and the Codex lands; My decks and the Deck builder read
-// the same run's deck table (DECK_TABLE_SHOWN), else they have no tab; the Card tier list draws the placeholder while its
-// rankings are being recomputed (CARD_RANKINGS_SHOWN off).
+// the same run's deck table (DECK_TABLE_SHOWN), else they have no tab; the Card tier list reads the same run's card tiers
+// (CARD_TIERS_SHOWN), else it draws the placeholder.
 
-import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=d1215b1076";
-import { t, applyStatic, millions } from "./i18n.js?v=d1215b1076";
-import { copyText } from "./ui.js?v=d1215b1076";
-import { DB, loadCore, loadRanking } from "./data.js?v=d1215b1076";
-import { patchLine, dataDate, deckRanking, CARD_RANKINGS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN } from "./patch.js?v=d1215b1076";
-import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=d1215b1076";
-import { versioned, withQuery } from "./version.js?v=d1215b1076";
-import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=d1215b1076";
-import { holdTiles } from "./cardtilt.js?v=d1215b1076";
-import { ambient } from "./ambient.js?v=d1215b1076";
+import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=ba817a7942";
+import { t, applyStatic, millions } from "./i18n.js?v=ba817a7942";
+import { copyText } from "./ui.js?v=ba817a7942";
+import { DB, loadCore, loadRanking } from "./data.js?v=ba817a7942";
+import { patchLine, dataDate, deckRanking, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN } from "./patch.js?v=ba817a7942";
+import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=ba817a7942";
+import { versioned, withQuery } from "./version.js?v=ba817a7942";
+import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=ba817a7942";
+import { holdTiles } from "./cardtilt.js?v=ba817a7942";
+import { ambient } from "./ambient.js?v=ba817a7942";
 
 // Five tabs, one view each; the Deck builder (#builder) sits next to My decks. TABS are the ones shown.
 const ALL_TABS = ["tiers", "card-tiers", "codex", "decks", "builder"];
@@ -28,7 +28,7 @@ const scrolls = {};          // where each tab was scrolled to, so coming back d
 let freshNav = false;        // a button that sends you to a tab starts it at the top
 const MODULES = {
   tiers: DECK_RANKING_SHOWN ? "./tiers.js" : "./pending.js",
-  "card-tiers": CARD_RANKINGS_SHOWN ? "./cardtiers.js" : "./pending.js",
+  "card-tiers": CARD_RANKINGS_SHOWN || CARD_TIERS_SHOWN ? "./cardtiers.js" : "./pending.js",
   codex: "./codex.js",
   decks: "./mydecks.js",
   builder: "./finder.js",

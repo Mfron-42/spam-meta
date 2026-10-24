@@ -1,48 +1,53 @@
-// Card tier list tab: every card ranked on two separate measurements (competitive decks, random decks), one at a time,
-// as classic tier rows S+ to E plus "Not measured". A toggle switches the measurement without moving the page (each row
-// keeps the height the larger of its two lists needs, and the icons slide to their new place). A dot on a card says its
-// tier differs on the other measurement beyond noise; the rings (different tier, within noise) are off by default and a
-// secondary toggle in the filters shows them (owner's decision, 2026-10-14). Hover, focus or tap shows the card's numbers
-// on both measurements and its presence in the decks the site lists; the pinned card links to the card dialog. A Details
-// view lists every card in a sortable table. Data: data/cardtiers.json (tools/export_cardtiers.py); presence is counted
-// here from tierlist.json and decks.json, the files the other tabs already read. No counter is shown per card.
-// Off since 2026-10-21 (patch.js CARD_RANKINGS_SHOWN): data.js loadDecks() now reads the 1.26 deck table (ranking-decks.json,
-// levels 1-3), so the presence counts below must move to the 1.26 files with the card rankings before this view returns.
+// Card tier list tab: every card ranked on two separate measurements of the deck ranking run (competitive decks: the race;
+// all tested decks: the first sort), one at a time, as classic tier rows S+ to E plus "Not measured". A toggle switches the
+// measurement without moving the page (each row keeps the height the larger of its two lists needs, and the icons slide to
+// their new place). A dot on a card says its tier differs on the other measurement beyond noise; the rings (different tier,
+// within noise) are off by default and a secondary toggle in the filters shows them (owner's decision, 2026-10-14). Hover,
+// focus or tap shows the card's tier and score on both measurements; a click pins its numbers and its presence in the decks
+// of the deck ranking, and links to the card dialog. A Details view lists every card in a sortable table. Data:
+// data/cardtiers.json (tools/export_cardtiers.py, from the run's deck table); presence is counted here from ranking.json and
+// ranking-decks.json, the files the other tabs already read. No counter is shown per card.
 // A language change rebuilds the page from the same state (measurement, view, filters, rings, open panels).
 
-import { h, $, $$, icon, fmtInt, pct, pct1, sgn, reducedMotion } from "./util.js?v=d1215b1076";
-import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=d1215b1076";
-import { DB, loadCardTiers, loadTier, loadDecks } from "./data.js?v=d1215b1076";
-import { on, getLang } from "./store.js?v=d1215b1076";
-import { cardName, otherName, chip, L, ELEMENTS, RARITIES, elName, raName } from "./cards.js?v=d1215b1076";
-import { disclosure, filterChip, setChip, cascade, band } from "./ui.js?v=d1215b1076";
-import { t, tx, ord } from "./i18n.js?v=d1215b1076";
-import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, introLine, suggestedTalent } from "./patch.js?v=d1215b1076";
-import { textNodes, hideTip } from "./cardtext.js?v=d1215b1076";
+import { h, $, $$, icon, fmtInt, pct, pct1, dec, reducedMotion } from "./util.js?v=ba817a7942";
+import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=ba817a7942";
+import { DB, loadCardTiers, loadRanking, loadDecks } from "./data.js?v=ba817a7942";
+import { on, getLang } from "./store.js?v=ba817a7942";
+import { cardName, otherName, chip, L, ELEMENTS, RARITIES, elName, raName } from "./cards.js?v=ba817a7942";
+import { disclosure, filterChip, setChip, cascade, band } from "./ui.js?v=ba817a7942";
+import { t, tx, ord } from "./i18n.js?v=ba817a7942";
+import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, introLine, provBanner, suggestedTalent } from "./patch.js?v=ba817a7942";
+import { textNodes, hideTip } from "./cardtext.js?v=ba817a7942";
 
 const AXK = { c: "ct.axC", r: "ct.axR" };
 const ax = (a) => t(AXK[a]);
+const KEY = { c: "competitive", r: "pool" };          // the measurement's key in cardtiers.json
 const TC = { "S+": "sp", S: "s", A: "a", B: "b", C: "c", D: "d", E: "e", nm: "nm" };
-const LEVEL = { 4: "finals", 3: "round_robin", 2: "halving", 1: "screen" };
-const level = (l) => (LEVEL[l] ? t("stage." + LEVEL[l]) : String(l));
-const AGK = { same: "ct.agSame", noise: "ct.agNoise", apart: "ct.agApart", differ: "ct.agDiffer" };
+const LEVEL = { 3: "final", 2: "race", 1: "screen" };  // ranking-decks.json `level`: the furthest stage a deck reached
+const level = (l) => (LEVEL[l] ? t("st." + LEVEL[l]).toLocaleLowerCase(getLang()) : String(l));
+const AGK = { same: "ct.agSame", noise: "ct.agNoise", apart: "ct.agApart" };
 const thumb = (c) => `assets/thumbs/s/${c.key}.webp`;
 const other = (a) => (a === "c" ? "r" : "c");
-const CAVEAT_KEY = "spam-meta:card-tiers-caveat:v1";
+/** A score (a win-rate difference, a fraction) in points to one decimal, signed: "+9.4"; with its unit, "+9.4 pts". */
+const pt = (x) => (x > 0.0005 ? "+" : x < -0.0005 ? "−" : "") + dec(Math.abs(x) * 100, 1);
+const pts = (x) => t("ct.pts", { v: pt(x) });
 
 let root, T, TIERS, rows = [], P, N = {};
-const S = { axis: "c", view: "list", q: "", ra: new Set(), el: new Set(), tier: new Set(), sort: "score", rings: false, filtersOpen: false };
+// the default measurement is all tested decks (2026-10-24): 101 cards measured there against 69 in competitive decks
+const S = { axis: "r", view: "list", q: "", ra: new Set(), el: new Set(), tier: new Set(), sort: "score", rings: false, filtersOpen: false };
 let ui = {};
 
 export async function mount(el) {
   root = el;
-  [T] = await Promise.all([loadCardTiers(), loadTier(), loadDecks()]);
+  [T] = await Promise.all([loadCardTiers(), loadRanking(), loadDecks()]);
   TIERS = T.tiers.concat(["nm"]);
   presence();
-  // the measurement and the view live in the address (#card-tiers/random, #card-tiers/details, #card-tiers/random-details)
+  // the measurement and the view live in the address: #card-tiers (all tested decks), #card-tiers/competitive,
+  // #card-tiers/details, #card-tiers/competitive-details; "all" and the 1.22 page's "random" open the default measurement
   const start = (location.hash.split("/")[0] === "#card-tiers" && location.hash.split("/")[1]) || "";
-  S.axis = /random/.test(start) ? "r" : "c";
-  S.view = /details/.test(start) ? "details" : "list";
+  // whole words only: a card key in the address (#card-tiers/<key>, a card view) never picks a measurement
+  S.axis = /^competitive(-|$)/.test(start) ? "c" : "r";
+  S.view = /(^|-)details$/.test(start) ? "details" : "list";
   wireOnce();
   build();
   // the one load sequence of this tab: the first time it is shown, the tier rows on screen arrive in rank order
@@ -59,20 +64,21 @@ export async function mount(el) {
 
 const tierOf = (x, a) => (x.ax[a] ? x.ax[a].tier : "nm");
 
-// ---------------------------------------------------------------- presence in the decks the site lists
+// ---------------------------------------------------------------- presence in the decks of the deck ranking
+// the Deck tier list's 30 decks by win rate (ranking.json; its top 10 by rank) and every deck of the run's deck table
+// (ranking-decks.json, in its canonical order: the furthest stage first, then the score there)
 function presence() {
-  const shown = DB.tier.decks.filter((d) => !d.withheld && Array.isArray(d.cards));
-  N = { top10: shown.filter((d) => d.rank <= 10).length, top30: shown.length, listed: DB.decks.rows.length };
+  const top = DB.ranking.by_score.decks;
+  N = { top10: top.filter((d) => d.rank <= 10).length, top30: top.length, listed: DB.decks.rows.length };
   P = new Map();
-  const get = (id) => { if (!P.has(id)) P.set(id, { t10: 0, t30: 0, all: 0, bt: null, br: null, bl: null, good: [], top: [] }); return P.get(id); };
-  for (const d of shown) {
+  const get = (id) => { if (!P.has(id)) P.set(id, { t10: 0, t30: 0, all: 0, bt: null, br: null, bl: null, wr: [] }); return P.get(id); };
+  for (const d of top) {
     for (const id of d.cards) {
       const p = get(id);
       p.t30++;
       if (d.rank <= 10) p.t10++;
       p.bt = p.bt == null ? d.rank : Math.min(p.bt, d.rank);
-      p.good.push(d.vs_good.win_rate);
-      p.top.push(d.vs_top.win_rate);
+      p.wr.push(d.score);
     }
   }
   DB.decks.rows.forEach((r, k) => {
@@ -84,24 +90,65 @@ function presence() {
     }
   });
   const mean = (a) => (a.length ? a.reduce((s, v) => s + v, 0) / a.length : null);
-  for (const p of P.values()) { p.vg = mean(p.good); p.vt = mean(p.top); }
+  for (const p of P.values()) p.vw = mean(p.wr);
 }
-const presOf = (x) => P.get(x.c.id) || { t10: 0, t30: 0, all: 0, bt: null, br: null, bl: null, vg: null, vt: null };
+const presOf = (x) => P.get(x.c.id) || { t10: 0, t30: 0, all: 0, bt: null, br: null, bl: null, vw: null };
+
+/** Why a card has no score on measurement `a` ("15 race decks, 30 needed"), or null when it has one. A card that is not
+ * measured in all tested decks is not measured in competitive decks either: the first sort's rule comes first. */
+function nmWhy(x, a) {
+  if (x.ax[a]) return null;
+  if (!x.ax.r) return t("ct.nmPool", { n: fmtInt(x.dk.pool), min: fmtInt(T.min_decks.pool) });
+  return t("ct.nmRace", { n: fmtInt(x.dk.competitive), min: fmtInt(T.min_decks.competitive) });
+}
+
+/**
+ * What "About the numbers" opens (the caveats live there since 2026-10-24, so nothing stands between the intro line and the
+ * tier rows but the toolbar): why the ranking is temporary, how a card is scored, then the caveats as a short list: the two
+ * measurements, how they disagree (the two cards they disagree on most), how fragile the tiers are, when a card is not
+ * measured, the AI's caveat. Every figure comes from cardtiers.json.
+ */
+function methodLines() {
+  const f = T.facts, m = T.measurements;
+  const ex = [];
+  f.examples.forEach((e) => {
+    const c = DB.byId.get(e.id);
+    if (!c) return;
+    if (ex.length) ex.push(t("ui.sep"));
+    ex.push(...tx("ct.cavEx", { card: chip(c), a: ord(e.competitive_rank), b: ord(e.pool_rank) }));
+  });
+  return [
+    T.final ? null : h("p", [...tx("rk.mWhy"), " ", t("rk.mBench", { n: m.pool.opponents })]),
+    t("ct.mHow", { n: m.pool.opponents }),
+    h("ul.vinfo-l", [
+      h("li", tx("ct.cavTwo", { cdecks: fmtInt(m.competitive.decks), cgames: fmtInt(m.competitive.games), ai: m.competitive.ai,
+        pdecks: fmtInt(m.pool.decks), pgames: fmtInt(m.pool.games), n: m.pool.opponents })),
+      h("li", tx("ct.cavSyn", { examples: h("span", ex), share: pct(f.same_tier_share, 0) })),
+      h("li", tx("ct.cavFragile", { n: f.straddling.competitive, m: T.measured.competitive })),
+      h("li", t("ct.mNm", { pool: fmtInt(T.min_decks.pool), race: fmtInt(T.min_decks.competitive) })),
+      h("li", t("rk.limit.plan_decks")),
+    ]),
+  ];
+}
 
 // ---------------------------------------------------------------- page
 function build() {
   hidePop(true);
   ui = { notes: {} };
   roving = null;
-  rows = T.cards.map((r, i) => ({ i, c: r.card, ax: { c: r.competitive, r: r.random }, ag: r.agreement }));
+  rows = T.cards.map((r, i) => ({ i, c: r.card, ax: { c: r[KEY.c], r: r[KEY.r] }, ag: r.agreement, dk: r.decks, tal: r.talent }));
   ui.announce = h("p.sr", { "aria-live": "polite" });
   ui.list = h("div.ct-list", { id: "ct-list", tabindex: "-1" });
   ui.pop = h("div.ct-pop#ct-pop", { "aria-hidden": "true" });
   ui.tbody = h("tbody");
   root.classList.toggle("ct-rings", S.rings);
   root.replaceChildren(
-    h("div.vhead.ct-head", [h("h1", t("ct.h1")), ...introLine("card-tiers", h("p.lede", t("ct.lede")))]),
-    caveat(),
+    h("div.vhead.ct-head", [
+      h("h1", t("ct.h1")),
+      // the card tiers come from the temporary deck ranking's run: the same banner as the views that list its decks
+      T.final ? null : provBanner("card-tiers", { sentence: "ct.bannerP" }),
+      ...introLine("card-tiers", h("p.lede", t("ct.lede")), { method: methodLines(), patch: T.patch }),
+    ]),
     toolbar(),
     filtersRegion(),
     findRow(),
@@ -125,44 +172,8 @@ function build() {
   sizeRows();
 }
 
-// the caveats: folded under a one-line summary (desktop and phone alike, so the tier rows come first); the visitor's choice
-// is remembered in the browser
-function caveat() {
-  const f = T.facts;
-  const ex = [];
-  f.examples.forEach((e, k) => {
-    const c = DB.byId.get(e.id);
-    if (!c) return;
-    if (ex.length) ex.push(t("ui.sep"));
-    ex.push(...tx("ct.cavEx", { card: chip(c), a: ord(e.competitive_rank), b: ord(e.random_rank) }));
-  });
-  const body = h("div", { id: "ct-cav-body" }, h("div.collapse-in", h("ul.ct-cav-list", [
-    h("li", tx("ct.cavTwo", { games: f.competitive_games, patch: T.patch, rgames: f.random_games, rdecks: f.random_decks })),
-    h("li", tx("ct.cavSyn", { examples: h("span", ex), share: pct(f.same_tier_share, 0) })),
-    h("li", tx("ct.cavFragile", { n: f.straddling, m: f.measured })),
-  ])));
-  const btn = h("button.btn.ghost.disc.ct-cav-btn", { type: "button", "aria-controls": "ct-cav-body" }, [h("span", t("ct.hide")), icon("chevron")]);
-  const lead = h("p.ct-cav-lead", t("ct.cavLead"));
-  const panel = h("section.ct-cav", { "aria-labelledby": "ct-cav-h" }, [
-    h("div.ct-cav-top", [h("h2#ct-cav-h", t("ct.cavH")), btn]), lead, body,
-  ]);
-  let pref = null;
-  try { pref = localStorage.getItem(CAVEAT_KEY); } catch (e) { /* storage blocked: the default applies */ }
-  const open = pref === "open";
-  if (!open) body.style.transition = "none";            // folded from the first frame, not animated on load
-  let ready = false;
-  disclosure(btn, body, { open, onToggle: (v) => {
-    btn.firstChild.textContent = t(v ? "ct.hide" : "ct.more");
-    panel.classList.toggle("folded", !v);
-    if (ready) { try { localStorage.setItem(CAVEAT_KEY, v ? "open" : "folded"); } catch (e) { /* not kept */ } }
-  } });
-  ready = true;
-  requestAnimationFrame(() => requestAnimationFrame(() => { body.style.transition = ""; }));
-  return panel;
-}
-
 function toolbar() {
-  ui.axisBtns = ["c", "r"].map((a) => h("button", { type: "button", "data-axis": a, "aria-pressed": String(a === S.axis), onclick: () => setAxis(a, true) }, ax(a)));
+  ui.axisBtns = ["r", "c"].map((a) => h("button", { type: "button", "data-axis": a, "aria-pressed": String(a === S.axis), onclick: () => setAxis(a, true) }, ax(a)));
   ui.fbtn = h("button.btn.ghost.disc.ct-fbtn", { type: "button", "aria-controls": "ct-filters", title: t("ct.filtersTitle") },
     [h("span", t("ct.filters")), h("span.tab-n.ct-fn", { hidden: true }), icon("chevron")]);
   ui.tabs = [["list", t("ct.vTiers")], ["details", t("ct.vDetails")]].map(([v, label]) => h("button", {
@@ -207,10 +218,10 @@ function legend(o) {
 }
 
 function axisNotes() {
-  const f = T.facts;
-  ui.notes.c = h("p", { "data-note": "c" }, [t("ct.noteC"), h("span.ct-list-only", legend("r"))]);
-  ui.notes.r = h("p", { "data-note": "r", "aria-hidden": "true" }, [t("ct.noteR", { games: f.random_games, decks: f.random_decks }),
-    T.random_intervals ? null : t("ct.noInterval"),
+  const m = T.measurements;
+  ui.notes.c = h("p", { "data-note": "c" }, [t("ct.noteC", { decks: fmtInt(m.competitive.decks), ai: m.competitive.ai }),
+    h("span.ct-list-only", legend("r"))]);
+  ui.notes.r = h("p", { "data-note": "r", "aria-hidden": "true" }, [t("ct.noteR", { decks: fmtInt(m.pool.decks) }),
     h("span.ct-list-only", legend("c"))]);
   return h("div.ct-notes", [ui.notes.c, ui.notes.r]);
 }
@@ -268,7 +279,8 @@ function place(a) {
     ui.rowN[tr].textContent = t("ct.cards", { n: by[tr].length });
   }
   for (const x of rows) {
-    x.ic.classList.toggle("diff", tierOf(x, other(a)) !== tierOf(x, a));
+    // the dot compares two tiers: a card measured on one side only carries none ("Not measured" is not a tier)
+    x.ic.classList.toggle("diff", !!(x.ax.c && x.ax.r) && x.ax.c.tier !== x.ax.r.tier);
     x.ic.classList.toggle("noise", x.ag === "noise");
     x.ic.setAttribute("aria-label", label(x, a));
   }
@@ -350,7 +362,7 @@ const say = (s) => { ui.announce.textContent = s; };
  * never collides with these words, so main.js still reads the tab and ignores the rest. */
 function saveState() {
   if (location.hash.split("/")[0] !== "#card-tiers") return;
-  const parts = [S.axis === "r" ? "random" : "", S.view === "details" ? "details" : ""].filter(Boolean).join("-");
+  const parts = [S.axis === "c" ? "competitive" : "", S.view === "details" ? "details" : ""].filter(Boolean).join("-");
   const next = "#card-tiers" + (parts ? "/" + parts : "");
   if (location.hash !== next) { try { history.replaceState(history.state, "", next); } catch (e) { /* the address stays as it is */ } }
 }
@@ -456,32 +468,41 @@ let cur = null, pinned = false, hoverT = 0, restoring = false;
 const sheet = matchMedia("(max-width: 759px)");
 
 function verdict(x) {
-  if (!x.ax.c) return t("ct.vNoComp");
-  return tx({ same: "ct.vSame", noise: "ct.vNoise", apart: "ct.vApart" }[x.ag] || "ct.vDiffer");
+  if (!x.ax.r) return tx("ct.vNmAll", { why: nmWhy(x, "r") });
+  if (!x.ax.c) return tx("ct.vNmC", { why: nmWhy(x, "c") });
+  return tx({ same: "ct.vSame", noise: "ct.vNoise", apart: "ct.vApart" }[x.ag]);
 }
 
-const tchip = (tr) => h("span.ct-tchip.tc-" + TC[tr], tr);
-const range = (v) => (v.ci_low == null ? t("ct.noRange") : t("ct.range", { a: sgn(v.ci_low), b: sgn(v.ci_high) }));
+// what a row of the card numbers means, as its label's title
+const TIPS = { "ct.fRange": "ct.fRangeTip", "ct.fConf": "ct.fConfTip", "ct.fDecks": "ct.fDecksTip" };
+const tchip = (tr) => h("span.ct-tchip.tc-" + TC[tr], tr === "nm" ? t("ct.nm") : tr);
+const range = (v) => t("ct.range", { a: pt(v.ci_low), b: pt(v.ci_high) });
 
 function popContent(x, full) {
   const c = x.c, p = presOf(x);
-  const cell = (a, fmt) => h("td", { class: a === S.axis ? "on" : null }, x.ax[a] ? fmt(x.ax[a]) : "—");
+  // a measurement the card has no score on: "Not measured" in the tier row, its decks in the decks row (the verdict under the
+  // table says how many it needed), nothing else
+  const cell = (a, fmt, k) => h("td", { class: a === S.axis ? "on" : null }, x.ax[a] ? fmt(x.ax[a], a)
+    : k === "ct.fTier" ? tchip("nm") : k === "ct.fDecks" ? fmtInt(x.dk[KEY[a]]) : "—");
   const facts = [
     ["ct.fTier", (v) => tchip(v.tier)],
-    ["ct.fScore", (v) => sgn(v.score)],
+    ["ct.fScore", (v) => pts(v.score)],
     ["ct.fRange", range],
-    ["ct.fConf", (v) => (v.confidence == null ? "—" : t("ct.confIn", { p: pct(v.confidence, 0) }))],
-    ["ct.fRank", (v) => (v.rank ? t("ct.rankOf", { r: v.rank, m: T.measured }) : t("ct.notRanked"))],
-    ["ct.fGames", (v) => (v.games == null ? "—" : fmtInt(v.games))],
+    ["ct.fConf", (v) => pct(v.confidence, 0)],
+    ["ct.fRank", (v, a) => t("ct.rankOf", { r: v.rank, m: T.measured[KEY[a]] })],
+    ["ct.fDecks", (v, a) => h("span", { title: t("ct.gamesN", { n: v.games }) }, fmtInt(x.dk[KEY[a]]))],
   ];
   const brief = facts.slice(0, 2);
-  const best = p.bt ? t("ct.bestTier", { rank: p.bt }) : p.br ? t("ct.bestListed", { rank: p.br, n: N.listed, level: level(p.bl) }) : t("ct.none");
-  const pres = [
+  const best = p.bt ? t("ct.bestTier", { rank: p.bt }) : p.br ? t("ct.bestListed", { rank: fmtInt(p.br), n: fmtInt(N.listed), level: level(p.bl) }) : t("ct.none");
+  // in no top-30 deck: two lines (that, and its best deck), not five lines of "none"
+  const pres = p.t30 ? [
     ["ct.pTop10", t("ct.decksOf", { a: p.t10, b: N.top10 })],
     ["ct.pTop30", t("ct.decksOf", { a: p.t30, b: N.top30 })],
-    ["ct.pListed", t("ct.of", { a: p.all, b: N.listed })],
     ["ct.pBest", best],
-    ["ct.pWr", p.t30 ? t("ct.wrLine", { good: pct1(p.vg), top: pct1(p.vt), n: p.t30 }) : t("ct.wrNone")],
+    ["ct.pWr", t("ct.wrLine", { wr: pct1(p.vw), n: p.t30 })],
+  ] : [
+    ["ct.pTop30", t("ct.decksOf", { a: 0, b: N.top30 })],
+    ["ct.pBest", best],
   ];
   return [
     h("div.ct-pop-h", [
@@ -495,27 +516,34 @@ function popContent(x, full) {
     ]),
     // pinned: what the patch changed, and that the numbers below predate it
     full && patchDetail(c) ? h("p.ct-pop-pc", patchDetail(c)) : null,     // showPop drops the empty slots
-    full ? oldNumbersNote(c) : null,
+    // the card tiers' own patch: a card the patch changed was measured after the change when it is the card data's
+    full ? oldNumbersNote(c, T.patch) : null,
     h("table.ct-pop-t", [
       h("thead", h("tr", [h("th", { scope: "col" }, h("span.sr", t("ct.measureCol"))),
-        h("th", { scope: "col", class: S.axis === "c" ? "on" : null }, t("ct.axCs")), h("th", { scope: "col", class: S.axis === "r" ? "on" : null }, t("ct.axRs"))])),
-      h("tbody", (full ? facts : brief).map(([k, f]) => h("tr", [h("th", { scope: "row" }, t(k)), cell("c", f), cell("r", f)]))),
+        h("th", { scope: "col", class: S.axis === "r" ? "on" : null }, t("ct.axRs")), h("th", { scope: "col", class: S.axis === "c" ? "on" : null }, t("ct.axCs"))])),
+      h("tbody", (full ? facts : brief).map(([k, f]) => h("tr", [h("th", { scope: "row", title: TIPS[k] ? t(TIPS[k]) : null }, t(k)), cell("r", f, k), cell("c", f, k)]))),
     ]),
     h("p.ct-pop-v", verdict(x)),
     full ? h("table.ct-pop-t.ct-pop-p", [h("caption.sr", t("ct.presence")),
       h("tbody", pres.map(([k, v]) => h("tr", [h("th", { scope: "row" }, t(k)), h("td.on", v)])))]) : h("p.ct-pop-more", t("ct.popMore")),
-    full ? suggestedBlock(c) : null,
+    full ? talentBlock(x) : null,
   ];
 }
 
-/** The suggested talent (the one the site's simulations give the card): its name and in-game text; absent data, nothing. */
-function suggestedBlock(c) {
-  const s = suggestedTalent(c);
-  if (!s) return null;
+/**
+ * The card's talent: the suggested one (cards.json `suggested_talent`, tagged "Suggested") when the card data has one, else the
+ * talent the card played in the decks measured (cardtiers.json `talent`, tagged "Tested"); its name and in-game text. A card
+ * with neither has no block.
+ */
+function talentBlock(x) {
+  const c = x.c, s = suggestedTalent(c);
+  const tl = s ? s.tl : x.tal != null ? c.talents[x.tal] : null;
+  if (!tl) return null;
   return h("div.ct-pop-sugg", [
-    h("div.ct-pop-sugg-h", [h("i.ab-talent", { "aria-hidden": "true" }), h("span", { lang: getLang() }, L(s.tl, "name")),
-      h("span.tag.sugg", { title: t("card.suggestedTip") }, t("card.suggested"))]),
-    h("p", { lang: getLang() }, textNodes(L(s.tl, "description"))),
+    h("div.ct-pop-sugg-h", [h("i.ab-talent", { "aria-hidden": "true" }), h("span", { lang: getLang() }, L(tl, "name")),
+      s ? h("span.tag.sugg", { title: t("card.suggestedTip") }, t("card.suggested"))
+        : h("span.tag.sugg", { title: t("ct.testedTip") }, t("ct.tested"))]),
+    h("p", { lang: getLang() }, textNodes(L(tl, "description"))),
   ]);
 }
 
@@ -559,7 +587,7 @@ function showPop(b, pin) {
 }
 
 function summary(x) {
-  const one = (a) => (x.ax[a] ? t("ct.sumT", { tier: x.ax[a].tier, score: sgn(x.ax[a].score) }) : t("ct.nmLow"));
+  const one = (a) => (x.ax[a] ? t("ct.sumT", { tier: x.ax[a].tier, score: pts(x.ax[a].score) }) : t("ct.nmLow"));
   const v = { same: "ct.sumSame", noise: "ct.sumNoise", apart: "ct.sumApart" }[x.ag];
   return t("ct.sum", { name: cardName(x.c), c: one("c"), r: one("r"), v: v ? t(v) : "" });
 }
@@ -653,7 +681,7 @@ function details() {
         h("colgroup", ["rank", "card", "ax", "ax", "ag", "pr", "wr", "best"].map((k) => h("col.ct-w-" + k))),
         h("thead", h("tr", [
           th("#", t("ct.thRank")), th(t("ct.thCard")),
-          th(ax("c"), null, "c"), th(ax("r"), null, "r"),
+          th(ax("r"), null, "r"), th(ax("c"), null, "c"),
           th(t("ct.thAg"), t("ct.thAgTip")),
           th(t("ct.thPr"), t("ct.thPrTip", { a: N.top10, b: N.top30 })),
           th(t("ct.thWr"), t("ct.thWrTip")),
@@ -673,7 +701,8 @@ function bands() {
   return T.tiers.map((tr, k) => [tr, cuts[k + 1], cuts[k]]).reverse();
 }
 let BANDS = null;
-const zx = (z) => ((Math.max(-3, Math.min(3, z)) + 3) / 6) * 100;
+// kept 2.5% inside each end, so a card past ±3 shows its whole dot at the edge instead of half of it
+const zx = (z) => Math.max(2.5, Math.min(97.5, ((Math.max(-3, Math.min(3, z)) + 3) / 6) * 100));
 
 function bar(v) {
   if (!BANDS) BANDS = bands();
@@ -687,10 +716,10 @@ function bar(v) {
 
 function axCell(x, a) {
   const v = x.ax[a];
-  if (!v) return h("td.ct-c-" + a, { "data-label": ax(a) }, h("div.ct-ax.off", [h("div.ct-ax-top", h("span.ct-tchip.tc-nm", t("ct.nm"))), h("span.ct-cap", t("ct.noDeck"))]));
-  const facts = [v.confidence == null ? null : t("ct.sure", { p: pct(v.confidence, 0) }), v.games == null ? null : t("ct.games", { n: v.games })].filter(Boolean).join(", ");
+  if (!v) return h("td.ct-c-" + a, { "data-label": ax(a) }, h("div.ct-ax.off", [h("div.ct-ax-top", tchip("nm")), h("span.ct-cap", nmWhy(x, a))]));
+  const facts = [t("ct.sure", { p: pct(v.confidence, 0) }), t("ct.decksN", { n: x.dk[KEY[a]] })].join(", ");
   return h("td.ct-c-" + a, { "data-label": ax(a) }, h("div.ct-ax" + (a === S.axis ? "" : ".off"), [
-    h("div.ct-ax-top", [tchip(v.tier), h("span.ct-ax-s", sgn(v.score)), h("span.ct-ax-iv", range(v))]), bar(v), h("span.ct-cap", facts),
+    h("div.ct-ax-top", [tchip(v.tier), h("span.ct-ax-s", pt(v.score)), h("span.ct-ax-iv", range(v))]), bar(v), h("span.ct-cap", facts),
   ]));
 }
 
@@ -699,7 +728,7 @@ function rowCells(x) {
   const c = x.c, p = presOf(x);
   const kv = (v, k) => h("span.ct-kv", [h("b", v), " " + k]);
   const pr = [kv(`${p.t10}/${N.top10}`, t("ct.top10")), kv(`${p.t30}/${N.top30}`, t("ct.top30")), h("span.ct-cap", t("ct.listed", { n: p.all }))];
-  const wr = !p.t30 ? h("span.ct-cap", t("ct.wrNone")) : [kv(pct1(p.vg), t("ct.vsGoodS")), kv(pct1(p.vt), t("ct.vsTopS")), h("span.ct-cap", t("ct.meanOf", { n: p.t30 }))];
+  const wr = !p.t30 ? h("span.ct-cap", t("ct.wrNone")) : [h("span.ct-kv", h("b", pct1(p.vw))), h("span.ct-cap", t("ct.meanOf", { n: p.t30 }))];
   const best = p.bt ? [h("span.ct-fig", `#${p.bt}`), h("span.ct-cap", t("ct.bestTl"))]
     : p.br ? [h("span.ct-fig", `#${fmtInt(p.br)}`), h("span.ct-cap", t("ct.bestLs", { level: level(p.bl) }))] : h("span.ct-cap", t("ct.none"));
   return [
@@ -709,7 +738,7 @@ function rowCells(x) {
       h("span", [h("span.ct-nm", { translate: "no" }, [h("span.ct-rkm", `#${rk} `), cardName(c)]), h("span.ct-nm-sub", `${raName(c.rarity)}, ${elName(c.element)}`),
         changeOf(c) ? h("span.ct-nm-pc", [glyph(c), t("pc." + changeOf(c).class, { patch: DB.patch })]) : null]),
     ])),
-    axCell(x, "c"), axCell(x, "r"),
+    axCell(x, "r"), axCell(x, "c"),
     h("td.ct-c-ag", { "data-label": t("ct.thAg") }, x.ag ? h("span.ct-ag." + x.ag, t(AGK[x.ag])) : h("span.ct-cap", t("ct.noComp"))),
     h("td.ct-c-pr", { "data-label": t("ct.thPr") }, pr),
     h("td.ct-c-wr", { "data-label": t("ct.thWr") }, wr),
@@ -726,7 +755,7 @@ function sortKey(x) {
     case "score-asc": return v ? v.score : 99;
     case "gap": return x.ax.c && x.ax.r && x.ax.c.z != null && x.ax.r.z != null ? -Math.abs(x.ax.c.z - x.ax.r.z) : 99;
     case "presence": return -(p.t30 * 1e6 + p.t10 * 1e3 + p.all / 10);
-    case "winrate": return p.vg != null ? -p.vg : 99;
+    case "winrate": return p.vw != null ? -p.vw : 99;
   }
   return 0;
 }

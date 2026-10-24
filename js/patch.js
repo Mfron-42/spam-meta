@@ -3,11 +3,11 @@
 // filled when a value, an ability or a passive changed (the class "mechanical"), hollow when only talents or texts did.
 // The data carries codes and positions; every word comes from i18n.js ("pc.*").
 
-import { h, icon, fmtDate, dec, fmtInt } from "./util.js?v=d1215b1076";
-import { DB } from "./data.js?v=d1215b1076";
-import { L } from "./cards.js?v=d1215b1076";
-import { t } from "./i18n.js?v=d1215b1076";
-import { disclosure } from "./ui.js?v=d1215b1076";
+import { h, icon, fmtDate, dec, fmtInt } from "./util.js?v=ba817a7942";
+import { DB } from "./data.js?v=ba817a7942";
+import { L } from "./cards.js?v=ba817a7942";
+import { t } from "./i18n.js?v=ba817a7942";
+import { disclosure } from "./ui.js?v=ba817a7942";
 
 // Three patches can differ, and each label names the one it is about (SPEC.md, "Patch labels"):
 // - the GAME patch, the client players run today (below; the lab reads it from the game files);
@@ -23,10 +23,15 @@ export const GAME_PATCH = { patch: "1.26", date: "2026-10-21" };
 //   Meta section counts its decks. Off, the Deck tier list draws the "being computed" placeholder (pending.js).
 // - DECK_TABLE_SHOWN: My decks and the Deck builder read the same run's deck table (ranking-decks.json: every deck it measured,
 //   with the furthest stage it reached and its score at each; owner, 2026-10-23: "tu as perdu beaucoup de features").
-// - CARD_RANKINGS_SHOWN: the rankings still on the 1.22 files (the Card tier list, the card view's card tier and "With and
-//   against"), off while the lab recomputes them (owner, 2026-10-21): the Card tier list draws the placeholder.
+// - CARD_TIERS_SHOWN: the Card tier list and the card view's card tier read the card tiers of the deck ranking's run
+//   (cardtiers.json, tools/export_cardtiers.py from ranking-decks.json; owner, 2026-10-24: "redo the card tier list too").
+//   Off, the Card tier list draws the "being computed" placeholder.
+// - CARD_RANKINGS_SHOWN: what is still on the 1.22 files, off since the lab recomputes the rankings (owner, 2026-10-21): the
+//   card view's "With and against" (cardcounters.json: the lab has no 1.26 card pairs yet), the 1.22 Meta section and the
+//   footer and About lines built from meta.json.
 export const DECK_RANKING_SHOWN = true;
 export const DECK_TABLE_SHOWN = true;
+export const CARD_TIERS_SHOWN = true;
 export const CARD_RANKINGS_SHOWN = false;
 
 export const changeOf = (c) => (c && c.patch_change) || null;
@@ -106,9 +111,10 @@ export const entryChanged = (c, part, i) => !!(changeOf(c) && (changeOf(c)[part]
 /** The quiet tag on a changed entry of the card dialog; its glyph is the card's (filled or hollow, as on every mark). */
 export const entryTag = (c) => h("span.tag.ptag", [glyph(c), h("span", t("pc.entry", { patch: DB.patch }))]);
 
-/** One line where a ranking number of a changed card is read: "1.22 numbers, from before the change." */
-export function oldNumbersNote(c) {
-  const old = rankingsBehind();
+/** One line where a ranking number of a changed card is read: "1.22 numbers, from before the change." `patch`: the patch the
+ * numbers shown were measured on, when it is not the rankings patch of meta.json (the card tiers carry their own). */
+export function oldNumbersNote(c, patch = null) {
+  const old = patch ? (DB.patch && patch !== DB.patch ? patch : null) : rankingsBehind();
   if (!old || !numbersMoved(c)) return null;
   return h("p.dnote.pold", [icon("info"), h("span", t("pc.old", { old }))]);
 }
@@ -149,9 +155,10 @@ export function introLine(key, lede, { method = null, patch = null } = {}) {
  * (which version, by which AI, and what runs now that will update it; never a date or a clock time, which would go stale), and
  * "Why?", which opens the view's "About the
  * numbers" right under it (its first paragraph says why). Not dismissible, no motion. `key` names the view (its intro line's
- * disclosure is "info-<key>").
+ * disclosure is "info-<key>"); `sentence` the string of its sentence (the Card tier list's says its card tiers are this
+ * version's and come again with the next one).
  */
-export function provBanner(key) {
+export function provBanner(key, { sentence = "rk.bannerP" } = {}) {
   const R = DB.ranking || {};
   const why = h("button.btn.ghost.rk-why", { type: "button", "aria-controls": "info-" + key, title: t("rk.bannerWhyT"), onclick: () => {
     const d = document.querySelector(`.tdisc[aria-controls="info-${key}"]`);
@@ -161,7 +168,7 @@ export function provBanner(key) {
   } }, [icon("info"), t("rk.bannerWhy")]);
   return h("section.rk-banner", { "aria-labelledby": "rk-banner-h-" + key }, [
     icon("clock", 24),
-    h("div.rk-banner-t", [h("h2", { id: "rk-banner-h-" + key }, t("rk.bannerH")), h("p", t("rk.bannerP", { v: R.version, ai: R.pilot }))]),
+    h("div.rk-banner-t", [h("h2", { id: "rk-banner-h-" + key }, t("rk.bannerH")), h("p", t(sentence, { v: R.version, ai: R.pilot }))]),
     why,
   ]);
 }

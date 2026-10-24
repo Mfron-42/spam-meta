@@ -2,15 +2,15 @@
 // own modules (store, i18n, data, cards), so it draws the same game cards from the same data, speaks the same two languages
 // and shares the visitor's language choice with SPAM Meta. Its strings are the "ov." keys of js/i18n.js.
 
-import { setLang, langChosen, on, getLang } from "../../js/store.js?v=d1215b1076";
-import { t, applyStatic } from "../../js/i18n.js?v=d1215b1076";
-import { h, pct, pct1, icon } from "../../js/util.js?v=d1215b1076";
-import { DB, loadCore, loadTier, loadCardTiers } from "../../js/data.js?v=d1215b1076";
-import { gameCard, cardName } from "../../js/cards.js?v=d1215b1076";
-import { ambient } from "../../js/ambient.js?v=d1215b1076";
-import { copyText, disclosure } from "../../js/ui.js?v=d1215b1076";
-import { createStage } from "./stage.js?v=d1215b1076";
-import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=d1215b1076";
+import { setLang, langChosen, on, getLang } from "../../js/store.js?v=ba817a7942";
+import { t, applyStatic } from "../../js/i18n.js?v=ba817a7942";
+import { h, pct, pct1, icon } from "../../js/util.js?v=ba817a7942";
+import { DB, loadCore, loadTier, loadCardTiers } from "../../js/data.js?v=ba817a7942";
+import { gameCard, cardName } from "../../js/cards.js?v=ba817a7942";
+import { ambient } from "../../js/ambient.js?v=ba817a7942";
+import { copyText, disclosure } from "../../js/ui.js?v=ba817a7942";
+import { createStage } from "./stage.js?v=ba817a7942";
+import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=ba817a7942";
 
 // The overlay's own display: four crops of the real renderer's output over a stand-in board with made-up figures (tools/overlay_media/:
 // shoot.js drives the overlay build's UX harness, crop.py writes these files), so every one is a composite and carries
@@ -341,18 +341,19 @@ function drawMeta() {
   document.getElementById("mp-codex-t").textContent = t("ov.meta.codexT", { n: DB.cards.length });
   if (cardTiers) {
     document.getElementById("mp-cards-t").textContent = t("ov.meta.cardsT", { patch: cardTiers.patch });
+    // a tier with no card draws no row (patch 1.26's competitive measurement has no S+ card)
     const rows = [["S+", "t-sp"], ["S", "t-s"]].map(([tierName, cls]) => {
       const cards = cardTiers.cards.filter((r) => r.competitive && r.competitive.tier === tierName)
         .sort((a, b) => a.competitive.rank - b.competitive.rank).map((r) => r.card);
-      return h("div.mp-tier", [
+      return cards.length ? h("div.mp-tier", [
         h("span", { class: "mp-tier-l " + cls }, tierName),
         h("div.mp-tier-c", cards.map((c) => h("span.mp-mini", { title: cardName(c) }, [
           h("img", { loading: "lazy", decoding: "async", alt: cardName(c), width: 48, height: 69, src: thumb(c.key) }),
           h("i", { class: "mc-orb sp-el-" + c.element }),
         ]))),
-      ]);
+      ]) : null;
     });
-    document.getElementById("mp-cards").replaceChildren(...rows);
+    document.getElementById("mp-cards").replaceChildren(...rows.filter(Boolean));
   }
 }
 

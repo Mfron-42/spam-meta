@@ -5,13 +5,13 @@
 // sorted by the furthest stage reached, then the score there (docs/DATA.md, "ranking-decks.json"), so a filter that keeps
 // their order keeps the canonical ranking.
 
-import { h, icon, pct1, pm, dec } from "./util.js?v=d1215b1076";
-import { DB, deckKey } from "./data.js?v=d1215b1076";
-import { getLang, isOwned, ownedCount } from "./store.js?v=d1215b1076";
-import { gameCard, chip, cardName, L } from "./cards.js?v=d1215b1076";
-import { disclosure } from "./ui.js?v=d1215b1076";
-import { t, tx } from "./i18n.js?v=d1215b1076";
-import { introLine, provBanner, gameSpan } from "./patch.js?v=d1215b1076";
+import { h, icon, pct1, pm, dec } from "./util.js?v=ba817a7942";
+import { DB, deckKey } from "./data.js?v=ba817a7942";
+import { getLang, isOwned, ownedCount } from "./store.js?v=ba817a7942";
+import { gameCard, chip, cardName, L } from "./cards.js?v=ba817a7942";
+import { disclosure } from "./ui.js?v=ba817a7942";
+import { t, tx } from "./i18n.js?v=ba817a7942";
+import { introLine, provBanner, gameSpan } from "./patch.js?v=ba817a7942";
 
 // ---------------------------------------------------------------- stages, in plain words
 // level -> stage of the ranking run: 3 the final (the full AI against the benchmark decks), 2 the race (the same AI and decks,
@@ -122,7 +122,7 @@ function rtTip(rr) {
 export function tableHead(key, h1, lede) {
   const D = DB.decks.raw, R = DB.ranking;
   const method = [
-    D.final ? null : h("p", tx("rk.mWhy")),
+    D.final ? null : h("p", [...tx("rk.mWhy"), R ? " " + t("rk.mBench", { n: R.by_score.opponents }) : ""]),
     t("md.mTable", { n: DB.decks.rows.length }),
     D.not_listed ? t("md.mNotListed", { n: D.not_listed }) : null,
   ];

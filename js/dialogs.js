@@ -3,17 +3,17 @@
 // drawn as a full-screen card view (card.css); its enter and exit (the card flying from its tile) are played by
 // cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt, dec } from "./util.js?v=d1215b1076";
-import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=d1215b1076";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=d1215b1076";
-import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=d1215b1076";
-import { encode, decode } from "./code.js?v=d1215b1076";
-import { copyText, disclosure } from "./ui.js?v=d1215b1076";
-import { t, tx, millions } from "./i18n.js?v=d1215b1076";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, gameSpan, medianRounds, CARD_RANKINGS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, GAME_PATCH } from "./patch.js?v=d1215b1076";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=d1215b1076";
-import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=d1215b1076";
-import { attachTilt } from "./cardtilt.js?v=d1215b1076";
+import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt, dec } from "./util.js?v=ba817a7942";
+import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=ba817a7942";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=ba817a7942";
+import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=ba817a7942";
+import { encode, decode } from "./code.js?v=ba817a7942";
+import { copyText, disclosure } from "./ui.js?v=ba817a7942";
+import { t, tx, millions } from "./i18n.js?v=ba817a7942";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, gameSpan, medianRounds, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, GAME_PATCH } from "./patch.js?v=ba817a7942";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=ba817a7942";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=ba817a7942";
+import { attachTilt } from "./cardtilt.js?v=ba817a7942";
 
 let openDlg = null, pushed = false;
 
@@ -421,21 +421,40 @@ function counterSection(c) {
 
 const TC = { "S+": "sp", S: "s", A: "a", B: "b", C: "c", D: "d", E: "e" };
 
-/** The card's tier on each measurement of the Card tier list (data/cardtiers.json): a tier chip, then the measurement. */
+/**
+ * The card's tier on each measurement of the Card tier list (data/cardtiers.json): a tier chip, its score in win-rate points
+ * ("+9.4 pts"), then the measurement; its 95% range and confidence are the line's title. "Not measured" has no number.
+ */
 function cardTierRows(c, T) {
   const r = T.cards.find((x) => x.id === c.id) || {};
-  return [["competitive", "ct.axC"], ["random", "ct.axR"]].map(([m, k]) => {
-    const tier = r[m] && TC[r[m].tier] ? r[m].tier : null;
-    return h("li.cd-ct", [h("span.ct-tchip.tc-" + (tier ? TC[tier] : "nm"), tier || t("ct.nm")), h("span", t(k))]);
+  const pt = (x) => (x > 0.0005 ? "+" : x < -0.0005 ? "−" : "") + dec(Math.abs(x) * 100, 1);
+  return [["pool", "ct.axR"], ["competitive", "ct.axC"]].map(([m, k]) => {
+    const v = r[m], tier = v && TC[v.tier] ? v.tier : null;
+    const tip = v ? t("ct.cdTip", { a: pt(v.ci_low), b: pt(v.ci_high), p: pct(v.confidence, 0) }) : null;
+    return h("li.cd-ct", { title: tip }, [
+      h("span.ct-tchip.tc-" + (tier ? TC[tier] : "nm"), tier || t("ct.nm")),
+      v ? h("span.cd-ct-v", t("ct.pts", { v: pt(v.score) })) : null,
+      // the range and confidence are the title for a pointer, and read after the name for a screen reader
+      h("span", [t(k), tip ? h("span.sr", t("ui.sep") + tip) : null]),
+    ]);
   });
+}
+
+/** The card tier cell of the Meta section: filled once cardtiers.json is loaded, gone when it fails. */
+function cardTierCell(c) {
+  const list = h("ul.cd-cts", [h("li.cd-ct"), h("li.cd-ct")]);
+  const cell = h("div.stat.cd-stat", { "aria-busy": "true" }, [h("span.stat-k", t("card.ctK")), list]);
+  loadCardTiers().then((T) => {
+    if (currentKey === c.key) list.replaceChildren(...cardTierRows(c, T));
+  }).catch(() => { cell.remove(); }).finally(() => cell.removeAttribute("aria-busy"));
+  return cell;
 }
 
 /** The Meta section: where the card ranks, then "With and against". Its numbers fill in once their files are loaded. */
 function metaBand(c) {
   const tlFig = h("span.stat-v", "—"), tlCap = h("span.stat-s", " ");
   const tlCell = h("div.stat.cd-stat", { "aria-busy": "true" }, [h("span.stat-k", t("card.tlK")), tlFig, tlCap]);
-  const ctList = h("ul.cd-cts", [h("li.cd-ct"), h("li.cd-ct")]);
-  const ctCell = h("div.stat.cd-stat", { "aria-busy": "true" }, [h("span.stat-k", t("card.ctK")), ctList]);
+  const ctCell = cardTierCell(c);
   // where the card plays in the deck tier list (the withheld stub and the secret entries have no cards, so never match)
   loadTier().then((tl) => {
     if (currentKey !== c.key) return;
@@ -443,10 +462,6 @@ function metaBand(c) {
     tlFig.textContent = fmtInt(decks.length);
     tlCap.textContent = decks.length ? t("card.tlBest", { rank: decks[0].rank, tier: decks[0].tier }) : t("card.tlNone");
   }).catch(() => { tlCell.remove(); }).finally(() => tlCell.removeAttribute("aria-busy"));
-  loadCardTiers().then((T) => {
-    if (currentKey !== c.key) return;
-    ctList.replaceChildren(...cardTierRows(c, T));
-  }).catch(() => { ctCell.remove(); }).finally(() => ctCell.removeAttribute("aria-busy"));
 
   return h("section.cd-meta", { "aria-labelledby": "cd-meta-h" }, [
     h("div.cd-meta-h", [
@@ -461,14 +476,16 @@ function metaBand(c) {
 }
 
 /**
- * The Meta section while only the deck ranking is shown (patch.js DECK_RANKING_SHOWN): one data notice naming the ranking
- * ("Temporary ranking, patch 1.26."), then two stat cells, the decks of each list that play the card with the best rank,
- * and "Decks with this card": the Deck builder with the card picked while it is shown (patch.js DECK_TABLE_SHOWN), else,
- * when a listed deck plays it, the Deck tier list searched for the card. No card tier and no "With and against" (1.22 files).
+ * The Meta section while the deck ranking is shown (patch.js DECK_RANKING_SHOWN): one data notice naming the ranking
+ * ("Temporary ranking, patch 1.26."), then the stat cells: the card's tier on both measurements of the Card tier list, from
+ * the same run (patch.js CARD_TIERS_SHOWN), and the decks of each list that play the card with the best rank; and "Decks with
+ * this card": the Deck builder with the card picked while it is shown (patch.js DECK_TABLE_SHOWN), else, when a listed deck
+ * plays it, the Deck tier list searched for the card. No "With and against" (its file is 1.22).
  */
 function rankingBand(c) {
   const cell = (label, fig, cap) => h("div.stat.cd-stat", [h("span.stat-k", label), h("span.stat-v", fig), h("span.stat-s", cap)]);
   const sec = h("section.cd-meta", { "aria-labelledby": "cd-meta-h" });
+  const ctCell = CARD_TIERS_SHOWN ? cardTierCell(c) : null;
   const paint = (R) => {
     const holds = (list) => list.decks.filter((d) => d.cards.includes(c.id));
     const score = holds(R.by_score), speed = holds(R.by_speed);
@@ -484,7 +501,9 @@ function rankingBand(c) {
             : null,
       ]),
       h("p.dnote", [icon("info"), h("span", t(R.final ? "card.rkNote" : "card.rkNoteProv", { patch: R.patch }))]),
-      h("div.cd-stats", [
+      // the card's own tier first, then where its decks rank
+      h("div.cd-stats" + (ctCell ? ".three" : ""), [
+        ctCell,
         cell(t("card.rkScoreK", { n: R.by_score.decks.length }), fmtInt(score.length), best(score, "card.tlNone")),
         cell(t("card.rkSpeedK", { n: R.by_speed.decks.length }), fmtInt(speed.length), best(speed, "card.tlNone")),
       ]),
@@ -577,7 +596,7 @@ function buildAbout() {
   if (!CARD_RANKINGS_SHOWN && R) return h("div.about", [
     h("h2#about-title", t("about.h")),
     h("p.lead", tx("about.lead")),
-    h("section", [h("h3", t("about.whatH")), h("p", t(R.final ? "about.whatRk" : "about.whatRkProv", { patch: R.patch }))]),
+    h("section", [h("h3", t("about.whatH")), h("p", t((R.final ? "about.whatRk" : "about.whatRkProv") + (CARD_TIERS_SHOWN ? "Ct" : ""), { patch: R.patch }))]),
     h("section", [
       h("h3", t("about.howH")),
       h("p", t("about.rkHow", { ai: R.pilot, games: R.games, pool: R.pool, kept: R.by_score.decks_measured,

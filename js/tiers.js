@@ -11,15 +11,15 @@
 // address (#tiers, #tiers/speed). A language change redraws the page and keeps the list, the query and the filter.
 // (The tier-grouped view of the 1.22 rankings, with its matchups, withheld and secret decks, is in the git history.)
 
-import { h, icon, pct, dec, reducedMotion } from "./util.js?v=d1215b1076";
-import { DB, loadRanking, loadDecks, deckKey } from "./data.js?v=d1215b1076";
-import { on, isOwned, ownedCount } from "./store.js?v=d1215b1076";
-import { cardName } from "./cards.js?v=d1215b1076";
-import { segmented, scrollToEl, cascade, CURVE } from "./ui.js?v=d1215b1076";
-import { t, tx } from "./i18n.js?v=d1215b1076";
-import { findRow, terms, namedCards } from "./search.js?v=d1215b1076";
-import { introLine, limitParams, gameSpan, medianRounds, provBanner, DECK_TABLE_SHOWN } from "./patch.js?v=d1215b1076";
-import { paintOwned, deckSlot, deckFacts } from "./decklist.js?v=d1215b1076";
+import { h, icon, pct, dec, reducedMotion } from "./util.js?v=ba817a7942";
+import { DB, loadRanking, loadDecks, deckKey } from "./data.js?v=ba817a7942";
+import { on, isOwned, ownedCount } from "./store.js?v=ba817a7942";
+import { cardName } from "./cards.js?v=ba817a7942";
+import { segmented, scrollToEl, cascade, CURVE } from "./ui.js?v=ba817a7942";
+import { t, tx } from "./i18n.js?v=ba817a7942";
+import { findRow, terms, namedCards } from "./search.js?v=ba817a7942";
+import { introLine, limitParams, gameSpan, medianRounds, provBanner, DECK_TABLE_SHOWN } from "./patch.js?v=ba817a7942";
+import { paintOwned, deckSlot, deckFacts } from "./decklist.js?v=ba817a7942";
 
 const LISTS = { score: "by_score", speed: "by_speed" };
 let root, R, table = null, rrOf = new Map(), list = "score", query = "", readyOnly = false;
@@ -111,7 +111,7 @@ function render() {
 function methodLines() {
   const s = R.by_score, n = s.opponents;
   return [
-    R.final ? null : h("p", tx("rk.mWhy")),
+    R.final ? null : h("p", [...tx("rk.mWhy"), " ", t("rk.mBench", { n })]),
     t("rk.mHow", { v: R.version, ai: R.pilot, pool: R.pool, kept: s.decks_measured, n, per: gameSpan(s.games_per_opponent) }),
     t("rk.mTalents"),
     h("ul.vinfo-l", R.limits.map((l) => h("li", t("rk.limit." + l, limitParams(R))))),
