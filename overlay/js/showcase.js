@@ -2,15 +2,15 @@
 // own modules (store, i18n, data, cards), so it draws the same game cards from the same data, speaks the same two languages
 // and shares the visitor's language choice with SPAM Meta. Its strings are the "ov." keys of js/i18n.js.
 
-import { setLang, langChosen, on, getLang } from "../../js/store.js?v=f7776761cc";
-import { t, applyStatic } from "../../js/i18n.js?v=f7776761cc";
-import { h, pct, pct1, icon } from "../../js/util.js?v=f7776761cc";
-import { DB, loadCore, loadTier, loadCardTiers } from "../../js/data.js?v=f7776761cc";
-import { gameCard, cardName } from "../../js/cards.js?v=f7776761cc";
-import { ambient } from "../../js/ambient.js?v=f7776761cc";
-import { copyText, disclosure } from "../../js/ui.js?v=f7776761cc";
-import { createStage } from "./stage.js?v=f7776761cc";
-import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=f7776761cc";
+import { setLang, langChosen, on, getLang } from "../../js/store.js?v=47b1396378";
+import { t, applyStatic } from "../../js/i18n.js?v=47b1396378";
+import { h, pct, pct1, icon } from "../../js/util.js?v=47b1396378";
+import { DB, loadCore, loadTier, loadCardTiers } from "../../js/data.js?v=47b1396378";
+import { gameCard, cardName } from "../../js/cards.js?v=47b1396378";
+import { ambient } from "../../js/ambient.js?v=47b1396378";
+import { copyText, disclosure } from "../../js/ui.js?v=47b1396378";
+import { createStage } from "./stage.js?v=47b1396378";
+import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=47b1396378";
 
 // The overlay's own display: four crops of the real renderer's output over a stand-in board with made-up figures (tools/overlay_media/:
 // shoot.js drives the overlay build's UX harness, crop.py writes these files), so every one is a composite and carries

@@ -168,12 +168,12 @@ dialog.card-dlg, dialog.card-dlg.on { opacity: 1; transform: none; transition: n
 .cd-stats.three { grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr)); }
 .cd-stat { min-height: 104px; }
 .cd-cts { display: grid; gap: 8px; margin-top: 4px; }
-/* three columns, the same in both lines, so the names line up: chip, score, name; "Not measured" spans chip and score */
-.cd-ct { display: grid; grid-template-columns: 36px 72px minmax(0, 1fr); align-items: center; gap: 8px; min-height: 24px; color: var(--ink-2); font: 600 14px/1.3 var(--text); }
-.cd-ct > .tc-nm { grid-column: span 2; justify-self: start; }
+/* the tier chip, then how many of the ranking's final decks hold the card; "Not in a final deck" is the chip alone */
+.cd-ct { display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: center; gap: 8px; min-height: 24px; color: var(--ink-2); font: 600 14px/1.3 var(--text); }
+.cd-ct > .tc-out { grid-column: 1 / -1; justify-self: start; }
 .cd-ct .ct-tchip { min-width: 36px; }
-/* the score beside its tier, the number first (Cream Lavender, tabular), the measurement's name quieter after it */
-.cd-ct-v { color: var(--ink); font-weight: 700; white-space: nowrap; }
+/* the strip of the card's final decks (js/deckstrip.js) under the line, as on the Card tier list */
+.cd-ct-st { display: block; max-width: 360px; }
 
 /* ---------------------------------------------------------------- Modifications: what the last patch changed, at the foot
    of the view under a hairline like the Meta section; the card-level tag, then what changed, one note per line */

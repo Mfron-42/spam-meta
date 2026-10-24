@@ -3,17 +3,18 @@
 // drawn as a full-screen card view (card.css); its enter and exit (the card flying from its tile) are played by
 // cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt, dec } from "./util.js?v=f7776761cc";
-import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=f7776761cc";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=f7776761cc";
-import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=f7776761cc";
-import { encode, decode } from "./code.js?v=f7776761cc";
-import { copyText, disclosure } from "./ui.js?v=f7776761cc";
-import { t, tx, millions } from "./i18n.js?v=f7776761cc";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, gameSpan, medianRounds, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, GAME_PATCH } from "./patch.js?v=f7776761cc";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=f7776761cc";
-import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=f7776761cc";
-import { attachTilt } from "./cardtilt.js?v=f7776761cc";
+import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt, dec } from "./util.js?v=47b1396378";
+import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=47b1396378";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=47b1396378";
+import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=47b1396378";
+import { encode, decode } from "./code.js?v=47b1396378";
+import { copyText, disclosure } from "./ui.js?v=47b1396378";
+import { t, tx, millions } from "./i18n.js?v=47b1396378";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, gameSpan, medianRounds, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, GAME_PATCH } from "./patch.js?v=47b1396378";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=47b1396378";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=47b1396378";
+import { attachTilt } from "./cardtilt.js?v=47b1396378";
+import { deckStrip } from "./deckstrip.js?v=47b1396378";
 
 let openDlg = null, pushed = false;
 
@@ -422,27 +423,24 @@ function counterSection(c) {
 const TC = { "S+": "sp", S: "s", A: "a", B: "b", C: "c", D: "d", E: "e" };
 
 /**
- * The card's tier on each measurement of the Card tier list (data/cardtiers.json): a tier chip, its score in win-rate points
- * ("+9.4 pts"), then the measurement; its 95% range and confidence are the line's title. "Not measured" has no number.
+ * The card's tier on the Card tier list (data/cardtiers.json): a tier chip, then how many of the deck ranking's final decks hold
+ * the card, and the strip of those decks (the Card tier list's, with its axis); its score, rank and top-list decks are the line's
+ * title. A card in no final deck: the "Not in a final deck" chip alone.
  */
 function cardTierRows(c, T) {
-  const r = T.cards.find((x) => x.id === c.id) || {};
-  const pt = (x) => (x > 0.0005 ? "+" : x < -0.0005 ? "−" : "") + dec(Math.abs(x) * 100, 1);
-  return [["pool", "ct.axR"], ["competitive", "ct.axC"]].map(([m, k]) => {
-    const v = r[m], tier = v && TC[v.tier] ? v.tier : null;
-    const tip = v ? t("ct.cdTip", { a: pt(v.ci_low), b: pt(v.ci_high), p: pct(v.confidence, 0) }) : null;
-    return h("li.cd-ct", { title: tip }, [
-      h("span.ct-tchip.tc-" + (tier ? TC[tier] : "nm"), tier || t("ct.nm")),
-      v ? h("span.cd-ct-v", t("ct.pts", { v: pt(v.score) })) : null,
-      // the range and confidence are the title for a pointer, and read after the name for a screen reader
-      h("span", [t(k), tip ? h("span.sr", t("ui.sep") + tip) : null]),
-    ]);
-  });
+  const r = T.cards.find((x) => x.id === c.id);
+  if (!r || !r.tier) return [h("li.cd-ct", h("span.ct-tchip.tc-out", t("ct.out")))];
+  const tip = t("ct.cdTip", { score: dec(r.score, 2), r: r.rank, k: T.placed, top: r.top, n: T.decks.top });
+  return [h("li.cd-ct", { title: tip }, [
+    h("span.ct-tchip.tc-" + TC[r.tier], r.tier),
+    // the score and rank are the title for a pointer, and read after the line for a screen reader
+    h("span", [t("ct.cdLine", { finals: r.finals, m: T.decks.final }), h("span.sr", t("ui.sep") + tip)]),
+  ]), h("li.cd-ct-st", deckStrip(r, T.decks, { axis: true }))];
 }
 
 /** The card tier cell of the Meta section: filled once cardtiers.json is loaded, gone when it fails. */
 function cardTierCell(c) {
-  const list = h("ul.cd-cts", [h("li.cd-ct"), h("li.cd-ct")]);
+  const list = h("ul.cd-cts", h("li.cd-ct"));
   const cell = h("div.stat.cd-stat", { "aria-busy": "true" }, [h("span.stat-k", t("card.ctK")), list]);
   loadCardTiers().then((T) => {
     if (currentKey === c.key) list.replaceChildren(...cardTierRows(c, T));
@@ -477,7 +475,7 @@ function metaBand(c) {
 
 /**
  * The Meta section while the deck ranking is shown (patch.js DECK_RANKING_SHOWN): one data notice naming the ranking
- * ("Temporary ranking, patch 1.26."), then the stat cells: the card's tier on both measurements of the Card tier list, from
+ * ("Temporary ranking, patch 1.26."), then the stat cells: the card's tier on the Card tier list and its final decks, from
  * the same run (patch.js CARD_TIERS_SHOWN), and the decks of each list that play the card with the best rank; and "Decks with
  * this card": the Deck builder with the card picked while it is shown (patch.js DECK_TABLE_SHOWN), else, when a listed deck
  * plays it, the Deck tier list searched for the card. No "With and against" (its file is 1.22).
