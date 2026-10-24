@@ -5,13 +5,13 @@
 // sorted by the furthest stage reached, then the score there (docs/DATA.md, "ranking-decks.json"), so a filter that keeps
 // their order keeps the canonical ranking.
 
-import { h, icon, pct1, pm, dec } from "./util.js?v=ba817a7942";
-import { DB, deckKey } from "./data.js?v=ba817a7942";
-import { getLang, isOwned, ownedCount } from "./store.js?v=ba817a7942";
-import { gameCard, chip, cardName, L } from "./cards.js?v=ba817a7942";
-import { disclosure } from "./ui.js?v=ba817a7942";
-import { t, tx } from "./i18n.js?v=ba817a7942";
-import { introLine, provBanner, gameSpan } from "./patch.js?v=ba817a7942";
+import { h, icon, pct1, pm, dec } from "./util.js?v=f7776761cc";
+import { DB, deckKey } from "./data.js?v=f7776761cc";
+import { getLang, isOwned, ownedCount } from "./store.js?v=f7776761cc";
+import { gameCard, chip, cardName, L } from "./cards.js?v=f7776761cc";
+import { disclosure } from "./ui.js?v=f7776761cc";
+import { t, tx } from "./i18n.js?v=f7776761cc";
+import { introLine, provBanner, gameSpan } from "./patch.js?v=f7776761cc";
 
 // ---------------------------------------------------------------- stages, in plain words
 // level -> stage of the ranking run: 3 the final (the full AI against the benchmark decks), 2 the race (the same AI and decks,
@@ -66,45 +66,72 @@ function rtReading(cards) {
  * - `rounds` (the two tier lists: `{value, pm, title}`), its rounds to win as one quiet line, in the same place on every row;
  * - every other phase it completed, small, as its name and its win rate ("First sort 77.1%", "Race 83.3%", "Final 69.7%"), and
  *   its win rate against the previous top 16 when it played it (the deck table gives the place only: "#31" when no rate is known).
+ * The two tier lists pass `head` (owner, 2026-10-24: a win rate that makes more sense than 75% for everyone; the lead's call): the
+ * big figure is then "Vs the top 30" (`{value, pm, title}`, the deck's win rate against the other decks of the top 30), and
+ * `head: null` (a deck of the speed list outside the top 30) draws no big figure rather than another number in its place; on both,
+ * every phase the deck completed is small, the last one first with the stage meter, the final named "Score v2" (its score against
+ * the benchmark decks), and the reading against the previous top 16 is left to the headline that holds its games.
  * Games, ranks, where a deck went next and how reliable a stage is are each value's title and follow for screen readers; the row
  * itself carries no sentence. `r` is a deck table row, or a row the Deck tier list builds from ranking.json without the table.
  */
-export function deckFacts(r, { rounds = null } = {}) {
+export function deckFacts(r, { rounds = null, head = undefined } = {}) {
   const s = r.stages, n = DB.decks ? DB.decks.stages : null, last = STAGE[r.level];
+  const tier = head !== undefined;          // the two tier lists: the headline (or none), every phase small
   const rate = (st) => (st === "final" ? s.final.score : s[st].rate);
   const games = (x) => (x && x.games ? t("ui.comma") + t("jy.games", { games: x.games }) : "");
+  const bench = DB.ranking ? DB.ranking.by_score.opponents : "";
   const basis = (st) => {
     const x = s[st];
-    if (st === "final") return (n ? t("jy.final", { rank: x.rank, n: n.final.decks }) : "#" + x.rank) + games(x);
+    if (st === "final") {
+      return (n ? t("jy.final", { rank: x.rank, n: n.final.decks }) : "#" + x.rank) + games(x) +
+        (tier && x.ci95 != null ? t("ui.comma") + t("vt.margin", { pm: pm(x.ci95) }) : "");
+    }
     if (st === "race") {
       return cap(t("jy.games", { games: x.games })) + t("ui.comma") + t(x.kept ? "jy.toFinal" : "jy.stopped") +
         (!s.screen && n && n.screen ? t("ui.comma") + t("jy.direct") : "");
     }
     return cap(t("jy.games", { games: x.games })) + t("ui.comma") + t(x.kept ? "jy.kept" : s.race ? "jy.check" : "jy.stopped");
   };
-  const name = (st) => t("st." + st);
-  const small = (label, value, title) => h("li", { title }, [
-    h("span.ms-k", label), h("b.ms-n", value), h("span.sr", t("ui.sep") + title)]);
+  const name = (st) => (tier && st === "final" ? t("st.scoreV2") : t("st." + st));
+  const small = (label, value, title, sr = title) => h("li", { title }, [
+    h("span.ms-k", label), h("b.ms-n", value), h("span.sr", t("ui.sep") + sr)]);
+  // on the tier lists the final is "Score v2": its title names its field ("Score v2 (12 benchmark decks): #1 of 129, ..."), its
+  // hidden text the field only (the visible name is not read twice)
+  const step = (st, tip) => (tier && st === "final"
+    ? small(name(st), pct1(rate(st)), t("vt.scoreName", { n: bench }) + t("jy.sep") + tip, t("vt.scoreSr", { n: bench }) + t("ui.comma") + tip)
+    : small(name(st), pct1(rate(st)), tip));
   const figTitle = basis(last) + t("ui.dot") + t("ev." + r.level);
-  const items = PHASES.filter((st) => st !== last && s[st]).map((st) => small(name(st), pct1(rate(st)), basis(st)));
-  const rr = s.rt || r.rr ? (r.rr || rtReading(r.cards)) : null;
-  if (rr || s.rt) {
+  // the tier lists: the last phase first (the stage meter stands before the list), then the others in the run's order
+  const items = tier ? [step(last, figTitle)] : [];
+  items.push(...PHASES.filter((st) => st !== last && s[st]).map((st) => step(st, basis(st))));
+  const rr = !head && (s.rt || r.rr) ? (r.rr || rtReading(r.cards)) : null;
+  if (!head && (rr || s.rt)) {
     const place = s.rt && n ? t("jy.rt", { place: s.rt, n: n.round_robin.decks }) : null;
     const tip = rr ? rtTip(rr) : "";
     items.push(small(t("st.rtShort"), rr ? pct1(rr.win_rate) : "#" + s.rt, [place, tip].filter(Boolean).join(t("ui.comma"))));
   }
-  return h("div.dfacts", [
-    h("div.dr-fig", { title: figTitle }, h("p.fig-line", [
+  const fig = tier
+    ? (head ? h("div.dr-fig", { title: head.title }, h("p.fig-line", [
+      h("span.fig-k", t("vt.name")),
+      h("b.stat-v", pct1(head.value)),
+      head.pm != null ? h("span.fig-pm", pm(head.pm)) : null,
+      h("span.sr", t("ui.sep") + head.title),
+    ])) : null)
+    : h("div.dr-fig", { title: figTitle }, h("p.fig-line", [
       meter(r.level),
       h("span.fig-k", name(last)),
       h("b.stat-v", pct1(rate(last))),
       last === "final" && s.final.ci95 != null ? h("span.fig-pm", pm(s.final.ci95)) : null,
       h("span.sr", t("ui.sep") + figTitle),
-    ])),
+    ]));
+  return h("div.dfacts", [
+    fig,
     rounds ? h("p.ms-line", { title: rounds.title }, [h("span.ms-k", t("ms.rounds")), h("b.ms-n", dec(rounds.value, 1)),
       h("span.ms-pm", "±" + dec(rounds.pm, 1)), h("span.sr", t("ui.sep") + rounds.title)]) : null,
-    // role="list": a list drawn without markers loses its list role in WebKit
-    items.length ? h("ol.ms", { role: "list", "aria-label": t("jy.aria") }, items) : null,
+    // role="list": a list drawn without markers loses its list role in WebKit; on the tier lists the stage meter stands in its
+    // own column before it, so a pair that wraps lines up under the first one
+    items.length ? (tier ? h("div.ms-row", [meter(r.level), h("ol.ms", { role: "list", "aria-label": t("jy.aria") }, items)])
+      : h("ol.ms", { role: "list", "aria-label": t("jy.aria") }, items)) : null,
   ]);
 }
 

@@ -11,8 +11,8 @@
 // {one, other} chosen by Intl.PluralRules on the parameter `count`, else `n` (French: 0 to 1.99 are "one"). `**bold**` is honoured by tx()
 // only. French copy uses plain spaces before : ; ? ! - they become no-break spaces when the table loads.
 
-import { h, fmtInt, dec } from "./util.js?v=ba817a7942";
-import { getLang } from "./store.js?v=ba817a7942";
+import { h, fmtInt, dec } from "./util.js?v=f7776761cc";
+import { getLang } from "./store.js?v=f7776761cc";
 
 const EN = {
   // ---- document and header
@@ -246,6 +246,17 @@ const EN = {
   "rk.emptyReady": "None of these decks is ready to play with your cards.",
   "rk.showAll": "Show all",
   "rk.talentSr": "Talent: ",
+  // the win-rate list's headline (the lead's call of 2026-10-24): each deck of the top 30 against the 29 others
+  "vt.name": "Vs the top 30",
+  "vt.tip": "{games} games against the {opp} other decks of this top 30 ({gpp} per pair), our AI {ai} on both sides. 50% = the level of the top 30; the margin is 95%.",
+  "vt.scoreName": "Score v2 ({n} benchmark decks)",
+  "vt.scoreSr": "against {n} benchmark decks",
+  "vt.margin": "margin {pm}",
+  "st.scoreV2": "Score v2",
+  "rk.basisTop30": "Vs the top 30: win rate against the {opp} other decks of this top 30, our AI {ai} playing both sides; 50% is the level of the top. Score v2: against {n} benchmark decks.",
+  "rk.basisSpeedTop30": "Only top-30 decks have “Vs the top 30” yet.",
+  "rk.mTop30": "The order: “Vs the top 30”, each deck’s average win rate against the {opp} other decks of this top 30 (each counts the same), {gpp} games per pair, our AI {ai} on both sides; 50% is the level of the top. Decks outside the top 30 have no such number yet. “Score v2”, against the {n} benchmark decks that picked these 30, stays on each row.",
+  "rk.tiedTipTop30": "Same win rate against the top 30 as another deck: they share the rank.",
 
   // ---- card search (Deck tier list and Card tier list)
   "find.decksPh": "Search by card…",
@@ -518,7 +529,7 @@ const EN = {
   "ev.3": "Reliable",
   "ev.2": "Fairly reliable",
   "ev.1": "Indicative",
-  "ev.3.desc": "Our AI at full strength: {per} games against each of the {n} benchmark decks.",
+  "ev.3.desc": "Its score is the Score v2 ({n} benchmark decks): our AI at full strength, {per} games against each.",
   "ev.2.desc": "{decks} decks: the {screen} best of the first sort, {direct} seeded into it directly and {checks} re-tested as a check. Our AI at full strength, {min} to {max} games against the {n} benchmark decks; the best {keep} go to the final.",
   "ev.1.desc": "{decks} decks. A fast AI, {min} to {max} games each; the best {keep} go to the race. A lead, not a verdict.",
 
@@ -989,6 +1000,16 @@ const FR = {
   "rk.emptyReady": "Aucun de ces decks n’est prêt à jouer avec tes cartes.",
   "rk.showAll": "Tout afficher",
   "rk.talentSr": "Talent : ",
+  "vt.name": "Contre le top 30",
+  "vt.tip": "{games} parties contre les {opp} autres decks de ce top 30 ({gpp} par paire), notre IA {ai} des deux côtés. 50 % = le niveau du top 30 ; la marge est à 95 %.",
+  "vt.scoreName": "Score v2 ({n} decks de mesure)",
+  "vt.scoreSr": "contre {n} decks de mesure",
+  "vt.margin": "marge {pm}",
+  "st.scoreV2": "Score v2",
+  "rk.basisTop30": "Contre le top 30 : taux de victoire contre les {opp} autres decks de ce top 30, notre IA {ai} aux commandes des deux côtés ; 50 % = le niveau du top. Score v2 : contre {n} decks de mesure.",
+  "rk.basisSpeedTop30": "Seuls les decks du top 30 ont déjà « Contre le top 30 ».",
+  "rk.mTop30": "L’ordre : « Contre le top 30 », le taux de victoire moyen de chaque deck contre les {opp} autres decks de ce top 30 (chacun compte autant), {gpp} parties par paire, notre IA {ai} des deux côtés ; 50 % = le niveau du top. Les decks hors du top 30 n’ont pas encore ce chiffre. Le « Score v2 », contre les {n} decks de mesure qui ont choisi ces 30, reste sur chaque ligne.",
+  "rk.tiedTipTop30": "Même taux de victoire contre le top 30 qu’un autre deck : ils partagent le rang.",
 
   // ---- recherche de carte (Tier list decks et Tier list cartes)
   "find.decksPh": "Chercher par carte…",
@@ -1258,7 +1279,7 @@ const FR = {
   "ev.3": "Fiable",
   "ev.2": "Assez fiable",
   "ev.1": "Indicatif",
-  "ev.3.desc": "Notre IA à pleine force : {per} parties contre chacun des {n} decks de mesure.",
+  "ev.3.desc": "Son score est le Score v2 ({n} decks de mesure) : notre IA à pleine force, {per} parties contre chacun.",
   "ev.2.desc": "{decks} decks : les {screen} meilleurs du premier tri, {direct} qualifiés d’office et {checks} rejoués pour contrôle. Notre IA à pleine force, {min} à {max} parties contre les {n} decks de mesure ; les {keep} meilleurs vont en finale.",
   "ev.1.desc": "{decks} decks. Une IA rapide, {min} à {max} parties chacun ; les {keep} meilleurs vont en course. Une piste, pas un verdict.",
 

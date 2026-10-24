@@ -3,11 +3,11 @@
 // filled when a value, an ability or a passive changed (the class "mechanical"), hollow when only talents or texts did.
 // The data carries codes and positions; every word comes from i18n.js ("pc.*").
 
-import { h, icon, fmtDate, dec, fmtInt } from "./util.js?v=ba817a7942";
-import { DB } from "./data.js?v=ba817a7942";
-import { L } from "./cards.js?v=ba817a7942";
-import { t } from "./i18n.js?v=ba817a7942";
-import { disclosure } from "./ui.js?v=ba817a7942";
+import { h, icon, fmtDate, dec, fmtInt } from "./util.js?v=f7776761cc";
+import { DB } from "./data.js?v=f7776761cc";
+import { L } from "./cards.js?v=f7776761cc";
+import { t } from "./i18n.js?v=f7776761cc";
+import { disclosure } from "./ui.js?v=f7776761cc";
 
 // Three patches can differ, and each label names the one it is about (SPEC.md, "Patch labels"):
 // - the GAME patch, the client players run today (below; the lab reads it from the game files);
@@ -49,10 +49,10 @@ const rankingsBehindGame = (patch) => {
 /** The deck ranking (ranking.json) while the Deck tier list shows it, else null. */
 export const deckRanking = () => (DECK_RANKING_SHOWN && DB.ranking) || null;
 
-/** What the deck ranking's caveats quote (i18n "rk.limit.*"): its score list's narrowest and widest margins, in points to one
- * decimal (the margins of version 2 sit within one point of each other). */
+/** What the deck ranking's caveats quote (i18n "rk.limit.*"): the narrowest and widest margins of the number its win-rate list
+ * is ordered by ("Vs the top 30" when the export has it, else the score), in points to one decimal. */
 export function limitParams(R) {
-  const ci = R.by_score.decks.map((d) => d.ci95 * 100);
+  const ci = R.by_score.decks.map((d) => (R.by_score.vs_top30 && d.vs_top30 ? d.vs_top30.ci95 : d.ci95) * 100);
   return { lo: dec(Math.min(...ci), 1), hi: dec(Math.max(...ci), 1) };
 }
 

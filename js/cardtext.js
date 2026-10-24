@@ -8,9 +8,9 @@
 // noun). A bracket group whose text starts with a keyword ("[Taunt]", "[Cost 10 Fire]") becomes one chip without its
 // brackets; a bracket of numbers ("[30 to 50]") stays text. Card names are never touched. Tokens are cached per text.
 
-import { h } from "./util.js?v=ba817a7942";
-import { DB } from "./data.js?v=ba817a7942";
-import { getLang } from "./store.js?v=ba817a7942";
+import { h } from "./util.js?v=f7776761cc";
+import { DB } from "./data.js?v=f7776761cc";
+import { getLang } from "./store.js?v=f7776761cc";
 
 // element words of the card texts, accent-free and lower case, singular and plural
 const EL_WORDS = {

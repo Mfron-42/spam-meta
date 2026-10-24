@@ -1,6 +1,7 @@
 // Deck tier list tab: the lab's deck ranking of the game patch (data/ranking.json, tools/export_ranking.py) as two lists of
-// one view (owner, 2026-10-23): the decks by win rate (their score against the benchmark decks, with its 95% margin) and the
-// decks that win in the fewest rounds (with their win rate beside it). A ranked list, no tier letters and no hidden deck
+// one view (owner, 2026-10-23): the decks by win rate (the final's best 30 by their score against the benchmark decks, listed
+// since 2026-10-24 by their win rate against each other, "Vs the top 30", with its 95% margin) and the decks that win in the
+// fewest rounds. A ranked list, no tier letters and no hidden deck
 // (owner, 2026-10-21). While the ranking is not final the view says so at its top (the banner "Temporary ranking", patch.js
 // provBanner), with why, its method and caveats behind "About the numbers". Every deck carries its figure, named and big, with
 // the stage meter of the furthest stage it reached, and its steps, every other stage it played with its result (decklist.js,
@@ -11,15 +12,15 @@
 // address (#tiers, #tiers/speed). A language change redraws the page and keeps the list, the query and the filter.
 // (The tier-grouped view of the 1.22 rankings, with its matchups, withheld and secret decks, is in the git history.)
 
-import { h, icon, pct, dec, reducedMotion } from "./util.js?v=ba817a7942";
-import { DB, loadRanking, loadDecks, deckKey } from "./data.js?v=ba817a7942";
-import { on, isOwned, ownedCount } from "./store.js?v=ba817a7942";
-import { cardName } from "./cards.js?v=ba817a7942";
-import { segmented, scrollToEl, cascade, CURVE } from "./ui.js?v=ba817a7942";
-import { t, tx } from "./i18n.js?v=ba817a7942";
-import { findRow, terms, namedCards } from "./search.js?v=ba817a7942";
-import { introLine, limitParams, gameSpan, medianRounds, provBanner, DECK_TABLE_SHOWN } from "./patch.js?v=ba817a7942";
-import { paintOwned, deckSlot, deckFacts } from "./decklist.js?v=ba817a7942";
+import { h, icon, pct, dec, fmtInt, reducedMotion } from "./util.js?v=f7776761cc";
+import { DB, loadRanking, loadDecks, deckKey } from "./data.js?v=f7776761cc";
+import { on, isOwned, ownedCount } from "./store.js?v=f7776761cc";
+import { cardName } from "./cards.js?v=f7776761cc";
+import { segmented, scrollToEl, cascade, CURVE } from "./ui.js?v=f7776761cc";
+import { t, tx } from "./i18n.js?v=f7776761cc";
+import { findRow, terms, namedCards } from "./search.js?v=f7776761cc";
+import { introLine, limitParams, gameSpan, medianRounds, provBanner, DECK_TABLE_SHOWN } from "./patch.js?v=f7776761cc";
+import { paintOwned, deckSlot, deckFacts } from "./decklist.js?v=f7776761cc";
 
 const LISTS = { score: "by_score", speed: "by_speed" };
 let root, R, table = null, rrOf = new Map(), list = "score", query = "", readyOnly = false;
@@ -107,15 +108,17 @@ function render() {
   paintList(false);
 }
 
-/** What "About the numbers" opens: why it is provisional, how it was made, its caveats as a short list, the round robin and the speed. */
+/** What "About the numbers" opens: why it is provisional, how it was made, the order (Vs the top 30, which folds in the round
+ * robin against the previous top 16; without it, the round robin's own paragraph), its caveats as a short list and the speed. */
 function methodLines() {
-  const s = R.by_score, n = s.opponents;
+  const s = R.by_score, n = s.opponents, vt = s.vs_top30;
   return [
     R.final ? null : h("p", [...tx("rk.mWhy"), " ", t("rk.mBench", { n })]),
     t("rk.mHow", { v: R.version, ai: R.pilot, pool: R.pool, kept: s.decks_measured, n, per: gameSpan(s.games_per_opponent) }),
+    vt ? t("rk.mTop30", { opp: vt.opponents, gpp: gameSpan(vt.games_per_pair), ai: R.pilot, n }) : null,
     t("rk.mTalents"),
     h("ul.vinfo-l", R.limits.map((l) => h("li", t("rk.limit." + l, limitParams(R))))),
-    t("rk.mRR", { decks: R.round_robin.decks, field: R.round_robin.field, n, gpp: gameSpan(R.round_robin.games_per_pair, { atLeast: true }) }),
+    vt ? null : t("rk.mRR", { decks: R.round_robin.decks, field: R.round_robin.field, n, gpp: gameSpan(R.round_robin.games_per_pair, { atLeast: true }) }),
     t("rk.mSpeed", { n: R.by_speed.opponents, median: medianRounds(R) }),
   ];
 }
@@ -125,9 +128,12 @@ function paintList(swap) {
   const L_ = R[LISTS[list]];
   listEl.dataset.list = list;      // the speed list lifts its own metric, the rounds line (views.css)
   headEl.textContent = t("rk.h." + list, { n: L_.decks.length });
+  const vt = R.by_score.vs_top30;
   basisEl.textContent = list === "score"
-    ? t("rk.basisScore", { n: L_.opponents, per: gameSpan(R.by_score.games_per_opponent) })
-    : t("rk.basisSpeed", { min: pct(L_.min_win_rate, 0), wins: L_.min_wins, median: medianRounds(R) });
+    ? (vt ? t("rk.basisTop30", { opp: vt.opponents, ai: R.pilot, n: R.by_score.opponents })
+      : t("rk.basisScore", { n: L_.opponents, per: gameSpan(R.by_score.games_per_opponent) }))
+    : t("rk.basisSpeed", { min: pct(L_.min_win_rate, 0), wins: L_.min_wins, median: medianRounds(R) }) +
+      (vt ? " " + t("rk.basisSpeedTop30") : "");
   decks = [];
   const shown = L_.decks.filter((d) => d.cs.every(Boolean));
   listEl.replaceChildren(...shown.map((d, i) => deckEl(d, i === 0)));
@@ -150,14 +156,19 @@ function findBar() {
 
 // ---------------------------------------------------------------- one deck
 /**
- * A deck's facts: the one component of every deck row (decklist.js `deckFacts`; owner, 2026-10-24: the last completed phase and
- * its win rate, big, the other completed phases and their win rates, small, the same on both lists), with the rounds to win as
- * one quiet line in the same place on both lists (the speed list's own metric; owner, 2026-10-23, for the win-rate list). It
- * reads the deck's row of the run's deck table; without it (not shown, or a failed request) it reads the row ranking.json gives:
- * on the win-rate list the final, on the speed list the race and, for a finalist, the final.
+ * A deck's facts: the one component of every deck row (decklist.js `deckFacts`), the same on both lists: big, its win rate
+ * against the other decks of the top 30 ("Vs the top 30"; the lead's call of 2026-10-24, a deck of the speed list outside the 30
+ * has none and shows no big figure), then the rounds to win as one quiet line in the same place on both lists (the speed list's
+ * own metric; owner, 2026-10-23, for the win-rate list), then every phase it completed, small, "Score v2" (the final's score
+ * against the benchmark decks) first. It reads the deck's row of the run's deck table; without it (not shown, or a failed
+ * request) the row ranking.json gives: on the win-rate list the final, on the speed list the race and, for a finalist, the
+ * final. A ranking.json without the headline (an export without the results database) keeps the final as the big figure.
  */
 function facts(d) {
   const row = (table && table.get(deckKey(d.cards))) || listRow(d);
+  const vt = R.by_score.vs_top30;
+  const head = !vt ? undefined : d.vs_top30 ? { value: d.vs_top30.win_rate, pm: d.vs_top30.ci95,
+    title: t("vt.tip", { games: fmtInt(d.vs_top30.games), opp: d.vs_top30.opponents, gpp: gameSpan(vt.games_per_pair), ai: R.pilot }) } : null;
   let rounds = null;
   if (list === "score" && d.win_speed) {
     const ws = d.win_speed;
@@ -165,14 +176,14 @@ function facts(d) {
   } else if (list === "speed") {
     rounds = { value: d.rounds, pm: d.rounds_ci95, title: t("rk.roundsFigTip", { wins: d.rounds_wins || d.wins, pm: dec(d.rounds_ci95, 1), median: medianRounds(R) }) };
   }
-  return [deckFacts(row, { rounds })];
+  return [deckFacts(row, { rounds, head })];
 }
 
 /** The row ranking.json alone gives a deck, without the deck table: its final (both lists) and its race (the speed list). */
 function listRow(d) {
   const rr = rrOf.get(deckKey(d.cards)) || null;
   if (list === "score") {
-    return { cards: d.cs, level: 3, rr, stages: { final: { rank: d.rank, score: d.score, ci95: d.ci95, games: d.games }, rt: null } };
+    return { cards: d.cs, level: 3, rr, stages: { final: { rank: d.score_rank || d.rank, score: d.score, ci95: d.ci95, games: d.games }, rt: null } };
   }
   const race = { rate: d.win_rate, games: d.games, kept: !!d.final };
   return { cards: d.cs, level: d.final ? 3 : 2, rr, stages: { race, final: d.final ? { rank: d.final.rank, score: d.final.score } : null, rt: null } };
@@ -183,7 +194,7 @@ function deckEl(d, full) {
   const slots = d.cs.map((c, k) => deckSlot(c, d.talents[k], { full }));
   // quiet facts about the rank in words, never boxes: a shared rank, the deck's place in the other list
   const words = [
-    d.tied ? h("span.deck-word", { title: t("rk.tiedTip") }, t("rk.tied")) : null,
+    d.tied ? h("span.deck-word", { title: t(d.vs_top30 && list === "score" ? "rk.tiedTipTop30" : "rk.tiedTip") }, t("rk.tied")) : null,
   ];
   const el = h("li.deck" + (full ? ".spot" : ""), { id: `deck-${list}-${d.rank}-${decks.length}`, "aria-label": t("tl.rankAria", { rank: d.rank, cards: d.cs.map(cardName).join(", ") }) }, [
     h("div.deck-head", [h("h3.rk", `#${d.rank}`), ...words, badge]),

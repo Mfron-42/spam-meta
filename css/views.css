@@ -178,6 +178,9 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .dr-fig { cursor: help; }
 .fig-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: 0; }
 .fig-line .meter { align-self: center; margin-right: 4px; }
+.ms-row { display: flex; align-items: flex-start; gap: 12px; }      /* the tier lists: the stage meter in its own column */
+.ms-row > .meter { flex: none; margin-top: 4px; }
+.ms-row > .ms { min-width: 0; }
 .fig-k { color: var(--ink-2); font: 400 22px/1 var(--display); letter-spacing: .01em; }
 .fig-pm, .ms-pm { color: var(--muted); font: 600 14px/1 var(--text); }
 .ms { display: flex; flex-wrap: wrap; gap: 4px 24px; margin: 0; padding: 0; list-style: none; }
