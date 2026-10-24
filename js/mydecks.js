@@ -4,14 +4,14 @@
 // are the best). A deck of the top 30 by score carries its rank there. The card search (search.js) keeps only the decks of
 // both lists that hold a matching card; the query survives a redraw (a card ticked, a language change).
 
-import { h, icon, fmtInt } from "./util.js?v=50d3047a93";
-import { loadDecks } from "./data.js?v=50d3047a93";
-import { on, isOwned, ownedCount } from "./store.js?v=50d3047a93";
-import { deckRow, missingLine, paged, legend, tableHead } from "./decklist.js?v=50d3047a93";
-import { findRow, terms, namedCards } from "./search.js?v=50d3047a93";
-import { openCollection } from "./dialogs.js?v=50d3047a93";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=50d3047a93";
-import { t } from "./i18n.js?v=50d3047a93";
+import { h, icon, fmtInt } from "./util.js?v=f04c2f75e4";
+import { loadDecks } from "./data.js?v=f04c2f75e4";
+import { on, isOwned, ownedCount } from "./store.js?v=f04c2f75e4";
+import { deckRow, missingLine, paged, legend, tableHead } from "./decklist.js?v=f04c2f75e4";
+import { findRow, terms, namedCards } from "./search.js?v=f04c2f75e4";
+import { openCollection } from "./dialogs.js?v=f04c2f75e4";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=f04c2f75e4";
+import { t } from "./i18n.js?v=f04c2f75e4";
 
 let root, D, listeners = new Set();
 let result = { build: [], near: [] };

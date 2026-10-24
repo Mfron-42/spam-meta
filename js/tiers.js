@@ -10,15 +10,15 @@
 // address (#tiers, #tiers/speed). A language change redraws the page and keeps the list, the query and the filter.
 // (The tier-grouped view of the 1.22 rankings, with its matchups, withheld and secret decks, is in the git history.)
 
-import { h, icon, pm, pct, pct1, dec, reducedMotion } from "./util.js?v=50d3047a93";
-import { DB, loadRanking, loadDecks, deckKey } from "./data.js?v=50d3047a93";
-import { on, isOwned, ownedCount } from "./store.js?v=50d3047a93";
-import { cardName } from "./cards.js?v=50d3047a93";
-import { segmented, scrollToEl, cascade, CURVE } from "./ui.js?v=50d3047a93";
-import { t, tx } from "./i18n.js?v=50d3047a93";
-import { findRow, terms, namedCards } from "./search.js?v=50d3047a93";
-import { introLine, limitParams, gameSpan, medianRounds, provBanner, DECK_TABLE_SHOWN } from "./patch.js?v=50d3047a93";
-import { paintOwned, deckSlot, stageCaption, journey } from "./decklist.js?v=50d3047a93";
+import { h, icon, pm, pct, pct1, dec, reducedMotion } from "./util.js?v=f04c2f75e4";
+import { DB, loadRanking, loadDecks, deckKey } from "./data.js?v=f04c2f75e4";
+import { on, isOwned, ownedCount } from "./store.js?v=f04c2f75e4";
+import { cardName } from "./cards.js?v=f04c2f75e4";
+import { segmented, scrollToEl, cascade, CURVE } from "./ui.js?v=f04c2f75e4";
+import { t, tx } from "./i18n.js?v=f04c2f75e4";
+import { findRow, terms, namedCards } from "./search.js?v=f04c2f75e4";
+import { introLine, limitParams, gameSpan, medianRounds, provBanner, DECK_TABLE_SHOWN } from "./patch.js?v=f04c2f75e4";
+import { paintOwned, deckSlot, stageCaption, journey } from "./decklist.js?v=f04c2f75e4";
 
 const LISTS = { score: "by_score", speed: "by_speed" };
 let root, R, table = null, rrOf = new Map(), list = "score", query = "", readyOnly = false;

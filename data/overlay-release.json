@@ -1,27 +1,27 @@
 {
   "available": true,
-  "version": "0.1.18",
-  "released": "2026-10-22",
-  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.18",
-  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.18",
+  "version": "0.1.19",
+  "released": "2026-10-24",
+  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.19",
+  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.19",
   "notes": {
-    "en": "- The AI's own move first. As soon as the AI has decided (about half a second after your decision opens), the \"do this\" dot sits on the move it would play, and the win chance shows its own estimate of it. It is the same AI the bot plays (v3s8), with its full search for spells, targets and the shop.\n- The other figures fill in after. Each spell's, target's and tox's change from now comes in as before, first from the value net, then from the AI's test games; the dot and the win chance no longer wait for them, and they no longer jump when the games come in.\n- Rest the cursor on the win chance to see what it rests on: the AI's estimate, the AI's test games once they have enough, the value net's reading, and the move the test games prefer when it is another one.\n- After an overlay update, the engine is prepared again by itself when the new version prepares it differently, in the background and between two matches, as after a game update.",
-    "fr": "- Le coup de l'IA d'abord. D\u00e8s que l'IA a d\u00e9cid\u00e9 (environ une demi-seconde apr\u00e8s l'ouverture de votre d\u00e9cision), le point \u00ab \u00e0 jouer \u00bb se place sur le coup qu'elle jouerait, et la chance de victoire affiche sa propre estimation de ce coup. C'est la m\u00eame IA que celle du bot (v3s8), avec sa recherche compl\u00e8te pour les sorts, les cibles et la boutique.\n- Les autres chiffres arrivent ensuite. Le changement de chaque sort, de chaque cible et de chaque tox arrive comme avant, d'abord selon le r\u00e9seau de valeur, puis selon les parties d'essai de l'IA ; le point et la chance de victoire ne les attendent plus, et ne sautent plus quand les parties arrivent.\n- Laissez le curseur sur la chance de victoire pour voir sur quoi elle repose : l'estimation de l'IA, les parties d'essai de l'IA quand elles sont assez nombreuses, la lecture du r\u00e9seau de valeur, et le coup que pr\u00e9f\u00e8rent les parties d'essai quand c'en est un autre.\n- Apr\u00e8s une mise \u00e0 jour de l'overlay, le moteur est pr\u00e9par\u00e9 de nouveau tout seul quand la nouvelle version le pr\u00e9pare autrement, en arri\u00e8re-plan et entre deux parties, comme apr\u00e8s une mise \u00e0 jour du jeu."
+    "en": "- A stronger AI: v3s9. The \"do this\" dot, the win chance and the AI's test games now come from v3s9, the lab's newest best AI (v3s8 with a better move net). Against the lab's reference bot it wins about 4 points more often than v3s8 did (two paired reads on fresh games: +3.8 and +4.1 points), measured on game version 1.24.\n- Only what you can see. As before, the AI knows what the game sends your client and nothing more: an opponent's talent stays unknown until it fires.\n- The AI's move comes sooner. Its search is now the published one; the wider search of 0.1.18 gave no measured gain. On our test PC, with a heavy job running in the background, the move showed within half a second on 9 decisions in 10 (0.1.18: about 0.7 s).\n- For a lighter search, put `\"ai_pick\": \"fast\"` in `data\\config.local.json`: it answers about 0.15 s sooner but plays another move on about one decision in six. `\"ai_stack\": \"v3s8\"` brings back the previous AI.",
+    "fr": "- Une IA plus forte : v3s9. Le point \u00ab \u00e0 jouer \u00bb, la chance de victoire et les parties d'essai de l'IA viennent maintenant de v3s9, la nouvelle meilleure IA du labo (v3s8 avec un meilleur r\u00e9seau de coups). Face au bot de r\u00e9f\u00e9rence du labo, elle gagne environ 4 points de plus que v3s8 (deux mesures appari\u00e9es sur de nouvelles parties : +3,8 et +4,1 points), mesur\u00e9 sur la version 1.24 du jeu.\n- Seulement ce que vous voyez. Comme avant, l'IA ne conna\u00eet que ce que le jeu envoie \u00e0 votre client : le talent d'un adversaire reste inconnu tant qu'il ne s'est pas d\u00e9clench\u00e9.\n- Le coup de l'IA arrive plus t\u00f4t. Sa recherche est d\u00e9sormais celle publi\u00e9e ; la recherche plus large de la 0.1.18 n'apportait aucun gain mesur\u00e9. Sur notre PC de test, charg\u00e9 par un gros calcul en arri\u00e8re-plan, le coup s'affichait en moins d'une demi-seconde sur 9 d\u00e9cisions sur 10 (0.1.18 : environ 0,7 s).\n- Pour une recherche plus l\u00e9g\u00e8re, ajoutez `\"ai_pick\": \"fast\"` dans `data\\config.local.json` : elle r\u00e9pond environ 0,15 s plus t\u00f4t mais joue un autre coup sur environ une d\u00e9cision sur six. `\"ai_stack\": \"v3s8\"` remet l'IA pr\u00e9c\u00e9dente."
   },
   "assets": [
     {
       "kind": "setup",
-      "name": "SPAM-Overlay-Setup-0.1.18.exe",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.18/SPAM-Overlay-Setup-0.1.18.exe",
-      "size_bytes": 163316867,
-      "sha256": "aa69450478a834d15411555614896e87c2f16d50865d783d0efc006fcc0d977d"
+      "name": "SPAM-Overlay-Setup-0.1.19.exe",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.19/SPAM-Overlay-Setup-0.1.19.exe",
+      "size_bytes": 164169142,
+      "sha256": "f786e7ef3bb36c17058e580f35c9b4ad65d4de5f32af27e6aa6f8a6a4d8142ea"
     },
     {
       "kind": "zip",
-      "name": "spam-overlay-0.1.18-win64.zip",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.18/spam-overlay-0.1.18-win64.zip",
-      "size_bytes": 244057724,
-      "sha256": "09c8791460618f8e02309b18a394584b1ed8c31bfa4197c13a89f0513183e595"
+      "name": "spam-overlay-0.1.19-win64.zip",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.19/spam-overlay-0.1.19-win64.zip",
+      "size_bytes": 247126772,
+      "sha256": "545fc461177ebf8c63a8e4b17ed5f2222ebdba8cd8bd48e2988b40fc80c79118"
     }
   ]
 }
