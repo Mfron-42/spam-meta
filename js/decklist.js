@@ -1,17 +1,17 @@
 // The one way to list measured decks (the ranking run's deck table, ranking-decks.json), shared by My decks and the Deck
-// builder, and the deck parts the Deck tier list reuses: a deck's card with its talent under it, the stage meter and its
-// caption, the journey (the stages a deck played and its score at each), the owned badge; and, for the two deck table views,
+// builder, and the deck parts the Deck tier list reuses: a deck's card with its talent under it, the stage meter, a deck's facts
+// (its last completed phase and win rate, big, then its other phases, small), the owned badge; and, for the two deck table views,
 // the paging and the "How reliable?" legend. Rows arrive
 // sorted by the furthest stage reached, then the score there (docs/DATA.md, "ranking-decks.json"), so a filter that keeps
 // their order keeps the canonical ranking.
 
-import { h, icon, pct1, pm } from "./util.js?v=dfbc09ef8f";
-import { DB } from "./data.js?v=dfbc09ef8f";
-import { getLang, isOwned, ownedCount } from "./store.js?v=dfbc09ef8f";
-import { gameCard, chip, cardName, L } from "./cards.js?v=dfbc09ef8f";
-import { disclosure } from "./ui.js?v=dfbc09ef8f";
-import { t, tx } from "./i18n.js?v=dfbc09ef8f";
-import { introLine, provBanner, gameSpan } from "./patch.js?v=dfbc09ef8f";
+import { h, icon, pct1, pm, dec } from "./util.js?v=d1215b1076";
+import { DB, deckKey } from "./data.js?v=d1215b1076";
+import { getLang, isOwned, ownedCount } from "./store.js?v=d1215b1076";
+import { gameCard, chip, cardName, L } from "./cards.js?v=d1215b1076";
+import { disclosure } from "./ui.js?v=d1215b1076";
+import { t, tx } from "./i18n.js?v=d1215b1076";
+import { introLine, provBanner, gameSpan } from "./patch.js?v=d1215b1076";
 
 // ---------------------------------------------------------------- stages, in plain words
 // level -> stage of the ranking run: 3 the final (the full AI against the benchmark decks), 2 the race (the same AI and decks,
@@ -27,12 +27,6 @@ export function meter(level) {
     Array.from({ length: LEVELS }, (_, i) => h("i", { class: i < level ? "on" : "" })));
 }
 
-/** A caption under a deck's figure, led by the stage meter of the furthest stage it reached: `text` says what the figure is. */
-export const stageCaption = (level, text) => h("p.ev", [meter(level), h("span", text)]);
-
-/** The caption under a deck's figure: the stage meter, then what the figure is and how reliable it is ("win rate in the
- * race · Fairly reliable"). Every measured deck carries it (My decks, the Deck builder), so a deck reads the same everywhere. */
-export const evLine = (level) => stageCaption(level, t("md.rateCap." + STAGE[level]) + t("ui.dot") + t("ev." + level));
 
 // ---------------------------------------------------------------- a deck's card
 /**
@@ -50,43 +44,75 @@ export function deckSlot(c, talent, { full = false, miss = false } = {}) {
   ]);
 }
 
-// ---------------------------------------------------------------- the journey
+// ---------------------------------------------------------------- a deck's phases
+const PHASES = ["screen", "race", "final"];
+const cap = (x) => x.charAt(0).toUpperCase() + x.slice(1);
+let rrByKey = null;
+
+/** A deck's win rate against the previous top 16 (ranking.json, the 30 best by win rate: the deck table holds the place only). */
+function rtReading(cards) {
+  const R = DB.ranking;
+  if (!R) return null;
+  if (!rrByKey) rrByKey = new Map(R.by_score.decks.filter((x) => x.round_robin).map((x) => [deckKey(x.cards), x.round_robin]));
+  return rrByKey.get(deckKey(cards.map((c) => c.id))) || null;
+}
+
 /**
- * The stages a deck played and its score at each (owner, 2026-10-23: "à quelle étape du tournoi il s'est arrêté et avec quel
- * score"): the first sort (kept or not; a deck not kept but raced was one of the random checks; a deck the run seeded straight
- * into the race says so on that line), the race (sent to the final or not), the final (its rank among the finalists, and its
- * score unless the row's figure is that score), the round robin of the final's best ("Against the previous top 16": place). Each stage
- * keeps its best `kept` decks by a cautious
- * reading (DATA.md), so the lines say kept or stopped, never a cut score.
- * `figure`: the stage whose score is the row's figure, so its line drops the number (default the furthest stage, as on My decks
- * and the Deck tier list's win-rate list; null when the figure is not a win rate, as on the speed list, so the final's line then
- * carries its score). `rr`: the deck's round-robin win rate when the view has it (`{rate, title}`, ranking.json), printed after
- * its place with its basis as the title; the deck table holds the place only.
+ * A deck's facts, the one component of every deck row (DESIGN.md "Deck facts"; owner, 2026-10-24: "la dernière phase complétée,
+ * son win rate, et en plus petit les autres phases complétées et leur win rate", the same in the tier list, the speed list, My
+ * decks and the Deck builder):
+ * - the last phase the deck completed, big: the stage meter, the phase's name ("Final", "Race", "First sort") and its win rate,
+ *   with the final's margin;
+ * - `rounds` (the two tier lists: `{value, pm, title}`), its rounds to win as one quiet line, in the same place on every row;
+ * - every other phase it completed, small, as its name and its win rate ("First sort 77.1%", "Race 83.3%", "Final 69.7%"), and
+ *   its win rate against the previous top 16 when it played it (the deck table gives the place only: "#31" when no rate is known).
+ * Games, ranks, where a deck went next and how reliable a stage is are each value's title and follow for screen readers; the row
+ * itself carries no sentence. `r` is a deck table row, or a row the Deck tier list builds from ranking.json without the table.
  */
-export function journey(r, { figure = STAGE[r.level], rr = null } = {}) {
-  const s = r.stages, n = DB.decks.stages;
-  const games = (stage, x) => t("jy.games", { games: x.games }) + (stage === figure ? "" : t("ui.comma") + pct1(x.rate));
-  const li = (stage, text, title = null) => h("li", [h("span.jy-s", t("st." + stage) + t("jy.sep")), h("span", { title }, text)]);
-  const items = [];
-  if (s.screen) {
-    const word = s.screen.kept ? "jy.kept" : s.race ? "jy.check" : "jy.stopped";
-    items.push(li("screen", games("screen", s.screen) + t("ui.comma") + t(word)));
-  } else if (s.race && n.screen) {
-    // seeded straight into the race: its first sort says so, so every stage keeps one line of its own
-    items.push(li("screen", t("jy.direct")));
+export function deckFacts(r, { rounds = null } = {}) {
+  const s = r.stages, n = DB.decks ? DB.decks.stages : null, last = STAGE[r.level];
+  const rate = (st) => (st === "final" ? s.final.score : s[st].rate);
+  const games = (x) => (x && x.games ? t("ui.comma") + t("jy.games", { games: x.games }) : "");
+  const basis = (st) => {
+    const x = s[st];
+    if (st === "final") return (n ? t("jy.final", { rank: x.rank, n: n.final.decks }) : "#" + x.rank) + games(x);
+    if (st === "race") {
+      return cap(t("jy.games", { games: x.games })) + t("ui.comma") + t(x.kept ? "jy.toFinal" : "jy.stopped") +
+        (!s.screen && n && n.screen ? t("ui.comma") + t("jy.direct") : "");
+    }
+    return cap(t("jy.games", { games: x.games })) + t("ui.comma") + t(x.kept ? "jy.kept" : s.race ? "jy.check" : "jy.stopped");
+  };
+  const name = (st) => t("st." + st);
+  const small = (label, value, title) => h("li", { title }, [
+    h("span.ms-k", label), h("b.ms-n", value), h("span.sr", t("ui.sep") + title)]);
+  const figTitle = basis(last) + t("ui.dot") + t("ev." + r.level);
+  const items = PHASES.filter((st) => st !== last && s[st]).map((st) => small(name(st), pct1(rate(st)), basis(st)));
+  const rr = s.rt || r.rr ? (r.rr || rtReading(r.cards)) : null;
+  if (rr || s.rt) {
+    const place = s.rt && n ? t("jy.rt", { place: s.rt, n: n.round_robin.decks }) : null;
+    const tip = rr ? rtTip(rr) : "";
+    items.push(small(t("st.rtShort"), rr ? pct1(rr.win_rate) : "#" + s.rt, [place, tip].filter(Boolean).join(t("ui.comma"))));
   }
-  if (s.race) items.push(li("race", games("race", s.race) + t("ui.comma") + t(s.race.kept ? "jy.toFinal" : "jy.stopped")));
-  if (s.final) {
-    items.push(li("final", figure === "final" ? t("jy.final", { rank: s.final.rank, n: n.final.decks })
-      : t("jy.finalPct", { rank: s.final.rank, n: n.final.decks, pct: pct1(s.final.score) })));
-  }
-  if (s.rt) {
-    // the round robin's basis is the value's title, and the same words follow for screen readers (a title alone is not read)
-    items.push(rr ? li("rt", [t("jy.rtPct", { place: s.rt, n: n.round_robin.decks, pct: pct1(rr.rate) }), h("span.sr", t("ui.sep") + rr.title)], rr.title)
-      : li("rt", t("jy.rt", { place: s.rt, n: n.round_robin.decks })));
-  }
-  // role="list": a list drawn without markers loses its list role in WebKit
-  return h("ol.jy", { role: "list", "aria-label": t("jy.aria") }, items);
+  return h("div.dfacts", [
+    h("div.dr-fig", { title: figTitle }, h("p.fig-line", [
+      meter(r.level),
+      h("span.fig-k", name(last)),
+      h("b.stat-v", pct1(rate(last))),
+      last === "final" && s.final.ci95 != null ? h("span.fig-pm", pm(s.final.ci95)) : null,
+      h("span.sr", t("ui.sep") + figTitle),
+    ])),
+    rounds ? h("p.ms-line", { title: rounds.title }, [h("span.ms-k", t("ms.rounds")), h("b.ms-n", dec(rounds.value, 1)),
+      h("span.ms-pm", "±" + dec(rounds.pm, 1)), h("span.sr", t("ui.sep") + rounds.title)]) : null,
+    // role="list": a list drawn without markers loses its list role in WebKit
+    items.length ? h("ol.ms", { role: "list", "aria-label": t("jy.aria") }, items) : null,
+  ]);
+}
+
+/** The basis of a win rate against the previous top 16: its games against that field (a deck of it plays the others). */
+function rtTip(rr) {
+  const R = DB.ranking, field = R && R.round_robin ? R.round_robin.field : null;
+  if (!field || rr.opponents == null) return "";
+  return t(rr.opponents < field ? "rk.rrTipIn" : "rk.rrTip", { games: rr.games, opp: rr.opponents, field });
 }
 
 /**
@@ -129,8 +155,8 @@ export function paintOwned(el, cards) {
 /**
  * A measured deck as a row, in the Deck tier list's pattern (DESIGN.md "Deck row"): on the ground, a head (its place in this
  * list, the four card names hidden after it for screen readers, a quiet word, the owned badge pushed right), then its four game
- * cards with their talents and its facts: the win rate at its furthest stage with the stage meter caption, its journey, a
- * "Missing:" / "Without:" line. On one column the figure comes before the cards and the journey after them. `cards` reorders the
+ * cards with their talents and its facts (`deckFacts`: its last completed phase and win rate, big, then its other phases,
+ * small), a "Missing:" / "Without:" line. On one column the facts come before the cards. `cards` reorders the
  * cards for display (a deck is a set; the talents follow their cards); `hits` (the cards a card search found) or `dim` (the card
  * the visitor lacks) dims the other cards.
  */
@@ -138,18 +164,11 @@ export function deckRow(r, rankLabel, { cards = r.cards, tag = null, note = null
   const talentOf = (c) => r.talents[r.cards.indexOf(c)];
   const miss = (c) => (hits ? !hits.includes(c) : !!(dim && dim.includes(c)));
   return h("article.deck", [
-    // the list position (not a rank: the deck's rank is its final's, in the journey)
+    // the list position (not a rank: the deck's rank is its final's, beside its figure)
     h("div.deck-head", [h("h3.rk", [rankLabel, h("span.sr", " " + r.cards.map(cardName).join(", "))]), tag, badge]),
     h("div.deck-body", [
       h("div.deck-cards", cards.map((c) => deckSlot(c, talentOf(c), { miss: miss(c) }))),
-      h("div.deck-facts", [
-        h("div.dfacts", h("div.dr-fig", [
-          h("span.fig-line", [h("b.stat-v", pct1(r.rate)), r.level === 3 ? h("span.fig-pm", { title: t("tl.pmTip") }, pm(r.stages.final.ci95)) : null]),
-          evLine(r.level),
-        ])),
-        journey(r),
-        note,
-      ]),
+      h("div.deck-facts", [deckFacts(r), note]),
     ]),
   ]);
 }

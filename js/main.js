@@ -4,16 +4,16 @@
 // the same run's deck table (DECK_TABLE_SHOWN), else they have no tab; the Card tier list draws the placeholder while its
 // rankings are being recomputed (CARD_RANKINGS_SHOWN off).
 
-import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=dfbc09ef8f";
-import { t, applyStatic, millions } from "./i18n.js?v=dfbc09ef8f";
-import { copyText } from "./ui.js?v=dfbc09ef8f";
-import { DB, loadCore, loadRanking } from "./data.js?v=dfbc09ef8f";
-import { patchLine, dataDate, deckRanking, CARD_RANKINGS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN } from "./patch.js?v=dfbc09ef8f";
-import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=dfbc09ef8f";
-import { versioned, withQuery } from "./version.js?v=dfbc09ef8f";
-import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=dfbc09ef8f";
-import { holdTiles } from "./cardtilt.js?v=dfbc09ef8f";
-import { ambient } from "./ambient.js?v=dfbc09ef8f";
+import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=d1215b1076";
+import { t, applyStatic, millions } from "./i18n.js?v=d1215b1076";
+import { copyText } from "./ui.js?v=d1215b1076";
+import { DB, loadCore, loadRanking } from "./data.js?v=d1215b1076";
+import { patchLine, dataDate, deckRanking, CARD_RANKINGS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN } from "./patch.js?v=d1215b1076";
+import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=d1215b1076";
+import { versioned, withQuery } from "./version.js?v=d1215b1076";
+import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=d1215b1076";
+import { holdTiles } from "./cardtilt.js?v=d1215b1076";
+import { ambient } from "./ambient.js?v=d1215b1076";
 
 // Five tabs, one view each; the Deck builder (#builder) sits next to My decks. TABS are the ones shown.
 const ALL_TABS = ["tiers", "card-tiers", "codex", "decks", "builder"];

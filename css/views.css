@@ -170,13 +170,23 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .deck-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; padding: 8px 8px 12px; }
 .slot { position: relative; min-width: 0; }
 .deck-facts { display: grid; gap: 16px; align-content: start; }
-/* a deck's facts, the pattern of every measured deck (decklist.js): the evidence line (bars, stage, how reliable), the number
-   that sets the rank (Headline 28) with its field under it, then the other number as one quiet line (Dusk Lavender 14, 400) */
+/* a deck's facts, the one component of every deck row (decklist.js deckFacts, DESIGN.md "Deck facts"): its last completed phase
+   big (the stage meter, the phase in Title 22, its win rate in Headline 28, the margin), the rounds to win as one quiet line on
+   the tier lists, then its other phases small, each its name (Dusk Lavender 14) and its win rate (Lilita 18 Soft Lavender); every
+   value's basis is its title, so the cursor says there is more */
 .dfacts { display: grid; gap: 8px; justify-items: start; align-content: start; padding-top: 8px; }
-.dfacts .dr-fig { cursor: help; }
-.fig-line { display: flex; align-items: baseline; gap: 8px; }
-.fig-pm { color: var(--muted); font: 600 14px/1 var(--text); }
-.fig-all { color: var(--muted); font: 400 14px/1.4 var(--text); cursor: help; }
+.dr-fig { cursor: help; }
+.fig-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: 0; }
+.fig-line .meter { align-self: center; margin-right: 4px; }
+.fig-k { color: var(--ink-2); font: 400 22px/1 var(--display); letter-spacing: .01em; }
+.fig-pm, .ms-pm { color: var(--muted); font: 600 14px/1 var(--text); }
+.ms { display: flex; flex-wrap: wrap; gap: 4px 24px; margin: 0; padding: 0; list-style: none; }
+.ms li, .ms-line { display: inline-flex; align-items: baseline; gap: 8px; margin: 0; white-space: nowrap; cursor: help; }
+.ms-k { color: var(--muted); font: 600 14px/1.4 var(--text); }
+.ms-n { color: var(--ink-2); font: 400 18px/1 var(--display); letter-spacing: .01em; }
+/* the speed list ranks by its rounds to win: that line one step brighter there (Cream value, Soft Lavender name) */
+.rk-list[data-list="speed"] .ms-line .ms-n { color: var(--ink); }
+.rk-list[data-list="speed"] .ms-line .ms-k { color: var(--ink-2); }
 .deck.spot .deck-body { grid-template-columns: minmax(0, 1fr); }
 .deck.spot .deck-cards { gap: 24px; padding: 12px 12px 16px; }
 /* the way to the overlay: one line after the list, on the ground, no box; its hairline runs across the column like the decks' */
@@ -194,33 +204,11 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 .mdsec { display: grid; gap: 16px; margin-top: 48px; }
 .mdsec .sub { margin-top: -8px; }
 .cbar + .guide-wrap { margin-top: 16px; }
-.dr-fig { display: grid; gap: 2px; }
 .dr-fig .stat-v { font-size: 28px; }
 .dr-miss { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
-/* every deck row (the Deck tier list, My decks, the Deck builder): its facts, then its journey, 12px apart */
+/* every deck row (the Deck tier list, My decks, the Deck builder): its facts, then a "Missing:" line, 12px apart */
 .rk-list .deck-facts { gap: 12px; }
-/* the first deck of a tier list, its cards across the row: its facts and its journey side by side under them, 48px apart,
-   the journey level with the figure (one column under 1040px, where the row's facts take their usual places) */
-@media (min-width: 1041px) {
-  .rk-list .deck.spot .deck-facts { grid-template-columns: max-content minmax(0, 1fr); column-gap: 48px; }
-  .rk-list .deck.spot .jy { padding-top: 8px; }
-}
-.decklist .dr-fig { cursor: auto; }      /* its basis is the caption under it, not a tooltip */
-/* the journey of a deck (DESIGN.md "Deck journey"): one quiet line per stage it played, the stage name in bold */
-.jy { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 12px; margin: 0; padding: 0; list-style: none;
-  color: var(--muted); font-size: 14px; line-height: 1.5; }
-.jy li { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; }      /* the stage names line up in one column */
-.jy .jy-s { font-weight: 600; }      /* weight alone sets the stage name apart: the journey reads quieter than the figure's lines */
-.jy [title] { cursor: help; }      /* a value with its basis as the tooltip (the round robin's win rate) */
-@media (max-width: 520px) {      /* a phone: one line per stage, the name inline, so the values keep the column's width */
-  .jy { grid-template-columns: minmax(0, 1fr); }
-  .jy li { display: block; }
-}
 .levels .meter-gap { width: 24px; }      /* the round robin's line: no stage meter, its text in the column of the others */
-/* the caption under a deck's figure: the meter, one text line tall, then the words, which wrap beside it (never under it, so
-   the meter never stands alone on a line of its own on a narrow phone) */
-.ev { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 8px; color: var(--muted); font-size: 14px; line-height: 1.4; }
-.ev .meter { height: 1lh; align-items: center; }
 .meter { display: inline-flex; gap: 3px; align-items: flex-end; }
 /* an empty bar is hollow (a 1px Dusk Lavender edge, 7:1 on the ground), a filled one solid Soft Lavender: the patch mark's
    filled / hollow grammar, so "2 of 3" reads as two of three, never as a shorter meter */
@@ -314,7 +302,7 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 2px; 
 /* ---------------------------------------------------------------- tablet and phone */
 @media (max-width: 1040px) {
   .deck-body { grid-template-columns: minmax(0, 1fr); }
-  /* one column: the number right under the rank, before the cards; the journey after them */
+  /* one column: the facts right under the rank, before the cards */
   .rk-list .deck-facts { display: contents; }
   .rk-list .dfacts { order: -1; }
   .dfacts { padding-top: 0; }
