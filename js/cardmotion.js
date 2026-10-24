@@ -12,8 +12,8 @@
 // mounted and are only made invisible while the ghost stands in for them. Every run can be reversed (close while opening)
 // or settled at once (another card, a language change), so the view is never left half-open or showing the wrong card.
 
-import { reducedMotion } from "./util.js?v=5bd6bce7bc";
-import { still, dropTilt, sway } from "./cardtilt.js?v=5bd6bce7bc";
+import { reducedMotion } from "./util.js?v=f8fc5ae49b";
+import { still, dropTilt, sway } from "./cardtilt.js?v=f8fc5ae49b";
 
 const CURVE = "cubic-bezier(.4, 0, .2, 1)";
 const SHEET = "(max-width: 760px)";                     // the phone layout of the card dialog (card.css)

@@ -12,15 +12,15 @@
 // page and keeps the sort, the query and the filter.
 // (The tier-grouped view of the 1.22 rankings, with its matchups, withheld and secret decks, is in the git history.)
 
-import { h, icon, pct, pct1, pm, dec, fmtInt, reducedMotion } from "./util.js?v=5bd6bce7bc";
-import { DB, loadRanking, loadDecks, deckKey } from "./data.js?v=5bd6bce7bc";
-import { on, isOwned, ownedCount } from "./store.js?v=5bd6bce7bc";
-import { cardName } from "./cards.js?v=5bd6bce7bc";
-import { segmented, scrollToEl, cascade, band, CURVE } from "./ui.js?v=5bd6bce7bc";
-import { t, tx } from "./i18n.js?v=5bd6bce7bc";
-import { findRow, terms, namedCards } from "./search.js?v=5bd6bce7bc";
-import { introLine, limitParams, gameSpan, medianRounds, provBanner, DECK_TABLE_SHOWN } from "./patch.js?v=5bd6bce7bc";
-import { paintOwned, deckSlot, deckFacts, topTip, BAR_AXIS } from "./decklist.js?v=5bd6bce7bc";
+import { h, icon, pct, pct1, pm, dec, fmtInt, reducedMotion } from "./util.js?v=f8fc5ae49b";
+import { DB, loadRanking, loadDecks, deckKey } from "./data.js?v=f8fc5ae49b";
+import { on, isOwned, ownedCount } from "./store.js?v=f8fc5ae49b";
+import { cardName } from "./cards.js?v=f8fc5ae49b";
+import { segmented, scrollToEl, cascade, band, CURVE } from "./ui.js?v=f8fc5ae49b";
+import { t, tx } from "./i18n.js?v=f8fc5ae49b";
+import { findRow, terms, namedCards } from "./search.js?v=f8fc5ae49b";
+import { introLine, limitParams, gameSpan, medianRounds, provBanner, DECK_TABLE_SHOWN } from "./patch.js?v=f8fc5ae49b";
+import { paintOwned, deckSlot, deckFacts, topTip, matchupLine, BAR_AXIS } from "./decklist.js?v=f8fc5ae49b";
 
 // the three sorts, in the switch's order, and the ranking.json list each reads; "score" is the Top 30 (the address #tiers)
 const LISTS = { score: "by_score", race: "by_race", speed: "by_speed" };
@@ -125,6 +125,7 @@ function methodLines() {
     tx("rk.mSpeed", { top: sp.decks.length, n: sp.opponents, median: medianRounds(R), min: pct(sp.min_win_rate, 0), wins: sp.min_wins }),
     t("rk.mSmall", { n }),
     t("rk.mTalents"),
+    R.matchup_talents ? matchupLine() : null,
     h("ul.vinfo-l", R.limits.map((l) => h("li", t("rk.limit." + l, limitParams(R))))),
   ];
 }

@@ -5,12 +5,12 @@
 // sorted by the furthest stage reached, then the score there (docs/DATA.md, "ranking-decks.json"), so a filter that keeps
 // their order keeps the canonical ranking.
 
-import { h, icon, pct, pct1, pm, dec, fmtInt } from "./util.js?v=5bd6bce7bc";
-import { DB, deckKey } from "./data.js?v=5bd6bce7bc";
-import { getLang, isOwned, ownedCount } from "./store.js?v=5bd6bce7bc";
-import { gameCard, chip, cardName, L } from "./cards.js?v=5bd6bce7bc";
-import { t, tx } from "./i18n.js?v=5bd6bce7bc";
-import { introLine, provBanner, gameSpan, medianRounds } from "./patch.js?v=5bd6bce7bc";
+import { h, icon, pct, pct1, pm, dec, fmtInt } from "./util.js?v=f8fc5ae49b";
+import { DB, deckKey } from "./data.js?v=f8fc5ae49b";
+import { getLang, isOwned, ownedCount } from "./store.js?v=f8fc5ae49b";
+import { gameCard, chip, cardName, L } from "./cards.js?v=f8fc5ae49b";
+import { t, tx } from "./i18n.js?v=f8fc5ae49b";
+import { introLine, provBanner, gameSpan, medianRounds, isMatchupTalent, matchupMark } from "./patch.js?v=f8fc5ae49b";
 
 // ---------------------------------------------------------------- stages, in plain words
 // level -> stage of the ranking run: 3 the final (the full AI against the benchmark decks), 2 the race (the same AI and decks,
@@ -39,7 +39,9 @@ export function deckSlot(c, talent, { full = false, miss = false } = {}) {
   return h("div.slot", { class: miss ? "miss" : null }, [
     card,
     tl ? h("p.slot-tl", { title: L(tl, "description") }, [h("i.ab-talent", { "aria-hidden": "true" }),
-      h("span", { lang: getLang() }, [h("span.sr", t("rk.talentSr")), h("span", { translate: "no" }, L(tl, "name"))])]) : null,
+      h("span", { lang: getLang() }, [h("span.sr", t("rk.talentSr")), h("span", { translate: "no" }, L(tl, "name"))]),
+      // a talent picked against the opponent (the element shields): the quiet mark after its name, the rule as its name
+      isMatchupTalent(c, talent) ? matchupMark() : null]) : null,
   ]);
 }
 
@@ -169,6 +171,7 @@ export function tableHead(key, h1, lede) {
     D.final ? null : h("p", [...tx("rk.mWhy")]),
     t("md.mTable", { n: DB.decks.rows.length }),
     D.not_listed ? t("md.mNotListed", { n: D.not_listed }) : null,
+    DB.ranking && DB.ranking.matchup_talents ? matchupLine() : null,
     ...legendNodes(),
   ];
   return h("div.vhead", [
@@ -242,6 +245,12 @@ export function paged(items, mk, page = 8) {
   };
   paint();
   return h("div", [list, items.length > page ? h("div.more", [count, btn]) : null]);
+}
+
+/** The footer's line on the talents picked against the opponent, led by their mark (the Deck tier list's, My decks', the Deck
+ * builder's Method). */
+export function matchupLine() {
+  return h("p.mu-line", [matchupMark({ label: "tl.matchupTag" }), " ", t("rk.mMatchup")]);
 }
 
 // ---------------------------------------------------------------- what each round means (footer)

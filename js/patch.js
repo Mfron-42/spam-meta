@@ -3,11 +3,11 @@
 // filled when a value, an ability or a passive changed (the class "mechanical"), hollow when only talents or texts did.
 // The data carries codes and positions; every word comes from i18n.js ("pc.*").
 
-import { h, icon, fmtDate, dec, fmtInt, reducedMotion } from "./util.js?v=5bd6bce7bc";
-import { DB } from "./data.js?v=5bd6bce7bc";
-import { L } from "./cards.js?v=5bd6bce7bc";
-import { t } from "./i18n.js?v=5bd6bce7bc";
-import { disclosure } from "./ui.js?v=5bd6bce7bc";
+import { h, icon, fmtDate, dec, fmtInt, reducedMotion } from "./util.js?v=f8fc5ae49b";
+import { DB } from "./data.js?v=f8fc5ae49b";
+import { L } from "./cards.js?v=f8fc5ae49b";
+import { t } from "./i18n.js?v=f8fc5ae49b";
+import { disclosure } from "./ui.js?v=f8fc5ae49b";
 
 // Three patches can differ, and each label names the one it is about (SPEC.md, "Patch labels"):
 // - the GAME patch, the client players run today (below; the lab reads it from the game files);
@@ -225,6 +225,23 @@ export function provBanner(key) {
     methodLink(key),
   ]);
 }
+
+// ---------------------------------------------------------------- talents picked against the opponent
+// In ranked, every card's talent is picked in a private draft before turn 1, for that match: a talent that guards against some
+// elements only (the element shields) is chosen against the opponent (owner, 2026-10-24). The exporter flags them from the talent
+// texts (tools/matchup_talents.py, ranking.json `matchup_talents`); the site marks them where a deck shows a card's talent.
+
+/** Whether talent `i` of card `c` is picked against the opponent. */
+export const isMatchupTalent = (c, i) => {
+  const m = DB.ranking && DB.ranking.matchup_talents;
+  return !!(m && c && (m[c.id] || []).includes(Number(i)));
+};
+
+/** The quiet mark of such a talent (DESIGN.md "Matchup mark"): the swap glyph, one image, its title the rule; its name the rule
+ * too, or the short "Pick against the opponent" (`label`) where the rule is read nearby or on every arrow key (the card view's
+ * tabs, the footer line). */
+export const matchupMark = ({ label = "tl.matchup" } = {}) =>
+  h("span.mu", { role: "img", "aria-label": t(label), title: t("tl.matchup") }, icon("swap", 14));
 
 /** The suggested talent of a card (cards.json `suggested_talent`): the talent object and its position, or null. */
 export function suggestedTalent(c) {

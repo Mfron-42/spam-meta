@@ -140,6 +140,8 @@ dialog.card-dlg, dialog.card-dlg.on { opacity: 1; transform: none; transition: n
 .tp-rec { grid-column: 2; justify-self: start; align-self: start; }
 .tp-tab:not(:has(.tp-rec)) .tp-name { grid-row: 1 / span 2; align-self: center; }
 .tp-pc { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; }
+.tp-name .mu { vertical-align: -2px; margin-top: 0; cursor: inherit; }      /* inside the name, after it: the tab is the control */
+.mu-tag .ico { width: 14px; height: 14px; }
 .tp-pc .pglyph { margin: 0; }
 /* the suggested talent keeps its own mark whatever is selected: a 1px Field Edge inner edge (never cyan); hover lifts a
    tile to Panel Violet; the selected one is Panel Lifted with the 2px cyan inner ring */
@@ -244,6 +246,7 @@ dialog.card-dlg, dialog.card-dlg.on { opacity: 1; transform: none; transition: n
   .tp-name, .tp-tab:not(:has(.tp-rec)) .tp-name { grid-row: auto; align-self: start; font-size: 14px; }
   .tp-rec { grid-column: auto; justify-self: center; }
   .tp-pc { top: 4px; right: 4px; }
+  .tp-tab .mu { position: absolute; top: 4px; left: 4px; }      /* the patch mark's corner grammar, on the other side */
   .cd-meta, .cd-mods { margin-top: 32px; padding-top: 24px; }
   .cd-meta-h .cd-find { width: 100%; }
   .cd-stats, .cd-stats.three { grid-template-columns: minmax(0, 1fr); }

@@ -4,8 +4,8 @@
 // per 2.5 points, its height the share of the card's decks there), and its best decks, the ones its score averages, as marks.
 // The marks take the card's tier colour in that view. Decorative: the figures printed beside it say the same in words.
 
-import { h, pct } from "./util.js?v=5bd6bce7bc";
-import { t } from "./i18n.js?v=5bd6bce7bc";
+import { h, pct } from "./util.js?v=f8fc5ae49b";
+import { t } from "./i18n.js?v=f8fc5ae49b";
 
 const TC = { "S+": "sp", S: "s", A: "a", B: "b", C: "c", D: "d", E: "e" };
 

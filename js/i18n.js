@@ -11,8 +11,8 @@
 // {one, other} chosen by Intl.PluralRules on the parameter `count`, else `n` (French: 0 to 1.99 are "one"). `**bold**` is honoured by tx()
 // only. French copy uses plain spaces before : ; ? ! - they become no-break spaces when the table loads.
 
-import { h, fmtInt, dec } from "./util.js?v=5bd6bce7bc";
-import { getLang } from "./store.js?v=5bd6bce7bc";
+import { h, fmtInt, dec } from "./util.js?v=f8fc5ae49b";
+import { getLang } from "./store.js?v=f8fc5ae49b";
 
 const EN = {
   // ---- document and header
@@ -235,6 +235,9 @@ const EN = {
   "rk.h.speed": "The {n} decks that win fastest",
   "rk.mHow": "The ranking is a tournament. Of {pool} decks, the First sort (a fast AI) and the Race (our AI, {ai}, against the {n} benchmark decks) kept {kept} for the Final, where each played {per} games against each of the {n} benchmark decks.",
   "rk.mTalents": "Each card plays the talent shown under it.",
+  "tl.matchup": "Pick against the opponent: take the shield that covers the elements of its attacking cards.",
+  "tl.matchupTag": "Pick against the opponent",
+  "rk.mMatchup": "Our games play one fixed talent per card; shield talents (marked) are picked against the opponent in real games, so these decks can do a little better than shown.",
   "rk.limit.intervals_overlap": "Margins (±{lo} to {hi} points) overlap: close decks can swap places.",
   "rk.limit.plan_decks": "Our AI plays some decks that need a precise plan less well than a good player.",
   "rk.limit.recall_deferred": "Some decks dropped early were not replayed: a strong deck may be missing.",
@@ -920,6 +923,9 @@ const FR = {
   "rk.h.speed": "Les {n} decks qui gagnent le plus vite",
   "rk.mHow": "Le classement est un tournoi. Sur {pool} decks, le Premier tri (une IA rapide) et la Course (notre IA, {ai}, contre les {n} decks de mesure) en ont gardé {kept} pour la Finale, où chacun a joué {per} parties contre chacun des {n} decks de mesure.",
   "rk.mTalents": "Chaque carte joue le talent affiché dessous.",
+  "tl.matchup": "À choisir selon l’adversaire : prends le blindage qui couvre les éléments de ses cartes qui attaquent.",
+  "tl.matchupTag": "À choisir selon l’adversaire",
+  "rk.mMatchup": "Nos parties jouent un talent fixe par carte ; les talents de blindage (marqués) se choisissent selon l’adversaire en vraie partie : ces decks peuvent donc faire un peu mieux qu’affiché.",
   "rk.limit.intervals_overlap": "Les marges (±{lo} à {hi} points) se chevauchent : des decks proches peuvent échanger leur place.",
   "rk.limit.plan_decks": "Notre IA joue moins bien qu’un bon joueur certains decks qui demandent un plan précis.",
   "rk.limit.recall_deferred": "Des decks écartés tôt n’ont pas été rejoués : un bon deck peut manquer.",

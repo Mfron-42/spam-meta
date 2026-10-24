@@ -49,6 +49,12 @@
 .rk-list .slot { display: grid; gap: 12px; align-content: start; }      /* clear of the rarity gem that overhangs the card */
 .slot-tl { display: flex; justify-content: center; align-items: flex-start; gap: 4px; min-width: 0; color: var(--ink-2); font: 600 14px/1.3 var(--text); text-align: center; cursor: help; }
 .slot-tl .ab-talent { width: 16px; height: 16px; margin-top: 1px; }
+/* the matchup mark (DESIGN.md "Matchup mark"): a talent picked against the opponent, the 14px swap glyph in Dusk Lavender after
+   its name; its name and title say the rule; no colour of its own, no box, no motion */
+.mu { display: inline-grid; place-items: center; flex: none; width: 16px; height: 16px; margin-top: 1px; color: var(--muted); cursor: help; }
+.mu .ico { width: 14px; height: 14px; }
+.mu-line .mu { vertical-align: -2px; }
+.slot-tl > .mu { display: inline-grid; overflow: visible; }      /* not the talent name's two-line clamp */
 .slot-tl > span { min-width: 0; overflow: hidden; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
 .slot.miss .slot-tl { opacity: .45; }
 .slot.miss:hover .slot-tl, .slot.miss:focus-within .slot-tl { opacity: 1; }
