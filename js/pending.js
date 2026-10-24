@@ -3,10 +3,10 @@
 // the view's heading, one quiet status line in a sunken strip (a fact, not a control), and the way to the Codex, the view that
 // is live. It loads no ranking data.
 
-import { h, icon } from "./util.js?v=c59ee4eacb";
-import { t } from "./i18n.js?v=c59ee4eacb";
-import { on } from "./store.js?v=c59ee4eacb";
-import { GAME_PATCH } from "./patch.js?v=c59ee4eacb";
+import { h, icon } from "./util.js?v=ee4f639b3e";
+import { t } from "./i18n.js?v=ee4f639b3e";
+import { on } from "./store.js?v=ee4f639b3e";
+import { GAME_PATCH } from "./patch.js?v=ee4f639b3e";
 
 const HEADINGS = { "view-tiers": "tl.h1", "view-card-tiers": "ct.h1" };
 

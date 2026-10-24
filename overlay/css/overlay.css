@@ -27,7 +27,7 @@
 /* the section the visitor is reading: ink text and a 2px cyan bar under the link (cyan marks what is selected); the bar is
    always there and only its opacity changes, so nothing moves */
 .ov-nav a, .ov-subnav a { position: relative; }
-.ov-nav a::after, .ov-subnav a::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 4px; height: 2px; border-radius: 2px; background: var(--accent);
+.ov-nav a::after, .ov-subnav a::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 4px; height: 2px; border-radius: 4px; background: var(--accent);
   opacity: 0; transition: opacity var(--t-fade) var(--curve); }
 .ov-nav a[aria-current], .ov-subnav a[aria-current] { color: var(--ink); }
 .ov-nav a[aria-current]::after, .ov-subnav a[aria-current]::after { opacity: 1; }
@@ -147,7 +147,7 @@ main { display: block; }
    tick at 50% that stands 2px over and under it, so it reads over the fill and over the empty track alike. Drawn still. */
 .ol-gauge { position: relative; flex: 0 0 100%; height: 4px; border-radius: 4px; background: var(--socket); box-shadow: 0 0 0 1px #000; }
 .ol-gauge i { position: absolute; inset: 0; border-radius: 4px; background: var(--ink-2); transform-origin: left center; transform: scaleX(0); }
-.ol-gauge::after { content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 2px; margin-left: -1px; border-radius: 2px; background: var(--ink-2); box-shadow: 0 0 0 1px #000; }
+.ol-gauge::after { content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 2px; margin-left: -1px; border-radius: 4px; background: var(--ink-2); box-shadow: 0 0 0 1px #000; }
 /* the feature sample: the figure on its line, the gauge under it */
 .sample.s-wr { display: inline-grid; grid-template-columns: auto auto; align-items: center; justify-content: center; gap: 8px; }
 .sample.s-wr .ol-gauge { grid-column: 1 / -1; }
@@ -396,9 +396,9 @@ body[data-dl="loading"] .hero-note { visibility: hidden; }
 .mp-tier-l.t-s { background: var(--tier-s); }
 .mp-tier-c { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 0 4px 4px; }
 /* a mini card (cards.css .mc) that is not a control: art and element orb, no hover ring */
-.mp-mini { position: relative; display: block; width: 48px; aspect-ratio: 1432 / 2048; border: 2px solid var(--card-edge); border-radius: 6px; background: var(--card-edge); }
+.mp-mini { position: relative; display: block; width: 48px; aspect-ratio: 1432 / 2048; border: 2px solid var(--card-edge); border-radius: 4px; background: var(--card-edge); }
 /* the rest of a crowded tier: one mini-card-sized socket with the count, not a control (the panel is the link) */
-.mp-more { display: grid; place-items: center; width: 48px; aspect-ratio: 1432 / 2048; border-radius: 6px; background: var(--socket); box-shadow: var(--sunken);
+.mp-more { display: grid; place-items: center; width: 48px; aspect-ratio: 1432 / 2048; border-radius: 4px; background: var(--socket); box-shadow: var(--sunken);
   color: var(--ink-2); font: 400 18px/1 var(--display); font-variant-numeric: tabular-nums; }
 .mp-mini img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 4px; display: block; }
 .mp-fig { font: 400 40px/1 var(--display); }

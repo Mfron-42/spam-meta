@@ -1,6 +1,6 @@
 // Small DOM and formatting helpers shared by every module. Numbers follow the page language (store.js).
 
-import { getLang } from "./store.js?v=c59ee4eacb";
+import { getLang } from "./store.js?v=ee4f639b3e";
 
 /** Create an element: h("div.cls#id", {attr: v, onclick}, child, [children], "text"). Text is always set as text. */
 export function h(tag, props, ...kids) {
@@ -78,6 +78,12 @@ export function debounce(fn, ms) {
 }
 
 export const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// A long word of a game name (11 letters or more) may part before its closing syllable, one the French and English names share
+// ("Affaiblisse-ment", "Revitaliza-tion", "Impréci-sion", "Eternal-ized"): a soft hyphen there, drawn only when the word must
+// break in a narrow label. A word without such an ending keeps the browser's own rule.
+const CLOSING = /^(\p{L}{5,}?)(ment|tion|sion|ized|ised|ness)$/iu;
+export const softBreak = (s) => String(s).replace(/\p{L}{11,}/gu, (w) => w.replace(CLOSING, "$1\u00ad$2"));
 
 /** Escape for the one place where a string goes into a RegExp. */
 export const reEscape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

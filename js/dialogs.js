@@ -3,17 +3,17 @@
 // drawn as a full-screen card view (card.css); its enter and exit (the card flying from its tile) are played by
 // cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, pct1, fmtDate, fmtInt } from "./util.js?v=c59ee4eacb";
-import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=c59ee4eacb";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=c59ee4eacb";
-import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=c59ee4eacb";
-import { encode, decode } from "./code.js?v=c59ee4eacb";
-import { copyText, disclosure } from "./ui.js?v=c59ee4eacb";
-import { t, tx, millions } from "./i18n.js?v=c59ee4eacb";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, gameSpan, medianRounds, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, GAME_PATCH, isMatchupTalent, matchupMark } from "./patch.js?v=c59ee4eacb";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=c59ee4eacb";
-import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=c59ee4eacb";
-import { attachTilt } from "./cardtilt.js?v=c59ee4eacb";
+import { h, $, icon, reducedMotion, pct, pct1, fmtDate, fmtInt, softBreak } from "./util.js?v=ee4f639b3e";
+import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=ee4f639b3e";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=ee4f639b3e";
+import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=ee4f639b3e";
+import { encode, decode } from "./code.js?v=ee4f639b3e";
+import { copyText, disclosure } from "./ui.js?v=ee4f639b3e";
+import { t, tx, millions } from "./i18n.js?v=ee4f639b3e";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, gameSpan, medianRounds, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, GAME_PATCH, isMatchupTalent, matchupMark } from "./patch.js?v=ee4f639b3e";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=ee4f639b3e";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=ee4f639b3e";
+import { attachTilt } from "./cardtilt.js?v=ee4f639b3e";
 
 let openDlg = null, pushed = false;
 
@@ -325,8 +325,8 @@ function talentPicker(c, pick = null) {
     }, [
       h("i.tp-ico.ab-talent", { "aria-hidden": "true" }),
       // a talent picked against the opponent: the quiet mark right after its name, inside it, so the name keeps its width
-      // (its words in the pane's tag; the tab reads its short name only)
-      h("span.tp-name", { lang }, isMatchupTalent(c, i) ? [L(tl, "name"), " ", matchupMark({ label: "tl.matchupTag" })] : L(tl, "name")),
+      // (its words in the pane's tag; the tab reads its short name only); a long word parts at its closing syllable
+      h("span.tp-name", { lang }, isMatchupTalent(c, i) ? [softBreak(L(tl, "name")), " ", matchupMark({ label: "tl.matchupTag" })] : softBreak(L(tl, "name"))),
       rec ? h("span.tag.sugg.tp-rec", { title: t("card.suggestedTip") }, t("card.suggested")) : null,
       // the patch mark (its words in the pane's tag, and here for a screen reader)
       entryChanged(c, "talents", i) ? h("span.tp-pc", { title: t("pc.entry", { patch: DB.patch }) }, [glyph(c), h("span.sr", t("pc.entry", { patch: DB.patch }))]) : null,

@@ -89,7 +89,7 @@ main.wrap { padding-block: 32px 64px; }
 .tab:active { background: var(--socket); }
 .tab[aria-selected="true"] { background: var(--accent); border-color: transparent; color: var(--accent-ink); box-shadow: var(--raised); }
 .tab[aria-selected="true"]:hover { background: var(--accent); filter: brightness(1.06); }
-.tab-n { display: inline-grid; place-items: center; min-width: 24px; height: 22px; padding: 0 6px; border-radius: 11px; background: var(--socket); box-shadow: var(--sunken);
+.tab-n { display: inline-grid; place-items: center; min-width: 24px; height: 22px; padding: 0 6px; border-radius: 20px; background: var(--socket); box-shadow: var(--sunken);
   color: var(--ink-2); font: 600 14px/1 var(--text); }
 /* the My decks count sits on the pill's top-right corner, out of the flow: it never widens the tab, so no tab moves when it
    appears or gains a digit; it grows leftward above the label (2px night halo, as the corner marks) and fades in and out */
@@ -104,7 +104,7 @@ main.wrap { padding-block: 32px 64px; }
 
 /* segmented control: sunken track, raised active segment */
 .seg { display: inline-flex; padding: 2px; gap: 2px; border-radius: 20px; background: var(--socket); box-shadow: var(--sunken); }
-.seg button { height: 32px; min-width: 40px; padding: 0 12px; border: 0; border-radius: 18px; background: transparent; color: var(--ink-2); font: 400 16px/1 var(--display); cursor: pointer;
+.seg button { height: 32px; min-width: 40px; padding: 0 12px; border: 0; border-radius: 20px; background: transparent; color: var(--ink-2); font: 400 16px/1 var(--display); cursor: pointer;
   transition: background var(--t-state) var(--curve), color var(--t-state) var(--curve); }
 .seg button:hover { background: rgba(255, 255, 255, .08); color: var(--ink); }
 .seg button:active { background: rgba(0, 0, 0, .35); }
@@ -192,7 +192,7 @@ main.wrap { padding-block: 32px 64px; }
 .btn .ico { width: 16px; height: 16px; }
 .chip::after, .seg button::after, .own-pill::after { content: ""; position: absolute; inset: -4px -2px; }
 .chip, .seg button { position: relative; }
-.link { display: inline-block; min-height: 24px; padding: 2px 0; border: 0; background: none; color: var(--accent); font: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; border-radius: 2px; }
+.link { display: inline-block; min-height: 24px; padding: 2px 0; border: 0; background: none; color: var(--accent); font: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; border-radius: 4px; }
 .link:hover { filter: brightness(1.15); }
 
 /* the Owned toggle button of the card dialog: sunken when off, raised cyan when on */
@@ -257,12 +257,15 @@ main.wrap { padding-block: 32px 64px; }
 
 /* ---------------------------------------------------------------- sticky toolbar band (ui.js band()) */
 /* a sticky toolbar has no ground of its own while it sits in the page; once it sticks under the header a full-width night
-   band with a hairline fades in behind it (120ms), so it reads as the header's second row, never as a box over the field */
+   band with a hairline fades in behind it (120ms), so it reads as the header's second row, never as a box over the field.
+   The band and its hairline reach the window's edges by a spread shadow clipped to their own height: a shadow is painted,
+   never laid out, so it adds no sideways scroll (a 100vw box counted the scrollbar's gutter and overflowed by its width) */
 .band { position: relative; }
-.band::before { content: ""; position: absolute; z-index: -1; top: 0; bottom: 0; left: calc(50% - 50vw); width: 100vw; background: var(--night);
-  border-bottom: 1px solid var(--line); opacity: 0; pointer-events: none; transition: opacity var(--t-state) var(--curve); }
-.band.stuck::before { opacity: 1; }
-body { overflow-x: clip; }          /* the band's 100vw never adds a sideways scroll (clip keeps sticky working) */
+.band::before, .band::after { content: ""; position: absolute; z-index: -1; left: 0; right: 0; opacity: 0; pointer-events: none;
+  clip-path: inset(0 -100vmax); transition: opacity var(--t-state) var(--curve); }
+.band::before { top: 0; bottom: 0; background: var(--night); box-shadow: 0 0 0 100vmax var(--night); }
+.band::after { bottom: 0; height: 1px; background: var(--line); box-shadow: 0 0 0 100vmax var(--line); }
+.band.stuck::before, .band.stuck::after { opacity: 1; }
 
 /* ---------------------------------------------------------------- panels */
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 24px; }
@@ -312,8 +315,8 @@ body { overflow-x: clip; }          /* the band's 100vw never adds a sideways sc
 .foot-legal { color: var(--ink-2); }
 .foot-games { max-width: 78ch; }
 .foot-help { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; color: var(--ink-2); }
-.handle { padding: 2px 8px; border-radius: 6px; background: var(--socket); box-shadow: var(--sunken); color: var(--ink); font-weight: 700; -webkit-user-select: all; user-select: all; }
-.copy { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 88px; height: 32px; padding: 0 12px; border: 1px solid var(--edge); border-radius: 16px;
+.handle { padding: 2px 8px; border-radius: 4px; background: var(--socket); box-shadow: var(--sunken); color: var(--ink); font-weight: 700; -webkit-user-select: all; user-select: all; }
+.copy { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 88px; height: 32px; padding: 0 12px; border: 1px solid var(--edge); border-radius: 20px;
   background: transparent; color: var(--ink-2); font: 600 14px/1 var(--text); cursor: pointer;
   transition: background var(--t-state) var(--curve), color var(--t-state) var(--curve), border-color var(--t-state) var(--curve), transform var(--t-press) var(--curve); }
 .copy::after { content: ""; position: absolute; inset: -6px -2px; }
@@ -335,7 +338,7 @@ body { overflow-x: clip; }          /* the band's 100vw never adds a sideways sc
   opacity: 0; transform: translateY(24px); pointer-events: none; visibility: hidden;
   transition: opacity var(--t-fade) var(--curve), transform var(--t-fade) var(--curve), visibility 0s linear var(--t-fade); }
 .toast.on { opacity: 1; transform: none; pointer-events: auto; visibility: visible; transition: opacity var(--t-fade) var(--curve), transform var(--t-fade) var(--curve), visibility 0s; }
-.toast-act { height: 36px; padding: 0 16px; border: 0; border-radius: 18px; background: var(--accent); color: var(--accent-ink); font: 400 16px/1 var(--display); cursor: pointer; box-shadow: var(--raised); }
+.toast-act { height: 36px; padding: 0 16px; border: 0; border-radius: 20px; background: var(--accent); color: var(--accent-ink); font: 400 16px/1 var(--display); cursor: pointer; box-shadow: var(--raised); }
 .toast-act:hover { filter: brightness(1.08); }
 .toast-act:active { transform: translateY(1px); box-shadow: inset 0 2px 3px rgba(0, 0, 0, .35); }
 

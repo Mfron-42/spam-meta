@@ -83,7 +83,7 @@ button.gc:active .gc-in { scale: .98; }
 .cell.tilt-hot, .slot.tilt-hot { z-index: 4; }
 
 /* ---------------------------------------------------------------- mini card and card chip */
-.mc { position: relative; display: block; flex: none; width: 48px; aspect-ratio: 1432 / 2048; padding: 0; border: 2px solid var(--card-edge); border-radius: 6px; background: var(--card-edge); cursor: pointer;
+.mc { position: relative; display: block; flex: none; width: 48px; aspect-ratio: 1432 / 2048; padding: 0; border: 2px solid var(--card-edge); border-radius: 4px; background: var(--card-edge); cursor: pointer;
   transition: box-shadow var(--t-state) var(--curve); }
 .mc-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 4px; display: block; }
 .mc-art.broken, .cc-art.broken { visibility: hidden; }
@@ -101,7 +101,7 @@ button.gc:active .gc-in { scale: .98; }
   background: var(--socket); box-shadow: var(--sunken); color: var(--ink); font: 600 14px/1 var(--text); cursor: pointer;
   transition: background var(--t-state) var(--curve), box-shadow var(--t-state) var(--curve); }
 .cc > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cc-art { flex: none; width: 18px; height: 24px; border-radius: 3px; object-fit: cover; object-position: top; background: var(--card-edge); display: block; }
+.cc-art { flex: none; width: 18px; height: 24px; border-radius: 4px; object-fit: cover; object-position: top; background: var(--card-edge); display: block; }
 .cc:hover { background: var(--panel); box-shadow: var(--sunken), var(--ring); }
 .cc:active { background: var(--night); }
 .cc:focus-visible { outline: none; box-shadow: var(--sunken), 0 0 0 2px var(--accent); }

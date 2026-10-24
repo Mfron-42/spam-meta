@@ -1,17 +1,17 @@
 // Codex tab: every released card as a game card, with search, filters, sort and the Owned toggle on every card.
 // A language change rebuilds the tab from the same state (search, filters, sort, open panels).
 
-import { h, icon, norm, fmtInt } from "./util.js?v=c59ee4eacb";
-import { searchField, terms as searchTerms, hasAll } from "./search.js?v=c59ee4eacb";
-import { DB } from "./data.js?v=c59ee4eacb";
-import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js?v=c59ee4eacb";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=c59ee4eacb";
-import { cardTile, ownToggle, setOwnedView, cardName, ELEMENTS, RARITIES, elName, raName, unsize } from "./cards.js?v=c59ee4eacb";
-import { disclosure, flip, segmented, filterChip, setChip, band } from "./ui.js?v=c59ee4eacb";
-import { toast, openCollection } from "./dialogs.js?v=c59ee4eacb";
-import { cardText } from "./cardtext.js?v=c59ee4eacb";
-import { t, STRINGS } from "./i18n.js?v=c59ee4eacb";
-import { GAME_PATCH, DECK_TABLE_SHOWN } from "./patch.js?v=c59ee4eacb";
+import { h, icon, norm, fmtInt } from "./util.js?v=ee4f639b3e";
+import { searchField, terms as searchTerms, hasAll } from "./search.js?v=ee4f639b3e";
+import { DB } from "./data.js?v=ee4f639b3e";
+import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js?v=ee4f639b3e";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=ee4f639b3e";
+import { cardTile, ownToggle, setOwnedView, cardName, ELEMENTS, RARITIES, elName, raName, unsize } from "./cards.js?v=ee4f639b3e";
+import { disclosure, flip, segmented, filterChip, setChip, band } from "./ui.js?v=ee4f639b3e";
+import { toast, openCollection } from "./dialogs.js?v=ee4f639b3e";
+import { cardText } from "./cardtext.js?v=ee4f639b3e";
+import { t, STRINGS } from "./i18n.js?v=ee4f639b3e";
+import { GAME_PATCH, DECK_TABLE_SHOWN } from "./patch.js?v=ee4f639b3e";
 
 // ---- traits, derived from the English texts and numbers of the data (no hand-made tags); names are "trait.<id>"
 const anyText = (c, rx) => c.abilities.some((a) => rx.test(a.description_en)) || c.passives.some((p) => rx.test(p.description_en));
