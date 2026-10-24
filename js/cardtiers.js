@@ -8,16 +8,16 @@
 // data/cardtiers.json (tools/export_cardtiers.py); every number on this page is that file's. No counter is shown per card.
 // A language change rebuilds the page from the same state (view, tab, filters, search).
 
-import { h, $, $$, icon, fmtInt, pct, pct1, reducedMotion } from "./util.js?v=ee4f639b3e";
-import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=ee4f639b3e";
-import { DB, loadCardTiers, loadRanking } from "./data.js?v=ee4f639b3e";
-import { on, getLang } from "./store.js?v=ee4f639b3e";
-import { cardName, otherName, chip, L, ELEMENTS, RARITIES, elName, raName } from "./cards.js?v=ee4f639b3e";
-import { disclosure, filterChip, setChip, cascade, band, segmented, CURVE } from "./ui.js?v=ee4f639b3e";
-import { t, tx } from "./i18n.js?v=ee4f639b3e";
-import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, provBanner, suggestedTalent, methodSection } from "./patch.js?v=ee4f639b3e";
-import { textNodes, hideTip } from "./cardtext.js?v=ee4f639b3e";
-import { deckStrip } from "./deckstrip.js?v=ee4f639b3e";
+import { h, $, $$, icon, fmtInt, pct, pct1, reducedMotion } from "./util.js?v=1c78715fe5";
+import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=1c78715fe5";
+import { DB, loadCardTiers, loadRanking } from "./data.js?v=1c78715fe5";
+import { on, getLang } from "./store.js?v=1c78715fe5";
+import { cardName, otherName, chip, L, ELEMENTS, RARITIES, elName, raName } from "./cards.js?v=1c78715fe5";
+import { disclosure, filterChip, setChip, cascade, band, segmented, CURVE } from "./ui.js?v=1c78715fe5";
+import { t, tx } from "./i18n.js?v=1c78715fe5";
+import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, provBanner, suggestedTalent, methodSection } from "./patch.js?v=1c78715fe5";
+import { textNodes, hideTip } from "./cardtext.js?v=1c78715fe5";
+import { deckStrip } from "./deckstrip.js?v=1c78715fe5";
 
 // a tier's class on the card tier scale; "out" is the row of the cards with no deck in the view
 const TC = { "S+": "sp", S: "s", A: "a", B: "b", C: "c", D: "d", E: "e", out: "out" };

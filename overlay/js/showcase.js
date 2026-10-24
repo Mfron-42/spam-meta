@@ -2,16 +2,16 @@
 // own modules (store, i18n, data, cards), so it draws the same game cards from the same data, speaks the same two languages
 // and shares the visitor's language choice with SPAM Meta. Its strings are the "ov." keys of js/i18n.js.
 
-import { setLang, langChosen, on, getLang } from "../../js/store.js?v=ee4f639b3e";
-import { t, tx, applyStatic } from "../../js/i18n.js?v=ee4f639b3e";
-import { h, pct, pct1, dec, icon } from "../../js/util.js?v=ee4f639b3e";
-import { DB, loadCore, loadRanking, loadCardTiers } from "../../js/data.js?v=ee4f639b3e";
-import { gameCard, cardName } from "../../js/cards.js?v=ee4f639b3e";
-import { GAME_PATCH, DECK_RANKING_SHOWN, CARD_TIERS_SHOWN } from "../../js/patch.js?v=ee4f639b3e";
-import { ambient } from "../../js/ambient.js?v=ee4f639b3e";
-import { copyText, disclosure } from "../../js/ui.js?v=ee4f639b3e";
-import { createStage } from "./stage.js?v=ee4f639b3e";
-import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=ee4f639b3e";
+import { setLang, langChosen, on, getLang } from "../../js/store.js?v=1c78715fe5";
+import { t, tx, applyStatic } from "../../js/i18n.js?v=1c78715fe5";
+import { h, pct, pct1, dec, icon } from "../../js/util.js?v=1c78715fe5";
+import { DB, loadCore, loadRanking, loadCardTiers } from "../../js/data.js?v=1c78715fe5";
+import { gameCard, cardName } from "../../js/cards.js?v=1c78715fe5";
+import { GAME_PATCH, DECK_RANKING_SHOWN, CARD_TIERS_SHOWN } from "../../js/patch.js?v=1c78715fe5";
+import { ambient } from "../../js/ambient.js?v=1c78715fe5";
+import { copyText, disclosure } from "../../js/ui.js?v=1c78715fe5";
+import { createStage } from "./stage.js?v=1c78715fe5";
+import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=1c78715fe5";
 
 // The overlay's own display: four crops of the real renderer's output over a stand-in board with made-up figures (tools/overlay_media/:
 // shoot.js drives the overlay build's UX harness, crop.py writes these files), so every one is a composite and carries
@@ -27,18 +27,17 @@ const mediaUrl = (name, w) => new URL(`../media/${name}-${w}.webp`, import.meta.
 
 // The AI the published overlay plays with, and its measured figures: the one place the page names them (step 3 and the facts of
 // "How it works", two FAQ answers). Sources, to re-read at every overlay release that changes the AI or its search:
-// spam-overlay SPEC.md 6.34 and its release notes (overlay 0.1.20: the default stack v3s9, `ai_pick` full by default, the
-// analysis started during the game's settle, SPEC 5.25); spam-lab ai/weights/BEST_AI.md (v3s9 is the lab's current best AI; the
-// full search against the fast one, m=8 n=64 against m=4 n=16, read 0.541 head to head on an earlier generation, v3s5 against
-// v3s4). The time: from the game's last update that changed the position (its last packet) to the AI's move on screen, 195
-// decisions of two of the owner's 1.26 matches replayed in real time through the 0.1.20 bridge under a lab ranking holding every
-// thread (CPU 100%): p50 513 ms, p90 576 ms; the game's own settle (0.5 s) is most of it. No "sooner" is quoted for `fast` any
-// more: the move now lands with the settle on main and shop decisions. No gain of v3s9 over v3s8 is quoted: BEST_AI.md's +0.038
-// was read against an exact champion that aimed its own cards (the AI PC's CHANGELOG entry of 2026-10-24 15:03: fair yardstick
-// 0.607 instead of 0.784); quote one only once the lab publishes the fair re-read. The game patch is the site's (patch.js).
-const AI = { name: "v3s9", firstS: 0.51, p90S: 0.58, fullShare: 54 };
+// spam-overlay SPEC.md 6.35 and its release notes (overlay 0.1.21: the default stack v3s10n, `ai_pick` full by default: v3s10n's
+// search with the net's own shop; `fast`: its net ppo3s1_0600 alone, no search); spam-lab ai/weights/BEST_AI.md (v3s10n is the
+// lab's current best AI; its 2x2 against a reference AI, 4,200 paired games an arm on the lab's wide deck pool: the net alone, which
+// `fast` runs, won 0.541, the net with the play search, v3s10n, 0.611; the page says "a reference AI" and names no studio). The time: from the game's last update that changed the position (its last packet) to the AI's move on
+// screen, every decision of two of the owner's 1.26 matches replayed in real time through the 0.1.21 bridge under a lab ranking
+// holding every thread (CPU 100%), 197 moves: p50 516 ms, p90 574 ms (0.1.20 in the same run: 515 / 550); the game's own settle
+// (0.5 s) is most of it. No gain of v3s10n over v3s9 is quoted on the page (the release notes give BEST_AI.md's paired fair-rule
+// reads). The game patch is the site's (patch.js).
+const AI = { name: "v3s10n", firstS: 0.52, p90S: 0.57, fullShare: 61, fastShare: 54 };
 const secs = (s) => `${dec(s, 2)}\u00a0s`;
-const aiParams = () => ({ ai: AI.name, first: secs(AI.firstS), p90: secs(AI.p90S), share: AI.fullShare });
+const aiParams = () => ({ ai: AI.name, first: secs(AI.firstS), p90: secs(AI.p90S), share: AI.fullShare, fast: AI.fastShare });
 
 const FAQ = [1, 2, 3, 4, 5, 6, 7, 8];
 const FAQ_P = new Set([2, 4]);     // the answers that quote the AI (aiParams; data-i18n-p, as step 3 of "How it works")

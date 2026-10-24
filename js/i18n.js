@@ -11,8 +11,8 @@
 // {one, other} chosen by Intl.PluralRules on the parameter `count`, else `n` (French: 0 to 1.99 are "one"). `**bold**` is honoured by tx()
 // only. French copy uses plain spaces before : ; ? ! - they become no-break spaces when the table loads.
 
-import { h, fmtInt, dec } from "./util.js?v=ee4f639b3e";
-import { getLang } from "./store.js?v=ee4f639b3e";
+import { h, fmtInt, dec } from "./util.js?v=1c78715fe5";
+import { getLang } from "./store.js?v=1c78715fe5";
 
 const EN = {
   // ---- document and header
@@ -647,7 +647,7 @@ const EN = {
   "ov.how.2t": "What the game server sends to your game, read passively on your PC.",
   "ov.how.3": "Our best AI picks its move",
   "ov.how.3t": "{ai}, the lab’s current best AI, decides at once; games played to the end then check every option.",
-  "ov.ai.speed": "From the game’s last update to the AI’s move, at the median.",
+  "ov.ai.speed": "From the board’s last change to the AI’s move: median on a busy test PC.",
   "ov.ai.patchV": "Patch {patch}",
   "ov.ai.patch": "Its engine is rebuilt from your own game after each update.",
   "ov.trust.h": "Privacy",
@@ -681,7 +681,7 @@ const EN = {
   "ov.faq.q3": "Does it send my data anywhere?",
   "ov.faq.a3": "No. Everything is computed on your PC and nothing from your game is sent. The overlay goes online only when you press one of its buttons: “Check for updates” and “Update and restart” (GitHub), or “Install Npcap for me” (npcap.com).",
   "ov.faq.q4": "Will it slow my PC down?",
-  "ov.faq.a4": "The simulator runs at low priority, on two cores, with a memory cap, and it stops after two minutes without a decision. It starts on your position while the game finishes its animations: on our test PC, under a heavy background load, the AI’s move showed {first} after the game’s last update at the median, 9 times in 10 within {p90}. For a lighter search on a slow PC, put {key} in {file}: in the lab’s tests the full search won {share} games in 100 against it.",
+  "ov.faq.a4": "The simulator runs at low priority, on two cores, with a memory cap, and it stops after two minutes without a decision. On our test PC, under a heavy background load, the AI’s move showed {first} after the board’s last change at the median, 9 times in 10 within {p90}. For a lighter AI on a slow PC, put {key} in {file}: the AI then answers on instinct, without looking moves ahead. In the lab’s tests against a reference AI, over 4,200 games each, it won {fast} games in 100, against {share} for the default.",
   "ov.faq.q5": "Can I install it?",
   "ov.faq.q6": "Which systems?",
   "ov.faq.a6": "Windows only. To read the game’s traffic it needs Npcap, a free network driver; the setup can fetch its official installer for you. Without it, it reads the game window, approximately. A processor without AVX2 gets an older, weaker AI.",
@@ -1333,7 +1333,7 @@ const FR = {
   "ov.how.2t": "Ce que le serveur du jeu envoie à ton jeu, lu en écoute passive sur ton PC.",
   "ov.how.3": "Notre meilleure IA choisit son coup",
   "ov.how.3t": "{ai}, la meilleure IA actuelle du labo, décide aussitôt ; des parties jouées jusqu’au bout vérifient ensuite chaque option.",
-  "ov.ai.speed": "De la dernière mise à jour du jeu au coup de l’IA, en médiane.",
+  "ov.ai.speed": "Du dernier changement du plateau au coup de l’IA : médiane sur un PC de test chargé.",
   "ov.ai.patchV": "Patch {patch}",
   "ov.ai.patch": "Son moteur est reconstruit à partir de ton jeu après chaque mise à jour.",
   "ov.trust.h": "Vie privée",
@@ -1367,7 +1367,7 @@ const FR = {
   "ov.faq.q3": "Est-ce qu’il envoie mes données ?",
   "ov.faq.a3": "Non. Tout est calculé sur ton PC, rien de ton jeu n’est envoyé. L’overlay ne va en ligne que lorsque tu appuies sur un de ses boutons : « Rechercher une mise à jour » et « Mettre à jour et redémarrer » (GitHub), ou « Installer Npcap pour moi » (npcap.com).",
   "ov.faq.q4": "Est-ce que ça ralentit mon PC ?",
-  "ov.faq.a4": "Le simulateur tourne en priorité basse, sur deux cœurs, avec un plafond de mémoire, et s’arrête après deux minutes sans décision. Il commence sur ta position pendant que le jeu finit ses animations : sur notre PC de test, chargé par un gros calcul, le coup de l’IA s’affichait {first} après la dernière mise à jour du jeu en médiane, 9 fois sur 10 en moins de {p90}. Pour une recherche plus légère sur un PC lent, mets {key} dans {file} : dans les tests du labo, la recherche complète l’a battue {share} parties sur 100.",
+  "ov.faq.a4": "Le simulateur tourne en priorité basse, sur deux cœurs, avec un plafond de mémoire, et s’arrête après deux minutes sans décision. Sur notre PC de test, chargé par un gros calcul, le coup de l’IA s’affichait {first} après le dernier changement du plateau en médiane, 9 fois sur 10 en moins de {p90}. Pour une IA plus légère sur un PC lent, mets {key} dans {file} : l’IA joue alors d’instinct, sans calculer les coups suivants. Dans les tests du labo contre une IA de référence, sur 4 200 parties chacune, elle en a gagné {fast} sur 100, contre {share} avec le réglage par défaut.",
   "ov.faq.q5": "Est-ce que je peux l’installer ?",
   "ov.faq.q6": "Sur quels systèmes ?",
   "ov.faq.a6": "Windows seulement. Pour lire le trafic du jeu, il lui faut Npcap, un pilote réseau gratuit ; la configuration peut aller chercher son installateur officiel pour toi. Sans lui, il lit la fenêtre du jeu, de façon approximative. Un processeur sans AVX2 reçoit une IA plus ancienne et plus faible.",

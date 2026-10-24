@@ -12,15 +12,15 @@
 // page and keeps the sort, the query and the filter.
 // (The tier-grouped view of the 1.22 rankings, with its matchups, withheld and secret decks, is in the git history.)
 
-import { h, icon, pct, pct1, pm, dec, fmtInt, reducedMotion } from "./util.js?v=ee4f639b3e";
-import { DB, loadRanking, loadDecks, deckKey } from "./data.js?v=ee4f639b3e";
-import { on, isOwned, ownedCount } from "./store.js?v=ee4f639b3e";
-import { cardName } from "./cards.js?v=ee4f639b3e";
-import { segmented, scrollToEl, cascade, band, CURVE } from "./ui.js?v=ee4f639b3e";
-import { t, tx } from "./i18n.js?v=ee4f639b3e";
-import { findRow, terms, namedCards } from "./search.js?v=ee4f639b3e";
-import { introLine, limitParams, gameSpan, medianRounds, provBanner, DECK_TABLE_SHOWN } from "./patch.js?v=ee4f639b3e";
-import { paintOwned, deckSlot, deckFacts, topTip, topSize, aiLine, matchupLine, BAR_AXIS } from "./decklist.js?v=ee4f639b3e";
+import { h, icon, pct, pct1, pm, dec, fmtInt, reducedMotion } from "./util.js?v=1c78715fe5";
+import { DB, loadRanking, loadDecks, deckKey } from "./data.js?v=1c78715fe5";
+import { on, isOwned, ownedCount } from "./store.js?v=1c78715fe5";
+import { cardName } from "./cards.js?v=1c78715fe5";
+import { segmented, scrollToEl, cascade, band, CURVE } from "./ui.js?v=1c78715fe5";
+import { t, tx } from "./i18n.js?v=1c78715fe5";
+import { findRow, terms, namedCards } from "./search.js?v=1c78715fe5";
+import { introLine, limitParams, gameSpan, medianRounds, provBanner, DECK_TABLE_SHOWN } from "./patch.js?v=1c78715fe5";
+import { paintOwned, deckSlot, deckFacts, topTip, topSize, aiLine, matchupLine, BAR_AXIS } from "./decklist.js?v=1c78715fe5";
 
 // the three sorts, in the switch's order, and the ranking.json list each reads; "score" is the Top 50 (the address #tiers)
 const LISTS = { score: "by_score", race: "by_race", speed: "by_speed" };
