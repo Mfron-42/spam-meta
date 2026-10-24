@@ -1,14 +1,16 @@
 /* SPAM Meta: the Card tier list tab (js/cardtiers.js). Tier rows on the ground: the tier letter in its tier colour (the card
    tier scale of DESIGN.md) as the row's anchor, the card icons beside it, a hairline between rows, no panel and no socket;
-   the card preview and pinned card with the strip of the card's final decks; the Details table. Every class is prefixed ct-. */
+   the view switch (Top 30 | Race); the card preview and pinned card with the strip of the card's decks; the Details table. Every
+   class is prefixed ct-. */
 
 .ct-head { margin-bottom: 0; }
 
 /* ---------------------------------------------------------------- toolbar, filters */
 .ct-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; margin-top: 24px; }
-.ct-seg button { height: 36px; padding: 0 16px; font-size: 18px; }
-.ct-tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); box-shadow: var(--raised); }
-.ct-tabs button[aria-selected="true"]:hover { filter: brightness(1.06); }
+/* the view switch is the site's .seg (base.css), as on the Deck tier list; the Tiers | Details tablist wears the same track */
+.ct-bar-r { display: flex; align-items: center; gap: 8px; }
+/* the tabs are quieter than the view switch: one cyan control in the bar (the One Cyan Rule), the selected tab lifted, not lit */
+.ct-tabs button[aria-selected="true"] { background: var(--panel-hi); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
 .ct-fbtn .tab-n { margin-left: -4px; }
 .ct-filters { display: flex; flex-wrap: wrap; gap: 8px 24px; padding-top: 16px; }
 .ct-fgroup { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
@@ -33,6 +35,8 @@
 .ct-row { display: grid; grid-template-columns: 88px minmax(0, 1fr); }
 /* a line above every row that follows a shown row, so a search that hides rows never doubles the panel's top edge */
 .ct-row:not([hidden]) ~ .ct-row { border-top: 1px solid var(--line); }
+/* the last row ("Not in the top 30" / "Not in the race") only shows when it holds cards */
+.ct-row.ct-row-none { display: none; }
 /* a search hides the cards that do not match and lets the rows shrink to what is left */
 .ct-finding .ct-ic.dim { display: none; }
 .ct-tl { padding: 16px 8px 16px 0; color: var(--tc); }
@@ -59,24 +63,31 @@
 .ct-ic.dim { opacity: .45; }
 .ct-ic.dim:hover, .ct-ic.dim:focus-visible, .ct-ic.dim[aria-expanded="true"] { opacity: 1; }
 .ct-ic-orb { position: absolute; left: -8px; top: -8px; width: 20px; height: 20px; background-size: contain; background-repeat: no-repeat; background-position: center; pointer-events: none; }
+/* the last row (the cards the view does not rank) is quieter: its icons at the phone size, so it weighs less than the tiers */
+.ct-row.ct-out .ct-ic { width: 44px; }
+.ct-row.ct-out .ct-ic-orb { left: -6px; top: -6px; width: 16px; height: 16px; }
 
-/* ---------------------------------------------------------------- the strip (js/deckstrip.js): one mark per final deck holding
-   the card, at its place (#1 on the left) over a sunken track whose first part (the ranking's top list) is lifted; a variant of a
-   better deck is a short mark; the marks take the card's tier colour. Also in the card view's "Card tier" cell. */
+/* ---------------------------------------------------------------- the strip (js/deckstrip.js): a card's decks in the view, on its
+   win-rate axis (lowest on the left) over a sunken track. Top 30: one mark per top-30 deck, a hairline at 50% (the level of the
+   top), the decks past the best five short. Race: a quiet density of its race decks, its five best as marks. The marks take the
+   card's tier colour. */
 .ct-st-w { display: grid; gap: 4px; width: 100%; }
-.ct-st { position: relative; display: block; height: 20px; overflow: hidden; border-radius: 4px; background: var(--socket); }
+.ct-st { position: relative; display: block; height: 24px; overflow: hidden; border-radius: 4px; background: var(--socket); }
 .ct-st::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: var(--sunken); pointer-events: none; }
-.ct-st-top { position: absolute; left: 0; top: 0; bottom: 0; display: block; background: var(--panel-hi); box-shadow: inset -1px 0 0 var(--line); }
+/* the 50% hairline, the level of the top: Dusk Lavender, so it reads on the socket (the anchor of every top-30 figure) */
+.ct-st-mid { position: absolute; top: 0; bottom: 0; display: block; width: 1px; margin-left: -.5px; background: var(--muted); }
+.ct-st-h { position: absolute; bottom: 0; display: block; border-radius: 2px 2px 0 0; background: color-mix(in srgb, var(--ink-2) 38%, transparent); }
 .ct-st-d { position: absolute; z-index: 1; top: 3px; bottom: 3px; display: block; width: 2px; margin-left: -1px; border-radius: 1px; background: var(--tc); }
-.ct-st-d.cp { top: 11px; }
-.ct-st-ax { display: flex; color: var(--muted); font: 600 14px/1.2 var(--text); }
-.ct-st-ax-top { flex: none; text-align: center; white-space: nowrap; }
-.ct-st-ax > span:last-child { margin-left: auto; }
-/* the key: a tall and a short sample mark in the card's tier colour, each before its word */
+.ct-st-d.cp { top: 13px; }
+.ct-st-ax { position: relative; display: flex; justify-content: space-between; color: var(--muted); font: 600 14px/1.2 var(--text); }
+.ct-st-ax-mid { position: absolute; top: 0; transform: translateX(-50%); }
+/* the key: a sample of each mark before its words */
 .ct-st-key { display: flex; flex-wrap: wrap; gap: 4px 16px; color: var(--muted); font: 600 14px/1.2 var(--text); }
 .ct-st-key > span { display: inline-flex; align-items: center; gap: 8px; }
 .ct-st-k { display: block; flex: none; width: 2px; height: 14px; border-radius: 1px; background: var(--tc); }
 .ct-st-k.cp { height: 6px; transform: translateY(4px); }
+.ct-st-k.mid { width: 1px; background: var(--muted); }
+.ct-st-k.h { width: 8px; height: 10px; border-radius: 2px 2px 0 0; background: color-mix(in srgb, var(--ink-2) 38%, transparent); transform: translateY(2px); }
 .ct-c-where .ct-st, .ct-th-ax { max-width: 280px; }
 .ct-c-where .ct-st { height: 16px; }
 .ct-c-where .ct-st-d { top: 2px; bottom: 2px; }
@@ -102,11 +113,21 @@
 .ct-pop-tier .ct-tchip { min-width: 44px; height: 36px; padding: 0 8px; border-radius: 8px; font-size: 22px; }
 .ct-pop-tier > span:last-child { color: var(--muted); font: 600 14px/1.2 var(--text); white-space: nowrap; }
 .ct-pop-st { margin-top: 16px; }
-/* four figures in a row: the number large, what it counts small under it */
-.ct-pop-figs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
-.ct-pop-fig { display: grid; align-content: start; gap: 4px; }
-.ct-pop-fig b { color: var(--ink); font: 400 22px/1 var(--display); letter-spacing: .01em; }
-.ct-pop-fig span { color: var(--muted); font: 600 14px/1.2 var(--text); }
+/* the view's figure big with its deck count beside it, the other view's figure small under it with its one-word name */
+.ct-pop-fig { display: grid; gap: 4px; margin-top: 16px; }
+.ct-pop-big { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.ct-pop-big b { color: var(--ink); font: 400 28px/1 var(--display); letter-spacing: .01em; }
+.ct-pop-big span, .ct-pop-other { color: var(--muted); font: 600 14px/1.3 var(--text); }
+.ct-pop-other { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.ct-pop-other b { color: var(--ink-2); font-weight: 700; }
+.ct-pop-other .ct-tchip { min-width: 24px; height: 20px; font-size: 14px; }
+.ct-pop-big.none b { color: var(--ink-2); font-size: 22px; }
+.ct-pop-stv { margin-bottom: 4px; color: var(--muted); font: 600 14px/1.2 var(--text); }
+/* the last row's way out: its cards are all ranked in the race */
+/* a line of its own across the row, before the icons: a ghost button whose text lines up with them */
+.ct-go-w { flex: 0 0 100%; margin-top: -8px; }
+.ct-go { height: 36px; margin-left: -8px; padding: 0 8px; border-radius: 8px; color: var(--ink-2); font: 600 14px/1.2 var(--text); }
+.ct-go .ico { flex: none; }
 .ct-pop-v { margin-top: 16px; color: var(--ink-2); font: 600 14px/1.4 var(--text); }
 .ct-pop-v b { color: var(--ink); font-weight: 700; }
 .ct-pop-h .tag.ptag { margin-top: 4px; }
@@ -133,7 +154,7 @@
 .ct-tab th:first-child, .ct-tab td:first-child { padding-left: 0; }
 .ct-tab th:last-child, .ct-tab td:last-child { padding-right: 0; }
 .ct-tab tbody tr:last-child td { border-bottom: 0; }
-.ct-w-rank { width: 40px; } .ct-w-card { width: 25%; } .ct-w-tier { width: 15%; } .ct-w-where { width: 28%; } .ct-w-top { width: 10%; } .ct-w-fin { width: 10%; } .ct-w-best { width: 9%; }
+.ct-w-rank { width: 40px; } .ct-w-card { width: 28%; } .ct-w-tier { width: 9%; } .ct-w-fig { width: 22%; } .ct-w-where { width: 38%; }
 .ct-rk { font: 400 18px/1 var(--display); color: var(--muted); }
 .ct-cardc { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 12px; align-items: center; width: 100%; margin: -4px; padding: 4px; border: 0; border-radius: 8px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
   transition: background var(--t-state) var(--curve); }
@@ -148,6 +169,8 @@
 .ct-ax-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .ct-ax-s { font: 400 18px/1 var(--display); color: var(--ink); }
 .ct-fig { display: block; color: var(--ink); font: 400 18px/1.15 var(--display); }
+.ct-fig-n { color: var(--muted); font: 600 14px/1.3 var(--text); }
+.ct-cap b { color: var(--ink-2); font-weight: 700; }
 .ct-cap { display: block; color: var(--muted); }
 .ct-dt-empty { display: grid; justify-items: start; gap: 12px; padding: 24px 0; color: var(--ink-2); }
 
@@ -168,15 +191,14 @@
   .ct-tab td { padding: 0; border: 0; }
   .ct-tab td.ct-c-rank { display: none; }
   /* the card across, then its tier beside its strip, then the three counts in one line */
-  .ct-tab td.ct-c-card { grid-column: 1 / -1; }
-  .ct-tab td.ct-c-where { grid-column: span 2; }
+  .ct-tab td.ct-c-card, .ct-tab td.ct-c-where { grid-column: 1 / -1; }
+  .ct-tab td.ct-c-fig { grid-column: span 2; }
   .ct-c-where .ct-st { max-width: none; }
   .ct-tab td[data-label]::before { content: attr(data-label); display: block; margin-bottom: 4px; color: var(--muted); font: 600 14px/1.4 var(--text); }
   .ct-rkm { display: inline; }
 }
 @media (max-width: 759px) {
   .ct-bar { gap: 8px; }
-  .ct-seg button { padding: 0 12px; font-size: 16px; white-space: nowrap; }
   .ct-row { grid-template-columns: 72px minmax(0, 1fr); }
   .ct-tl { padding: 16px 4px 16px 0; }
   .ct-tl-in { top: calc(var(--chrome-h) + 8px); }

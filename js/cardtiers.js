@@ -1,43 +1,44 @@
-// Card tier list tab: every card ranked by the best decks it plays in (the deck ranking's final decks, each weighted by its place,
-// the variants of a better deck counting less), as classic tier rows S+ to E plus "Not in a final deck". Hover, focus or tap
-// previews the card: its tier and rank, the strip of the final decks holding it (js/deckstrip.js: #1 on the left, the top 30
-// lifted) and four figures; a click pins it with its talent and links to the card dialog. A Details view lists every card in a
-// sortable table. Data: data/cardtiers.json (tools/export_cardtiers.py, from ranking.json and ranking-decks.json; every number
-// on this page is that file's). No counter is shown per card.
-// A language change rebuilds the page from the same state (view, filters, search).
+// Card tier list tab: every card ranked in two views behind one switch (owner, 2026-10-24: "sort by top-30 win rate or by race
+// win rate, it is simpler"): Top 30, the average win rate of its best top-30 decks against the other 29; Race, the average win rate
+// of its best race decks against the benchmark decks. Classic tier rows S+ to E plus the cards with no deck in the view; switching
+// the view slides the icons to their new rows. Hover, focus or tap previews a card: its tier, the view's figure big, the other
+// view's small, the strip of its decks (js/deckstrip.js); a click pins it with its talent and links to the card dialog. A Details
+// view lists every card in a sortable table. The method is in the footer's Method section (patch.js methodSection), not at the top. Data:
+// data/cardtiers.json (tools/export_cardtiers.py); every number on this page is that file's. No counter is shown per card.
+// A language change rebuilds the page from the same state (view, tab, filters, search).
 
-import { h, $, $$, icon, fmtInt, dec, reducedMotion } from "./util.js?v=a34256d2f5";
-import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=a34256d2f5";
-import { DB, loadCardTiers, loadRanking } from "./data.js?v=a34256d2f5";
-import { on, getLang } from "./store.js?v=a34256d2f5";
-import { cardName, otherName, chip, L, ELEMENTS, RARITIES, elName, raName } from "./cards.js?v=a34256d2f5";
-import { disclosure, filterChip, setChip, cascade, band } from "./ui.js?v=a34256d2f5";
-import { t, tx } from "./i18n.js?v=a34256d2f5";
-import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, introLine, provBanner, suggestedTalent } from "./patch.js?v=a34256d2f5";
-import { textNodes, hideTip } from "./cardtext.js?v=a34256d2f5";
-import { deckStrip } from "./deckstrip.js?v=a34256d2f5";
+import { h, $, $$, icon, fmtInt, pct, pct1, reducedMotion } from "./util.js?v=06961c2c19";
+import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=06961c2c19";
+import { DB, loadCardTiers, loadRanking } from "./data.js?v=06961c2c19";
+import { on, getLang } from "./store.js?v=06961c2c19";
+import { cardName, otherName, chip, L, ELEMENTS, RARITIES, elName, raName } from "./cards.js?v=06961c2c19";
+import { disclosure, filterChip, setChip, cascade, band, segmented, CURVE } from "./ui.js?v=06961c2c19";
+import { t, tx } from "./i18n.js?v=06961c2c19";
+import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, provBanner, suggestedTalent, methodSection } from "./patch.js?v=06961c2c19";
+import { textNodes, hideTip } from "./cardtext.js?v=06961c2c19";
+import { deckStrip } from "./deckstrip.js?v=06961c2c19";
 
-// a tier's class on the card tier scale; "out" is the row of the cards in no final deck
+// a tier's class on the card tier scale; "out" is the row of the cards with no deck in the view
 const TC = { "S+": "sp", S: "s", A: "a", B: "b", C: "c", D: "d", E: "e", out: "out" };
+const VIEWS = ["top30", "race"];
+const VK = { top30: "ct.vTop30", race: "ct.vRace" };
 const thumb = (c) => `assets/thumbs/s/${c.key}.webp`;
-// two decimals: one would print a 3.99 of tier S as "4.0", the S+ cut
-const score = (v) => dec(v, 2);
-const place = (p) => t("ct.place", { p });
 
 let root, T, TIERS, rows = [];
-const S = { view: "list", q: "", ra: new Set(), el: new Set(), tier: new Set(), sort: "score", filtersOpen: false };
+const S = { view: "top30", tab: "list", q: "", ra: new Set(), el: new Set(), tier: new Set(), sort: "score", filtersOpen: false };
 let ui = {};
 
 export async function mount(el) {
   root = el;
-  // ranking.json names the run's version and AI in the banner
+  // ranking.json names the run and its AI in the banner
   [T] = await Promise.all([loadCardTiers(), loadRanking()]);
   TIERS = T.tiers.concat(["out"]);
-  // the view lives in the address: #card-tiers, #card-tiers/details (the two measurements' addresses of 2026-10-24,
-  // #card-tiers/competitive and #card-tiers/competitive-details, open the same views)
+  // the view and the tab live in the address: #card-tiers (top 30), #card-tiers/race, #card-tiers/details,
+  // #card-tiers/race-details; the addresses of earlier versions (competitive, all) open the default view
   const start = (location.hash.split("/")[0] === "#card-tiers" && location.hash.split("/")[1]) || "";
   // whole words only: a card key in the address (#card-tiers/<key>, a card view) never picks a view
-  S.view = /(^|-)details$/.test(start) ? "details" : "list";
+  S.view = /^race(-|$)/.test(start) ? "race" : T.default_view;
+  S.tab = /(^|-)details$/.test(start) ? "details" : "list";
   wireOnce();
   build();
   // the one load sequence of this tab: the first time it is shown, the tier rows on screen arrive in rank order
@@ -47,29 +48,27 @@ export async function mount(el) {
   window.addEventListener("hashchange", () => hidePop(true));
 }
 
-const tierOf = (x) => x.r.tier || "out";
+const rec = (x, v = S.view) => x.r[v];
+const tierOf = (x, v = S.view) => rec(x, v).tier || "out";
+const fig = (s) => (s == null ? "—" : pct1(s));
+const other = (v) => (v === "top30" ? "race" : "top30");
+const decksWord = (n, v) => t(v === "top30" ? "ct.decksTop" : "ct.decksRace", { n });
 
-/**
- * What "About the numbers" opens: why the ranking is temporary, then the method as a short list (the score, the variants, the
- * tiers, the cards in no final deck, what a tier says) and the AI's caveat. Every number comes from cardtiers.json.
- */
-function methodLines() {
-  const d = T.decks, half = T.half_life;
-  // the cuts under 1 read as fractions (½, ¼, ⅛), as the weights in the line above
-  const FRAC = { 0.5: "½", 0.25: "¼", 0.125: "⅛" };
-  const cut = (k) => FRAC[T.tier_cuts[k]] || dec(T.tier_cuts[k], Number.isInteger(T.tier_cuts[k]) ? 0 : 2);
-  return [
-    T.final ? null : h("p", tx("rk.mWhy")),
+/** This tab's part of the footer's Method section (patch.js methodSection, #method-card-tiers): what each view measures, the
+ * tiers, the cards with no deck in the top 30, what a tier says, the AI's caveat. Every number comes from cardtiers.json. */
+function method() {
+  const out = T.cards_total - T.placed.top30;
+  const sh = T.tier_shares.map((s) => pct(s, 0));
+  methodSection("card-tiers", [
     h("ul.vinfo-l", [
-      h("li", tx("ct.mFinal", { n: d.final, m: d.race })),
-      h("li", tx("ct.mScore", { h: half, p2: 1 + half, p4: 1 + 2 * half })),
-      h("li", tx("ct.mFamily")),
-      h("li", tx("ct.mTiers", { a: cut(0), b: cut(1), c: cut(2), d: cut(3), e: cut(4), f: cut(5), h: half })),
-      h("li", tx("ct.mOut", { n: T.cards_total - T.placed, m: d.race })),
+      h("li", tx("ct.mTop30", { n: T.best, opp: T.top30.opponents })),
+      h("li", tx("ct.mRace", { n: T.best, decks: fmtInt(T.decks.race), opp: T.race.opponents, k: Math.round(T.race.prior_games) })),
+      h("li", tx("ct.mTiers", { sp: sh[0], s: sh[1], a: sh[2], b: sh[3], c: sh[4], d: sh[5], e: sh[6] })),
+      h("li", tx("ct.mOut", { n: out })),
       h("li", tx("ct.mReads")),
       h("li", t("rk.limit.plan_decks")),
     ]),
-  ];
+  ]);
 }
 
 // ---------------------------------------------------------------- page
@@ -85,9 +84,9 @@ function build() {
   root.replaceChildren(
     h("div.vhead.ct-head", [
       h("h1", t("ct.h1")),
-      // the card tiers come from the temporary deck ranking's run: the same banner as the views that list its decks
-      T.final ? null : provBanner("card-tiers", { sentence: "ct.bannerP" }),
-      ...introLine("card-tiers", h("p.lede", t("ct.lede")), { method: methodLines(), patch: T.patch }),
+      // the card tiers come from the temporary deck ranking's run: the same one-line banner as the views that list its decks, its
+      // link opening this tab's part of the footer's Method section
+      T.final ? null : provBanner("card-tiers"),
     ]),
     toolbar(),
     filtersRegion(),
@@ -100,28 +99,33 @@ function build() {
     ]),
     details(),
   );
+  method();
   tierRows();
   icons();
   wireList();
   tableRows();
+  place();
   renderTable();
-  const view = S.view;
-  S.view = "list";
-  if (view === "details") setView("details", false, true);
+  const tab = S.tab;
+  S.tab = "list";
+  if (tab === "details") setTab("details", false, true);
   else applyFilters();
 }
 
 function toolbar() {
+  // the view switch: the site's one segmented control (ui.js), as the Deck tier list's
+  ui.viewSeg = segmented(VIEWS.map((v) => [v, t(VK[v])]), S.view, (v) => setView(v), t("ct.viewAria"));
+  ui.viewSeg.el.querySelectorAll("button").forEach((b) => { b.title = t(b.dataset.v === "top30" ? "ct.vTop30Tip" : "ct.vRaceTip"); });
   ui.fbtn = h("button.btn.ghost.disc.ct-fbtn", { type: "button", "aria-controls": "ct-filters", title: t("ct.filtersTitle") },
     [h("span", t("ct.filters")), h("span.tab-n.ct-fn", { hidden: true }), icon("chevron")]);
   ui.tabs = [["list", t("ct.vTiers")], ["details", t("ct.vDetails")]].map(([v, label]) => h("button", {
     type: "button", role: "tab", id: "ct-tab-" + v, "aria-controls": "ct-view-" + v, "aria-selected": String(v === "list"), tabindex: v === "list" ? null : "-1",
-    onclick: () => setView(v),
-    onkeydown: (e) => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { e.preventDefault(); setView(S.view === "list" ? "details" : "list", true); } },
+    onclick: () => setTab(v),
+    onkeydown: (e) => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { e.preventDefault(); setTab(S.tab === "list" ? "details" : "list", true); } },
   }, label));
   return band(h("div.ct-bar", [
-    h("div.seg.ct-seg.ct-tabs", { role: "tablist", "aria-label": t("ct.view") }, ui.tabs),
-    ui.fbtn,
+    ui.viewSeg.el,
+    h("div.ct-bar-r", [ui.fbtn, h("div.seg.ct-tabs", { role: "tablist", "aria-label": t("ct.view") }, ui.tabs)]),
   ]));
 }
 
@@ -145,16 +149,20 @@ function filtersRegion() {
 function tierRows() {
   ui.rows = {};
   ui.rowN = {};
+  ui.rail = {};
   ui.list.replaceChildren(...TIERS.map((tr) => {
     const out = tr === "out";
     const id = "ct-t-" + TC[tr];
     ui.rowN[tr] = h("span.ct-tl-n");
-    const cards = h("div.ct-cards", h("p.ct-empty", t("ct.empty")));
-    ui.rows[tr] = cards;
-    return h("div.ct-row", { role: "group", "aria-labelledby": id }, [
-      h("div.ct-tl.tc-" + TC[tr], { id }, h("div.ct-tl-in", [out ? h("span.ct-tl-word", t("ct.out")) : h("span.ct-tl-k", [h("span.sr", t("tl.tier", { tier: "" })), tr]), ui.rowN[tr]])),
-      cards,
+    ui.outWord = out ? h("span.ct-tl-word") : ui.outWord;
+    // the cards the top 30 does not rank are all ranked in the race: the row opens with the way there, above its icons
+    const cards = h("div.ct-cards", [
+      out ? h("div.ct-go-w", h("button.btn.ghost.ct-go", { type: "button", onclick: () => setView("race") }, [t("ct.goRace"), icon("arrow")])) : null,
+      h("p.ct-empty", t("ct.empty")),
     ]);
+    ui.rows[tr] = cards;
+    ui.rail[tr] = h("div.ct-tl-in", [out ? ui.outWord : h("span.ct-tl-k", [h("span.sr", t("tl.tier", { tier: "" })), tr]), ui.rowN[tr]]);
+    return h("div.ct-row" + (out ? ".ct-out" : ""), { role: "group", "aria-labelledby": id }, [h("div.ct-tl.tc-" + TC[tr], { id }, ui.rail[tr]), cards]);
   }));
 }
 
@@ -164,28 +172,70 @@ function icons() {
       h("img", { class: "ct-ic-art", loading: "lazy", decoding: "async", alt: "", width: 112, height: 160, src: thumb(x.c) }),
       h("i.ct-ic-orb.sp-el-" + x.c.element, { "aria-hidden": "true" }),
       // no patch mark on the icon (one marker less per card, owner 2026-10-18 "pas trop surchargé"): the change is in the
-      // icon's label, the hover preview, the pinned card and the Details row
+      // icon's label, the preview, the pinned card and the Details row
     ]);
   }
-  // inside a tier, the highest score first; the cards in no final deck by the race decks that held them
+}
+
+/** Puts every icon in its row for the view on screen: inside a tier the highest figure first; the cards with no deck in the view
+ * by their race figure (every card has one), so the strongest of them lead their row. */
+function place() {
+  const v = S.view;
   ui.order = Object.fromEntries(TIERS.map((tr) => [tr, []]));
   rows.forEach((x) => ui.order[tierOf(x)].push(x));
-  TIERS.forEach((tr) => ui.order[tr].sort((p, q) => (q.r.score || 0) - (p.r.score || 0) || q.r.race - p.r.race));
+  const key = (x) => (rec(x).score != null ? rec(x).score : -1);
+  TIERS.forEach((tr) => ui.order[tr].sort((p, q) => key(q) - key(p) || (q.r.race.score || 0) - (p.r.race.score || 0)));
   for (const tr of TIERS) {
     const row = ui.rows[tr], empty = row.querySelector(".ct-empty");
     ui.order[tr].forEach((x) => row.insertBefore(x.ic, empty));
     row.classList.toggle("is-empty", ui.order[tr].length === 0);
   }
+  ui.outWord.textContent = t(v === "top30" ? "ct.outTop30" : "ct.outRace");
+  // the last row only shows when it holds cards (every card played the race)
+  ui.rows.out.parentElement.classList.toggle("ct-row-none", ui.order.out.length === 0);
   for (const x of rows) x.ic.setAttribute("aria-label", label(x));
-  rove(ui.list.querySelector(".ct-ic"));
+  rove(roving && roving.isConnected ? roving : ui.list.querySelector(".ct-ic"));
 }
 
+/** One view's words for a reader: "Top 30: tier S, 56.1%, 9 top-30 decks" or "Top 30: not in it". */
+function viewWords(x, v) {
+  const r = rec(x, v);
+  return r.tier ? t("ct.sumT", { view: t(VK[v]), tier: r.tier, fig: fig(r.score), decks: decksWord(r.decks, v) }) : t("ct.sumNone", { view: t(VK[v]) });
+}
+
+// the icon's label: its name, then both views, the one on screen first
 function label(x) {
-  const r = x.r;
-  return (r.tier ? t("ct.icLabel", { name: cardName(x.c), tier: r.tier, top: r.top, n: T.decks.top, finals: r.finals })
-    : t("ct.icOut", { name: cardName(x.c) }))
+  return `${cardName(x.c)}. ${viewWords(x, S.view)} ${viewWords(x, other(S.view))}`
     + (changeOf(x.c) ? t("ui.sep") + t("pc." + changeOf(x.c).class, { patch: DB.patch }) : "")
     + (x.dim ? t("ct.icDim") : "");
+}
+
+/** Switches the view: the icons slide to their new rows (280 ms, transform only) and a pinned card follows its icon. */
+function setView(v) {
+  if (v === S.view) return;
+  const keep = pinned ? cur : null;
+  hidePop(true);
+  const play = !reducedMotion() && S.tab === "list";
+  const moving = play ? [...rows.map((x) => x.ic), ...Object.values(ui.rail)] : [];
+  const first = new Map(moving.map((el) => [el, el.getBoundingClientRect()]));
+  S.view = v;
+  ui.viewSeg.set(v);
+  place();
+  if (play) {
+    const vh = innerHeight;
+    for (const el of moving) {
+      const f = first.get(el), l = el.getBoundingClientRect();
+      const dx = f.left - l.left, dy = f.top - l.top;
+      if (!dx && !dy) continue;
+      if ((f.bottom < -200 || f.top > vh + 200) && (l.bottom < -200 || l.top > vh + 200)) continue;   // off screen both ways
+      el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], { duration: 280, easing: CURVE });
+    }
+  }
+  renderTable();
+  applyFilters();
+  say(t("ct.sayView", { view: t(VK[v]) }));
+  saveState();
+  if (keep && S.tab === "list") setTimeout(() => showPop(keep, true), play ? 300 : 0);
 }
 
 // one card of the list is in the tab order; arrow keys move between cards (left/right in order, up/down by line)
@@ -217,11 +267,12 @@ function step(b, key) {
 
 const say = (s) => { ui.announce.textContent = s; };
 
-/** Keeps the view in the address without a history entry, only while this tab is shown. A card key never collides with
- * "details", so main.js still reads the tab and ignores the rest. */
+/** Keeps the view and the tab in the address without a history entry, only while this tab is shown. A card key never collides
+ * with these words, so main.js still reads the tab and ignores the rest. */
 function saveState() {
   if (location.hash.split("/")[0] !== "#card-tiers") return;
-  const next = "#card-tiers" + (S.view === "details" ? "/details" : "");
+  const parts = [S.view === "race" ? "race" : "", S.tab === "details" ? "details" : ""].filter(Boolean).join("-");
+  const next = "#card-tiers" + (parts ? "/" + parts : "");
   if (location.hash !== next) { try { history.replaceState(history.state, "", next); } catch (e) { /* the address stays as it is */ } }
 }
 
@@ -233,25 +284,28 @@ const matchesTier = (x) => !S.tier.size || S.tier.has(tierOf(x));
 
 function applyFilters() {
   TS = terms(S.q);
-  const on_ = TS.length > 0 || S.ra.size + S.el.size + (S.view === "details" ? S.tier.size : 0) > 0;
+  const on_ = TS.length > 0 || S.ra.size + S.el.size + (S.tab === "details" ? S.tier.size : 0) > 0;
   let shown = 0;
   for (const x of rows) {
     const ok = matches(x);
     if (!!x.dim === ok) { x.dim = !ok; x.ic.classList.toggle("dim", !ok); x.ic.setAttribute("aria-label", label(x)); }
     const okT = ok && matchesTier(x);
     x.tr.hidden = !okT;
-    if (S.view === "list" ? ok : okT) shown++;
+    if (S.tab === "list" ? ok : okT) shown++;
   }
   const total = rows.length;
   ui.fcount.textContent = !on_ ? t("ct.countAll", { n: total }) : shown === 0
-    ? t(S.view === "list" ? "ct.countNone" : "ct.countNoneT", { total })
+    ? t(S.tab === "list" ? "ct.countNone" : "ct.countNoneT", { total })
     : t("ct.countSome", { n: shown, total });
   // each rarity or element chip counts the cards it would show with the other group's filter on
   for (const c of ui.raChips) setChip(c, rows.filter((x) => found(x) && x.c.rarity === c.id && (!S.el.size || S.el.has(x.c.element))).length, S.ra.has(c.id), t("filter.show", { label: c.label }), t("filter.none"));
   for (const c of ui.elChips) setChip(c, rows.filter((x) => found(x) && x.c.element === c.id && (!S.ra.size || S.ra.has(x.c.rarity))).length, S.el.has(c.id), t("filter.show", { label: c.label }), t("filter.none"));
   const counts = {};
   rows.forEach((x) => { if (matches(x)) { const tr = tierOf(x); counts[tr] = (counts[tr] || 0) + 1; } });
-  for (const c of ui.tierChips) setChip(c, counts[c.id] || 0, S.tier.has(c.id), t("filter.show", { label: c.label }), t("ct.tierChipOff"));
+  for (const c of ui.tierChips) {
+    c.label = c.id === "out" ? t(S.view === "top30" ? "ct.outTop30" : "ct.outRace") : c.label;
+    setChip(c, counts[c.id] || 0, S.tier.has(c.id), t("filter.show", { label: c.label }), t("ct.tierChipOff"));
+  }
   const nOn = S.ra.size + S.el.size;               // the search has its own field, outside the filters
   const fn = ui.fbtn.querySelector(".ct-fn");
   fn.hidden = nOn === 0;
@@ -267,10 +321,10 @@ function applyFilters() {
     ui.rowN[tr].textContent = k === all.length ? t("ct.cards", { n: all.length }) : t("ct.cardsOf", { k, n: all.length });
     ui.rows[tr].parentElement.hidden = finding && k === 0;
   }
-  ui.list.hidden = finding && shown === 0 && S.view === "list";
+  ui.list.hidden = finding && shown === 0 && S.tab === "list";
   ui.clear.disabled = !on_;
   ui.clear.title = t(on_ ? "ct.clearOn" : "ct.clearOff");
-  ui.dtEmpty.hidden = !(S.view === "details" && shown === 0);
+  ui.dtEmpty.hidden = !(S.tab === "details" && shown === 0);
   paintFind();
 }
 
@@ -291,15 +345,15 @@ function findRow() {
   return h("div.find.ct-find", [ui.search.el, ui.findSay, ui.findVoice.el]);
 }
 
-const tchip = (tr) => h("span.ct-tchip.tc-" + TC[tr], tr === "out" ? t("ct.out") : tr);
-// the Details column is narrow: there "Not in a final deck" is a dash chip, its words for a reader and as its title
-const tchipShort = (tr) => (tr === "out"
-  ? h("span.ct-tchip.tc-out.short", { title: t("ct.out") }, [h("span", { "aria-hidden": "true" }, "–"), h("span.sr", t("ct.out"))])
-  : tchip(tr));
-const tierWord = (x) => (x.r.tier ? t("ct.tierN", { tier: x.r.tier }) : t("ct.out"));
+// a tier chip; the cards with no deck in the view get a dash chip, its words for a reader and as its title
+const tchip = (tr) => (tr === "out"
+  ? h("span.ct-tchip.tc-out", { title: t(S.view === "top30" ? "ct.outTop30" : "ct.outRace") },
+    [h("span", { "aria-hidden": "true" }, "–"), h("span.sr", t(S.view === "top30" ? "ct.outTop30" : "ct.outRace"))])
+  : h("span.ct-tchip.tc-" + TC[tr], tr));
+const tierWord = (x) => (rec(x).tier ? t("ct.tierN", { tier: rec(x).tier }) : t(S.view === "top30" ? "ct.outTop30" : "ct.outRace"));
 
 /** The cards the search finds, whatever the rarity and element filters (they have their own count). Up to three are named, each
- * with its tier, so the line answers "which tier?" before the eye finds the card. */
+ * with its tier in the view on screen, so the line answers "which tier?" before the eye finds the card. */
 function paintFind() {
   if (!TS.length) { ui.findSay.replaceChildren(); ui.findVoice.say(""); return; }
   const hits = rows.filter(found);
@@ -317,7 +371,7 @@ function paintFind() {
 
 /** Enter in the search: focus moves to the first matching card of the tier rows (its preview shows; Enter pins it). */
 function jumpToFirst() {
-  if (!TS.length || S.view !== "list") return;
+  if (!TS.length || S.tab !== "list") return;
   const x = TIERS.flatMap((tr) => ui.order[tr]).find(matches);
   if (!x) return;
   x.ic.scrollIntoView({ block: "center", behavior: "auto" });
@@ -330,14 +384,13 @@ let cur = null, pinned = false, hoverT = 0, restoring = false;
 const sheet = matchMedia("(max-width: 759px)");
 
 /**
- * The preview (hover, focus) and the pinned card share one body: the header with the tier chip and its rank, the strip of the
- * card's final decks with its axis and key, then four figures (score, decks in the top 30, final decks, best deck). The pinned
- * card adds what the patch changed, the talent and "Show the card"; the preview says how to get them. A card in no final deck
- * shows the empty track and one line instead of the key and the figures.
+ * The preview and the pinned card share one body: the header with the tier chip and its place; the view's figure big with its
+ * deck count, the other view's figure small under it with its one-word label; the strip of the card's decks in the view with its
+ * axis and key. The pinned card adds what the patch changed, the talent and "Show the card"; the preview says how to get them.
+ * A card with no deck in the view: no chip, a dash for the figure, the empty strip.
  */
 function popContent(x, full) {
-  const c = x.c, r = x.r, d = T.decks;
-  const fig = (v, k, tip) => h("div.ct-pop-fig", { title: tip || null }, [h("b", v), h("span", t(k, { n: d.top }))]);
+  const c = x.c, v = S.view, r = rec(x), o = other(v), ro = rec(x, o);
   return [
     h("div.ct-pop-h", [
       h("img.ct-pop-art", { alt: "", width: 48, height: 69, src: thumb(c) }),
@@ -347,19 +400,24 @@ function popContent(x, full) {
         h("div.ct-pop-sub", `${raName(c.rarity)}, ${elName(c.element)}`),
         patchTag(c),
       ]),
-      r.tier ? h("div.ct-pop-tier", [tchip(r.tier), h("span", t("ct.rankOf", { r: r.rank, m: T.placed }))]) : null,
+      r.tier ? h("div.ct-pop-tier", [tchip(r.tier), h("span", t("ct.rankOf", { r: r.rank, m: T.placed[v] }))]) : null,
     ]),
     // pinned: what the patch changed, and that the numbers below predate it
     full && patchDetail(c) ? h("p.ct-pop-pc", patchDetail(c)) : null,     // showPop drops the empty slots
     // the card tiers' own patch: a card the patch changed was measured after the change when it is the card data's
     full ? oldNumbersNote(c, T.patch) : null,
-    h("div.ct-pop-st", deckStrip(r, d, { axis: true, key: !!r.tier })),
-    r.tier ? h("div.ct-pop-figs", [
-      fig(score(r.score), "ct.figScore", t("ct.fScoreTip", { h: T.half_life })),
-      fig(fmtInt(r.top), "ct.figTop"),
-      fig(fmtInt(r.finals), "ct.figFinals"),
-      fig(place(r.best), "ct.figBest"),
-    ]) : h("p.ct-pop-v", tx("ct.vOut", { n: d.final, race: r.race, m: d.race })),
+    h("div.ct-pop-fig", [
+      // the view's figure big; without a deck in the view, its words instead of a bare dash
+      r.decks ? h("div.ct-pop-big", [h("b", fig(r.score)), h("span", decksWord(r.decks, v))])
+        : h("div.ct-pop-big.none", h("b", t(v === "top30" ? "ct.outTop30" : "ct.outRace"))),
+      // the other view small, led by its tier chip: the two figures are measured against different decks, so the chip says
+      // where the card stands there
+      h("p.ct-pop-other", [h("span", t(VK[o])), ro.tier ? tchip(ro.tier) : null,
+        ro.decks ? [h("b", fig(ro.score)), h("span", decksWord(ro.decks, o))] : h("span", t(o === "top30" ? "ct.outTop30" : "ct.outRace"))]),
+    ]),
+    // the strip of the view on screen, or, without a deck there, the strip of the view where the card plays, named
+    r.decks ? h("div.ct-pop-st", deckStrip(r, v, T, { axis: true, key: true }))
+      : h("div.ct-pop-st", [h("p.ct-pop-stv", t(VK[o])), deckStrip(ro, o, T, { axis: true, key: true })]),
     full ? null : h("p.ct-pop-more", t("ct.popMore")),
     full ? talentBlock(x) : null,
   ];
@@ -400,7 +458,7 @@ function showPop(b, pin) {
   // a pinned card is a small non-modal dialog; a hover or focus preview repeats the icon's label, so it is hidden from readers
   if (pinned) { pop.removeAttribute("aria-hidden"); pop.setAttribute("role", "dialog"); pop.setAttribute("aria-label", cardName(x.c)); }
   else { pop.setAttribute("aria-hidden", "true"); pop.removeAttribute("role"); pop.removeAttribute("aria-label"); }
-  b.setAttribute("aria-expanded", "true");
+  b.setAttribute("aria-expanded", String(pinned));
   b.classList.toggle("pinned", pinned);            // only a pinned icon is ringed (selected); a hover preview is not
   if (pinned) say(summary(x));
   if (sheet.matches) { pop.style.left = pop.style.top = ""; pop.classList.add("on"); return; }     // a bottom sheet on a phone, placed by the stylesheet
@@ -421,11 +479,7 @@ function showPop(b, pin) {
   pop.classList.add("on");
 }
 
-function summary(x) {
-  const r = x.r;
-  return r.tier ? t("ct.sum", { name: cardName(x.c), tier: r.tier, score: score(r.score), top: r.top, n: T.decks.top, finals: r.finals, m: T.decks.final, best: r.best })
-    : t("ct.sumOut", { name: cardName(x.c), race: r.race });
-}
+function summary(x) { return `${cardName(x.c)}. ${viewWords(x, S.view)} ${viewWords(x, other(S.view))}`; }
 
 function hidePop(force) {
   if (!ui.pop || (pinned && !force)) return;
@@ -493,19 +547,18 @@ function wireOnce() {
 // ---------------------------------------------------------------- details table
 function details() {
   ui.tierChips = TIERS.map((tr) => {
-    const lab = tr === "out" ? t("ct.out") : t("ct.tierN", { tier: tr });
-    const c = filterChip(tr === "out" ? t("ct.out") : tr, "ct-sw tc-" + TC[tr], () => { if (S.tier.has(tr)) S.tier.delete(tr); else S.tier.add(tr); applyFilters(); });
+    const lab = tr === "out" ? t("ct.outTop30") : t("ct.tierN", { tier: tr });
+    const c = filterChip(tr === "out" ? lab : tr, "ct-sw tc-" + TC[tr], () => { if (S.tier.has(tr)) S.tier.delete(tr); else S.tier.add(tr); applyFilters(); });
     return Object.assign(c, { id: tr, label: lab });
   });
   const sort = h("select", { id: "ct-sort", onchange: (e) => { S.sort = e.target.value; renderTable(); applyFilters(); } }, [
-    ["score", "ct.sScore"], ["top", "ct.sTop"], ["finals", "ct.sFinals"], ["best", "ct.sBest"],
-  ].map(([v, k]) => h("option", { value: v }, t(k, { n: T.decks.top }))));
+    ["score", "ct.sScore"], ["decks", "ct.sDecks"],
+  ].map(([v, k]) => h("option", { value: v }, t(k))));
   sort.value = S.sort;
   ui.dtEmpty = h("div.ct-dt-empty", { hidden: true }, [h("p", t("ct.dtEmpty")),
     h("button.btn", { type: "button", onclick: () => { clearAll(); ui.clear.focus(); } }, t("ct.clear"))]);
-  const th = (text, title) => h("th", { scope: "col", title }, text);
-  // the strip's column names the strip once, with its axis, so the rows need no caption
-  const empty = { tier: null, places: [] };
+  // the strip's column names its axis once, in the header, for the view on screen
+  ui.thAxis = h("span.ct-th-ax");
   return h("section.ct-view", { id: "ct-view-details", role: "tabpanel", "aria-labelledby": "ct-tab-details", hidden: true }, [
     h("h2.sr", t("ct.vDetails")),
     h("div.ct-dt-tools", [
@@ -515,11 +568,11 @@ function details() {
     h("div.ct-dt", [
       h("table.ct-tab", [
         h("caption.sr", t("ct.tCaption")),
-        h("colgroup", ["rank", "card", "tier", "where", "top", "fin", "best"].map((k) => h("col.ct-w-" + k))),
+        h("colgroup", ["rank", "card", "tier", "fig", "where"].map((k) => h("col.ct-w-" + k))),
         h("thead", h("tr", [
-          th("#", t("ct.thRank")), th(t("ct.thCard")), th(t("ct.thTier"), t("ct.fScoreTip", { h: T.half_life })),
-          h("th.ct-c-where", { scope: "col" }, [h("span", t("ct.thWhere")), h("span.ct-th-ax", deckStrip(empty, T.decks, { axis: true, track: false }))]),
-          th(t("ct.fTop", { n: T.decks.top })), th(t("ct.fFinals")), th(t("ct.fBest")),
+          h("th", { scope: "col", title: t("ct.thRank") }, "#"), h("th", { scope: "col" }, t("ct.thCard")), h("th", { scope: "col" }, t("ct.thTier")),
+          h("th", { scope: "col" }, t("ct.thFig")),
+          h("th.ct-c-where", { scope: "col" }, [h("span", t("ct.thWhere")), ui.thAxis]),
         ])),
         ui.tbody,
       ]),
@@ -529,49 +582,41 @@ function details() {
 }
 
 function rowCells(x) {
-  const c = x.c, r = x.r, d = T.decks, rk = r.rank || "—";
-  const fig = (v, cap) => [h("span.ct-fig", v), cap ? h("span.ct-cap", cap) : null];
+  const c = x.c, v = S.view, r = rec(x), o = other(v), ro = rec(x, o);
   return [
-    h("td.ct-c-rank", h("span.ct-rk", String(rk))),
+    h("td.ct-c-rank", h("span.ct-rk", r.rank ? String(r.rank) : "—")),
     h("td.ct-c-card", h("button.ct-cardc", { type: "button", "data-card": c.key, title: t("card.show", { name: cardName(c) }) }, [
       h("img", { class: "ct-th", loading: "lazy", decoding: "async", alt: "", width: 36, height: 51, src: thumb(c) }),
       h("span", [h("span.ct-nm", { translate: "no" }, [r.rank ? h("span.ct-rkm", `#${r.rank} `) : null, cardName(c)]), h("span.ct-nm-sub", `${raName(c.rarity)}, ${elName(c.element)}`),
         changeOf(c) ? h("span.ct-nm-pc", [glyph(c), t("pc." + changeOf(c).class, { patch: DB.patch })]) : null]),
     ])),
-    h("td.ct-c-tier", { "data-label": t("ct.thTier") }, h("div.ct-ax-top", [tchipShort(tierOf(x)), r.tier ? h("span.ct-ax-s", score(r.score)) : null])),
-    // the strip is decorative: a reader hears what it shows from a hidden line
-    h("td.ct-c-where", { "data-label": t("ct.thWhere") }, r.tier
-      ? [deckStrip(r, d), h("span.sr", t("ct.stripSr", { top: r.top, n: d.top, finals: r.finals, best: r.best }))]
-      : h("span.ct-cap", t("ct.raced", { n: r.race, m: d.race }))),
-    h("td.ct-c-top", { "data-label": t("ct.fTop", { n: d.top }) }, fig(fmtInt(r.top), t("ct.ofN", { n: d.top }))),
-    h("td.ct-c-fin", { "data-label": t("ct.fFinals") }, fig(fmtInt(r.finals), t("ct.ofN", { n: d.final }))),
-    h("td.ct-c-best", { "data-label": t("ct.fBest") }, r.best ? fig(place(r.best)) : h("span.ct-cap", t("ct.none"))),
+    h("td.ct-c-tier", { "data-label": t("ct.thTier") }, tchip(tierOf(x))),
+    h("td.ct-c-fig", { "data-label": t("ct.thFig") }, [
+      h("span.ct-fig", [fig(r.score), " ", h("span.ct-fig-n", r.decks ? decksWord(r.decks, v) : "")]),
+      h("span.ct-cap", [t(VK[o]), " ", h("b", fig(ro.score))]),
+    ]),
+    // the strip is decorative: a reader hears the figures in the column before it
+    h("td.ct-c-where", { "data-label": t("ct.thWhere") }, deckStrip(r, v, T)),
   ];
 }
 
-function tableRows() { for (const x of rows) { x.tr = h("tr"); x.tr.replaceChildren(...rowCells(x)); ui.tbody.append(x.tr); } }
+function tableRows() { for (const x of rows) { x.tr = h("tr"); ui.tbody.append(x.tr); } }
 
-function sortKey(x) {
-  const r = x.r;
-  switch (S.sort) {
-    case "top": return -r.top;
-    case "finals": return -r.finals;
-    case "best": return r.best || 1e6;
-  }
-  return 0;
-}
-
-// the score breaks every tie (then the race decks, for the cards in no final deck)
+// the view's figure breaks every tie, then the race figure (every card has one)
 function renderTable() {
-  const by = (p, q) => sortKey(p) - sortKey(q) || (q.r.score || 0) - (p.r.score || 0) || q.r.race - p.r.race;
+  const v = S.view;
+  ui.thAxis.replaceChildren(deckStrip({ rates: [], hist: [], tier: null, decks: 0 }, v, T, { axis: true, track: false }));
+  for (const x of rows) x.tr.replaceChildren(...rowCells(x));
+  const sc = (x) => (rec(x).score != null ? rec(x).score : -1);
+  const by = (p, q) => (S.sort === "decks" ? rec(q).decks - rec(p).decks : 0) || sc(q) - sc(p) || (q.r.race.score || 0) - (p.r.race.score || 0);
   for (const x of rows.slice().sort(by)) ui.tbody.append(x.tr);
 }
 
-// ---------------------------------------------------------------- views
-function setView(v, focus, init) {
-  if (v === S.view) return;
+// ---------------------------------------------------------------- tabs: Tiers | Details
+function setTab(v, focus, init) {
+  if (v === S.tab) return;
   hidePop(true);
-  S.view = v;
+  S.tab = v;
   root.classList.toggle("ct-v-details", v === "details");
   ui.tabs.forEach((tb) => {
     const on_ = tb.id === "ct-tab-" + v;
@@ -582,7 +627,7 @@ function setView(v, focus, init) {
   const shown = $("#ct-view-" + v, root);
   $("#ct-view-list", root).hidden = v !== "list";
   $("#ct-view-details", root).hidden = v !== "details";
-  if (!reducedMotion() && !init) shown.animate([{ opacity: 0, transform: "translateY(24px)" }, { opacity: 1, transform: "none" }], { duration: 280, easing: "cubic-bezier(.4, 0, .2, 1)" });
+  if (!reducedMotion() && !init) shown.animate([{ opacity: 0, transform: "translateY(24px)" }, { opacity: 1, transform: "none" }], { duration: 280, easing: CURVE });
   applyFilters();
   if (init) return;
   say(t(v === "list" ? "ct.sayTiers" : "ct.sayDetails"));

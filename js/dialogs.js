@@ -3,18 +3,17 @@
 // drawn as a full-screen card view (card.css); its enter and exit (the card flying from its tile) are played by
 // cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt, dec } from "./util.js?v=a34256d2f5";
-import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=a34256d2f5";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=a34256d2f5";
-import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=a34256d2f5";
-import { encode, decode } from "./code.js?v=a34256d2f5";
-import { copyText, disclosure } from "./ui.js?v=a34256d2f5";
-import { t, tx, millions } from "./i18n.js?v=a34256d2f5";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, gameSpan, medianRounds, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, GAME_PATCH } from "./patch.js?v=a34256d2f5";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=a34256d2f5";
-import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=a34256d2f5";
-import { attachTilt } from "./cardtilt.js?v=a34256d2f5";
-import { deckStrip } from "./deckstrip.js?v=a34256d2f5";
+import { h, $, icon, reducedMotion, pct, pct1, fmtDate, fmtInt } from "./util.js?v=06961c2c19";
+import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=06961c2c19";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=06961c2c19";
+import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=06961c2c19";
+import { encode, decode } from "./code.js?v=06961c2c19";
+import { copyText, disclosure } from "./ui.js?v=06961c2c19";
+import { t, tx, millions } from "./i18n.js?v=06961c2c19";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, gameSpan, medianRounds, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, GAME_PATCH } from "./patch.js?v=06961c2c19";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=06961c2c19";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=06961c2c19";
+import { attachTilt } from "./cardtilt.js?v=06961c2c19";
 
 let openDlg = null, pushed = false;
 
@@ -423,24 +422,31 @@ function counterSection(c) {
 const TC = { "S+": "sp", S: "s", A: "a", B: "b", C: "c", D: "d", E: "e" };
 
 /**
- * The card's tier on the Card tier list (data/cardtiers.json): a tier chip, then how many of the deck ranking's final decks hold
- * the card, and the strip of those decks (the Card tier list's, with its axis); its score, rank and top-list decks are the line's
- * title. A card in no final deck: the "Not in a final deck" chip alone.
+ * The card's tier in both views of the Card tier list (data/cardtiers.json, one line each, Top 30 first, the list's default): the
+ * tier chip, the view's one-word name, its figure (the average win rate of the card's best decks in that view) and its deck count;
+ * a card with no deck in a view has the dash chip and "none". The place among the view's cards is the line's title.
  */
 function cardTierRows(c, T) {
   const r = T.cards.find((x) => x.id === c.id);
-  if (!r || !r.tier) return [h("li.cd-ct", h("span.ct-tchip.tc-out", t("ct.out")))];
-  const tip = t("ct.cdTip", { score: dec(r.score, 2), r: r.rank, k: T.placed, top: r.top, n: T.decks.top });
-  return [h("li.cd-ct", { title: tip }, [
-    h("span.ct-tchip.tc-" + TC[r.tier], r.tier),
-    // the score and rank are the title for a pointer, and read after the line for a screen reader
-    h("span", [t("ct.cdLine", { finals: r.finals, m: T.decks.final }), h("span.sr", t("ui.sep") + tip)]),
-  ]), h("li.cd-ct-st", deckStrip(r, T.decks, { axis: true }))];
+  if (!r) return [];
+  return ["top30", "race"].map((v) => {
+    const x = r[v], name = t(v === "top30" ? "ct.vTop30" : "ct.vRace");
+    if (!x.tier) {
+      return h("li.cd-ct", [h("span.ct-tchip.tc-out", { "aria-hidden": "true" }, "–"), h("span.cd-ct-v", name),
+        h("span", t(v === "top30" ? "ct.outTop30" : "ct.outRace"))]);
+    }
+    const tip = t("ct.rankOf", { r: x.rank, m: T.placed[v] });
+    return h("li.cd-ct", { title: tip }, [
+      h("span.ct-tchip.tc-" + TC[x.tier], x.tier),
+      h("span.cd-ct-v", name),
+      h("span", [h("b", pct1(x.score)), " ", t(v === "top30" ? "ct.decksTop" : "ct.decksRace", { n: x.decks }), h("span.sr", t("ui.sep") + tip)]),
+    ]);
+  });
 }
 
 /** The card tier cell of the Meta section: filled once cardtiers.json is loaded, gone when it fails. */
 function cardTierCell(c) {
-  const list = h("ul.cd-cts", h("li.cd-ct"));
+  const list = h("ul.cd-cts", [h("li.cd-ct"), h("li.cd-ct")]);
   const cell = h("div.stat.cd-stat", { "aria-busy": "true" }, [h("span.stat-k", t("card.ctK")), list]);
   loadCardTiers().then((T) => {
     if (currentKey === c.key) list.replaceChildren(...cardTierRows(c, T));

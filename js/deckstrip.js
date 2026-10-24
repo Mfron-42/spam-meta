@@ -1,33 +1,39 @@
-// The strip of a card's final decks (the Card tier list's one visual of its method, also in the card view's "Card tier" cell):
-// one mark per final deck of the deck ranking holding the card, at its place (#1 on the left, the last final deck on the right),
-// over a track whose first part, the ranking's top list (the top 30), is lifted; a variant of a better deck (it counts less) is a
-// short mark. The marks take the card's tier colour. Data: a cardtiers.json card record and the file's `decks` totals.
-// Decorative: the counts printed beside it say the same in words.
+// The strip of a card's decks in one view of the Card tier list (its one visual of the method): a track over the view's win-rate
+// axis (cardtiers.json `top30.axis` / `race.axis`), lowest on the left. Top 30: one mark per top-30 deck holding the card, at its
+// win rate against the other 29, and a tick at 50%, the level of the top. Race: the card's race decks as a quiet density (one bar
+// per 2.5 points, its height the share of the card's decks there), and its best decks, the ones its score averages, as marks.
+// The marks take the card's tier colour in that view. Decorative: the figures printed beside it say the same in words.
 
-import { h } from "./util.js?v=a34256d2f5";
-import { t } from "./i18n.js?v=a34256d2f5";
+import { h, pct } from "./util.js?v=06961c2c19";
+import { t } from "./i18n.js?v=06961c2c19";
 
 const TC = { "S+": "sp", S: "s", A: "a", B: "b", C: "c", D: "d", E: "e" };
 
-/**
- * `r` a card record of cardtiers.json (its `places` and `tier`), `decks` the file's {top, final}. `axis` adds the caption under the
- * track ("Top 30" under the lifted part, "#128" at the end); `key` adds the two-mark key under it; `track: false` draws the axis
- * alone (a column header). A card in no final deck gets the empty track (its designed empty state).
- */
-export function deckStrip(r, decks, { axis = false, key = false, track = true } = {}) {
-  const n = decks.final, top = decks.top;
-  const at = (p) => ((p - 0.5) / n) * 100 + "%";
-  const zone = (top / n) * 100 + "%";
-  const bar = h("span.ct-st.tc-" + (TC[r.tier] || "out"), [
-    h("i.ct-st-top", { style: { width: zone } }),
-    ...r.places.map(([p, k]) => h("i.ct-st-d" + (k ? ".cp" : ""), { style: { left: at(p) } })),
-  ]);
+/** `v` the card's record in the view (`top30` or `race` of a cardtiers.json card), `view` its name, `T` the file. `axis` adds the
+ * axis labels under the track; `key` the one-line key; `track: false` draws the axis alone (a column header). A card with no deck
+ * in the view gets the empty track. */
+export function deckStrip(v, view, T, { axis = false, key = false, track = true } = {}) {
+  const [lo, hi] = T[view].axis;
+  const x = (p) => Math.max(0, Math.min(100, ((p - lo) / (hi - lo)) * 100)) + "%";
+  const kids = [];
+  if (view === "top30") {
+    kids.push(h("i.ct-st-mid", { style: { left: x(0.5) } }));
+    v.rates.forEach((p, i) => kids.push(h("i.ct-st-d" + (i < T.best ? "" : ".cp"), { style: { left: x(p) } })));
+  } else {
+    const step = T.race.step, top = Math.max(1, ...v.hist);
+    v.hist.forEach((n, i) => {
+      if (n) kids.push(h("i.ct-st-h", { style: { left: x(lo + i * step), width: (step / (hi - lo)) * 100 + "%", height: Math.max(8, (n / top) * 100) + "%" } }));
+    });
+    v.rates.forEach((p) => kids.push(h("i.ct-st-d", { style: { left: x(p) } })));
+  }
+  const tc = "tc-" + (TC[v.tier] || "out");
   return h("span.ct-st-w", { "aria-hidden": "true" }, [
-    track ? bar : null,
-    axis ? h("span.ct-st-ax", [h("span.ct-st-ax-top", { style: { width: zone } }, t("ct.axTop", { n: top })), h("span", t("ct.place", { p: n }))]) : null,
-    key ? h("span.ct-st-key.tc-" + (TC[r.tier] || "out"), [
-      h("span", [h("i.ct-st-k"), t("ct.keyDeck")]),
-      h("span", [h("i.ct-st-k.cp"), t("ct.keyVar")]),
-    ]) : null,
+    track ? h("span.ct-st." + tc, kids) : null,
+    axis ? h("span.ct-st-ax", [h("span", pct(lo, 0)),
+      view === "top30" ? h("span.ct-st-ax-mid", { style: { left: x(0.5) } }, pct(0.5, 0)) : null, h("span", pct(hi, 0))]) : null,
+    key ? h("span.ct-st-key." + tc, view === "top30"
+      ? [h("span", [h("i.ct-st-k"), t("ct.keyTop", { n: T.best })]), v.decks > T.best ? h("span", [h("i.ct-st-k.cp"), t("ct.keyMore")]) : null,
+        h("span", [h("i.ct-st-k.mid"), t("ct.keyMid")])]
+      : [h("span", [h("i.ct-st-k.h"), t("ct.keyRace")]), h("span", [h("i.ct-st-k"), t("ct.keyBest", { n: T.best })])]) : null,
   ]);
 }
