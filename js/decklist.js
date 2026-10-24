@@ -4,17 +4,17 @@
 // sorted by the furthest stage reached, then the score there (docs/DATA.md, "ranking-decks.json"), so a filter that keeps
 // their order keeps the canonical ranking.
 
-import { h, icon, pct1, pm } from "./util.js?v=b9ded1bfd2";
-import { DB } from "./data.js?v=b9ded1bfd2";
-import { getLang, isOwned, ownedCount } from "./store.js?v=b9ded1bfd2";
-import { gameCard, chip, cardName, L } from "./cards.js?v=b9ded1bfd2";
-import { disclosure } from "./ui.js?v=b9ded1bfd2";
-import { t, tx } from "./i18n.js?v=b9ded1bfd2";
-import { introLine, provBanner } from "./patch.js?v=b9ded1bfd2";
+import { h, icon, pct1, pm } from "./util.js?v=24015c5634";
+import { DB } from "./data.js?v=24015c5634";
+import { getLang, isOwned, ownedCount } from "./store.js?v=24015c5634";
+import { gameCard, chip, cardName, L } from "./cards.js?v=24015c5634";
+import { disclosure } from "./ui.js?v=24015c5634";
+import { t, tx } from "./i18n.js?v=24015c5634";
+import { introLine, provBanner, gameSpan } from "./patch.js?v=24015c5634";
 
 // ---------------------------------------------------------------- stages, in plain words
-// level -> stage of the ranking run: 3 the final (the full AI against the benchmark decks), 2 the race (its faster setting),
-// 1 the first sort (an old fast AI, 12 games)
+// level -> stage of the ranking run: 3 the final (the full AI against the benchmark decks), 2 the race (the same AI and decks,
+// fewer games), 1 the first sort (a fast AI)
 export const STAGE = { 3: "final", 2: "race", 1: "screen" };
 const LEVELS = 3;
 
@@ -167,10 +167,10 @@ export function legend(id, state) {
   const st = DB.decks.stages, race = st.race;
   const count = (l) => DB.decks.rows.filter((r) => r.level === l).length;
   const desc = {
-    3: t("ev.3.desc", { n: st.final.opponents, per: st.final.games_per_opponent }),
+    3: t("ev.3.desc", { n: st.final.opponents, per: gameSpan(st.final.games_per_opponent) }),
     2: t(race.from_screen != null ? "ev.2.desc" : "ev.2.descAll", { n: race.opponents, min: race.games_min, max: race.games_max, decks: race.decks,
       screen: race.from_screen, direct: race.direct, checks: race.checks, keep: race.kept }),
-    1: st.screen ? t("ev.1.desc", { games: st.screen.games, decks: st.screen.decks, keep: st.screen.kept }) : "",
+    1: st.screen ? t("ev.1.desc", { min: st.screen.games_min, max: st.screen.games_max, decks: st.screen.decks, keep: st.screen.kept }) : "",
   };
   const region = h("div", { id }, h("div.collapse-in", h("div.guide", [
     h("p", t("md.legendP")),

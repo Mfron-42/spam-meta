@@ -8,15 +8,15 @@
 // address (#tiers, #tiers/speed). A language change redraws the page and keeps the list, the query and the filter.
 // (The tier-grouped view of the 1.22 rankings, with its matchups, withheld and secret decks, is in the git history.)
 
-import { h, icon, pm, pct, pct1, dec, reducedMotion } from "./util.js?v=b9ded1bfd2";
-import { DB, loadRanking } from "./data.js?v=b9ded1bfd2";
-import { on, isOwned, ownedCount } from "./store.js?v=b9ded1bfd2";
-import { cardName } from "./cards.js?v=b9ded1bfd2";
-import { segmented, scrollToEl, cascade, CURVE } from "./ui.js?v=b9ded1bfd2";
-import { t, tx } from "./i18n.js?v=b9ded1bfd2";
-import { findRow, terms, namedCards } from "./search.js?v=b9ded1bfd2";
-import { introLine, limitParams, provBanner, DECK_TABLE_SHOWN } from "./patch.js?v=b9ded1bfd2";
-import { paintOwned, deckSlot } from "./decklist.js?v=b9ded1bfd2";
+import { h, icon, pm, pct, pct1, dec, reducedMotion } from "./util.js?v=24015c5634";
+import { DB, loadRanking } from "./data.js?v=24015c5634";
+import { on, isOwned, ownedCount } from "./store.js?v=24015c5634";
+import { cardName } from "./cards.js?v=24015c5634";
+import { segmented, scrollToEl, cascade, CURVE } from "./ui.js?v=24015c5634";
+import { t, tx } from "./i18n.js?v=24015c5634";
+import { findRow, terms, namedCards } from "./search.js?v=24015c5634";
+import { introLine, limitParams, gameSpan, medianRounds, provBanner, DECK_TABLE_SHOWN } from "./patch.js?v=24015c5634";
+import { paintOwned, deckSlot } from "./decklist.js?v=24015c5634";
 
 const LISTS = { score: "by_score", speed: "by_speed" };
 let root, R, list = "score", query = "", readyOnly = false;
@@ -84,7 +84,7 @@ function render() {
       // a provisional ranking says so first, in a banner no one can miss (owner, 2026-10-23 evening)
       prov ? provBanner("tiers") : null,
       // the facts only: the banner says it is temporary, "About the numbers" says which version and why
-      ...introLine("tiers", h("p.lede.quiet", t("rk.lede", { ai: R.pilot, games: R.games, patch: R.patch })),
+      ...introLine("tiers", h("p.lede.quiet", t("rk.lede", { games: R.games, patch: R.patch })),
         { method: methodLines(), patch: R.patch }),
     ]),
     findBar(),
@@ -102,11 +102,11 @@ function methodLines() {
   const s = R.by_score, n = s.opponents;
   return [
     R.final ? null : h("p", tx("rk.mWhy")),
-    t("rk.mHow", { v: R.version, pool: R.pool, kept: s.decks_measured, n, per: s.games_per_opponent }),
+    t("rk.mHow", { v: R.version, ai: R.pilot, pool: R.pool, kept: s.decks_measured, n, per: gameSpan(s.games_per_opponent) }),
     t("rk.mTalents"),
     h("ul.vinfo-l", R.limits.map((l) => h("li", t("rk.limit." + l, limitParams(R))))),
-    t("rk.mRR", { decks: R.round_robin.decks, gpp: R.round_robin.games_per_pair }),
-    t("rk.mSpeed", { n: R.by_speed.opponents, median: dec(R.by_speed.median_rounds, 1) }),
+    t("rk.mRR", { decks: R.round_robin.decks, gpp: gameSpan(R.round_robin.games_per_pair, { atLeast: true }) }),
+    t("rk.mSpeed", { n: R.by_speed.opponents, median: medianRounds(R) }),
   ];
 }
 
@@ -115,8 +115,8 @@ function paintList(swap) {
   const L_ = R[LISTS[list]];
   headEl.textContent = t("rk.h." + list, { n: L_.decks.length });
   basisEl.textContent = list === "score"
-    ? t("rk.basisScore", { n: L_.opponents, per: R.by_score.games_per_opponent })
-    : t("rk.basisSpeed", { min: pct(L_.min_win_rate, 0), wins: L_.min_wins, median: dec(L_.median_rounds, 1) });
+    ? t("rk.basisScore", { n: L_.opponents, per: gameSpan(R.by_score.games_per_opponent) })
+    : t("rk.basisSpeed", { min: pct(L_.min_win_rate, 0), wins: L_.min_wins, median: medianRounds(R) });
   decks = [];
   const shown = L_.decks.filter((d) => d.cs.every(Boolean));
   listEl.replaceChildren(...shown.map((d, i) => deckEl(d, i === 0)));
@@ -140,7 +140,7 @@ function findBar() {
 // ---------------------------------------------------------------- one deck
 /** "Wins in ~15.5 rounds": its margin, wins and source are the title, and the same words follow for screen readers. */
 function winsIn(ws) {
-  const tip = t("rk.winsInTip", { pm: dec(ws.rounds_ci95, 1), wins: ws.wins, median: dec(R.by_speed.median_rounds, 1) });
+  const tip = t("rk.winsInTip", { pm: dec(ws.rounds_ci95, 1), wins: ws.wins, median: medianRounds(R) });
   return h("p.fig-all", { title: tip }, [t("rk.winsIn", { rounds: dec(ws.rounds, 1) }), h("span.sr", t("ui.sep") + tip)]);
 }
 

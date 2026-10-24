@@ -3,11 +3,11 @@
 // filled when a value, an ability or a passive changed (the class "mechanical"), hollow when only talents or texts did.
 // The data carries codes and positions; every word comes from i18n.js ("pc.*").
 
-import { h, icon, fmtDate } from "./util.js?v=b9ded1bfd2";
-import { DB } from "./data.js?v=b9ded1bfd2";
-import { L } from "./cards.js?v=b9ded1bfd2";
-import { t } from "./i18n.js?v=b9ded1bfd2";
-import { disclosure } from "./ui.js?v=b9ded1bfd2";
+import { h, icon, fmtDate, dec, fmtInt } from "./util.js?v=24015c5634";
+import { DB } from "./data.js?v=24015c5634";
+import { L } from "./cards.js?v=24015c5634";
+import { t } from "./i18n.js?v=24015c5634";
+import { disclosure } from "./ui.js?v=24015c5634";
 
 // Three patches can differ, and each label names the one it is about (SPEC.md, "Patch labels"):
 // - the GAME patch, the client players run today (below; the lab reads it from the game files);
@@ -44,10 +44,21 @@ const rankingsBehindGame = (patch) => {
 /** The deck ranking (ranking.json) while the Deck tier list shows it, else null. */
 export const deckRanking = () => (DECK_RANKING_SHOWN && DB.ranking) || null;
 
-/** What the deck ranking's caveats quote (i18n "rk.limit.*"): its score list's narrowest and widest margins, in whole points. */
+/** What the deck ranking's caveats quote (i18n "rk.limit.*"): its score list's narrowest and widest margins, in points to one
+ * decimal (the margins of version 2 sit within one point of each other). */
 export function limitParams(R) {
   const ci = R.by_score.decks.map((d) => d.ci95 * 100);
-  return { lo: Math.round(Math.min(...ci)), hi: Math.round(Math.max(...ci)) };
+  return { lo: dec(Math.min(...ci), 1), hi: dec(Math.max(...ci), 1) };
+}
+
+/** The median round of a won race game (ranking.json by_speed.median_rounds): "18" when whole (a round count), else "18.5". */
+export const medianRounds = (R) => dec(R.by_speed.median_rounds, Number.isInteger(R.by_speed.median_rounds) ? 0 : 1);
+
+/** A game count of the ranking files, a number or its [least, most] range: "8", "48 to 64", or with `atLeast` "at least 16". */
+export function gameSpan(x, { atLeast = false } = {}) {
+  const [lo, hi] = Array.isArray(x) ? x : [x, x];
+  if (lo === hi) return fmtInt(lo);
+  return atLeast ? t("rk.atLeast", { n: fmtInt(lo) }) : t("rk.range", { lo: fmtInt(lo), hi: fmtInt(hi) });
 }
 
 /** The patches in one line (footer, About): "Game patch 1.24, card data 1.23, rankings 1.22"; while only the deck ranking
@@ -134,11 +145,13 @@ export function introLine(key, lede, { method = null, patch = null } = {}) {
 }
 
 /**
- * The banner of a temporary ranking (DESIGN.md "Provisional banner"): the clock, "Temporary ranking" as its title, the owner's
- * sentence, and "Why?", which opens the view's "About the numbers" right under it (its first paragraph says why). Not
- * dismissible, no motion. `key` names the view (its intro line's disclosure is "info-<key>").
+ * The banner of a temporary ranking (DESIGN.md "Provisional banner"): the clock, "Temporary ranking" as its title, one sentence
+ * (which version, by which AI, what runs now and when the next update comes), and "Why?", which opens the view's "About the
+ * numbers" right under it (its first paragraph says why). Not dismissible, no motion. `key` names the view (its intro line's
+ * disclosure is "info-<key>").
  */
 export function provBanner(key) {
+  const R = DB.ranking || {};
   const why = h("button.btn.ghost.rk-why", { type: "button", "aria-controls": "info-" + key, title: t("rk.bannerWhyT"), onclick: () => {
     const d = document.querySelector(`.tdisc[aria-controls="info-${key}"]`);
     if (!d) return;
@@ -147,7 +160,7 @@ export function provBanner(key) {
   } }, [icon("info"), t("rk.bannerWhy")]);
   return h("section.rk-banner", { "aria-labelledby": "rk-banner-h-" + key }, [
     icon("clock", 24),
-    h("div.rk-banner-t", [h("h2", { id: "rk-banner-h-" + key }, t("rk.bannerH")), h("p", t("rk.bannerP"))]),
+    h("div.rk-banner-t", [h("h2", { id: "rk-banner-h-" + key }, t("rk.bannerH")), h("p", t("rk.bannerP", { v: R.version, ai: R.pilot }))]),
     why,
   ]);
 }

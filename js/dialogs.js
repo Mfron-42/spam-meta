@@ -3,17 +3,17 @@
 // drawn as a full-screen card view (card.css); its enter and exit (the card flying from its tile) are played by
 // cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt, dec } from "./util.js?v=b9ded1bfd2";
-import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=b9ded1bfd2";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=b9ded1bfd2";
-import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=b9ded1bfd2";
-import { encode, decode } from "./code.js?v=b9ded1bfd2";
-import { copyText, disclosure } from "./ui.js?v=b9ded1bfd2";
-import { t, tx, millions } from "./i18n.js?v=b9ded1bfd2";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, CARD_RANKINGS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, GAME_PATCH } from "./patch.js?v=b9ded1bfd2";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=b9ded1bfd2";
-import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=b9ded1bfd2";
-import { attachTilt } from "./cardtilt.js?v=b9ded1bfd2";
+import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt, dec } from "./util.js?v=24015c5634";
+import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=24015c5634";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=24015c5634";
+import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=24015c5634";
+import { encode, decode } from "./code.js?v=24015c5634";
+import { copyText, disclosure } from "./ui.js?v=24015c5634";
+import { t, tx, millions } from "./i18n.js?v=24015c5634";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, gameSpan, medianRounds, CARD_RANKINGS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, GAME_PATCH } from "./patch.js?v=24015c5634";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=24015c5634";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=24015c5634";
+import { attachTilt } from "./cardtilt.js?v=24015c5634";
 
 let openDlg = null, pushed = false;
 
@@ -581,8 +581,8 @@ function buildAbout() {
     h("section", [
       h("h3", t("about.howH")),
       h("p", t("about.rkHow", { ai: R.pilot, games: R.games, pool: R.pool, kept: R.by_score.decks_measured,
-        n: R.by_score.opponents, per: R.by_score.games_per_opponent })),
-      h("p", t("about.rkSpeed", { median: dec(R.by_speed.median_rounds, 1) })),
+        n: R.by_score.opponents, per: gameSpan(R.by_score.games_per_opponent) })),
+      h("p", t("about.rkSpeed", { median: medianRounds(R) })),
     ]),
     h("section", [h("h3", t("about.limitsH")), h("ul", R.limits.map((l) => h("li", t("rk.limit." + l, limitParams(R)))))]),
     h("section", [h("h3", t("about.dataH")), h("p", t("about.data", { line: patchLine(), date: fmtDate(dataDate()) }))]),
