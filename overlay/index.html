@@ -17,12 +17,12 @@
 
 <link rel="preload" href="../fonts/lilita-one-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../fonts/nunito-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="../data/cards.json?v=47b1396378" as="fetch" crossorigin>
-<link rel="stylesheet" href="../css/base.css?v=47b1396378">
-<link rel="stylesheet" href="../css/ambient.css?v=47b1396378">
-<link rel="stylesheet" href="../css/cards.css?v=47b1396378">
-<link rel="stylesheet" href="css/overlay.css?v=47b1396378">
-<link rel="modulepreload" href="js/showcase.js?v=47b1396378">
+<link rel="preload" href="../data/cards.json?v=97c4732cce" as="fetch" crossorigin>
+<link rel="stylesheet" href="../css/base.css?v=97c4732cce">
+<link rel="stylesheet" href="../css/ambient.css?v=97c4732cce">
+<link rel="stylesheet" href="../css/cards.css?v=97c4732cce">
+<link rel="stylesheet" href="css/overlay.css?v=97c4732cce">
+<link rel="modulepreload" href="js/showcase.js?v=97c4732cce">
 </head>
 <body class="ov" data-dl="loading">
 <a class="skip" href="#main" data-i18n="head.skip">Aller au contenu</a>
@@ -66,7 +66,7 @@
   <section class="wrap hero" id="top" aria-labelledby="hero-h">
     <div class="hero-copy">
       <h1 id="hero-h" data-i18n="ov.h1">Sache ce qui va se passer avant de cliquer.</h1>
-      <p class="hero-lede" data-i18n="ov.lede">Un overlay pour SPAM qui affiche, tout contre tes cartes, ce que chaque sort va faire et comment il change ta chance de gagner.</p>
+      <p class="hero-lede" data-i18n="ov.lede">Un overlay pour SPAM qui affiche, tout contre tes cartes, ce que chaque sort va faire, ta chance de gagner et le coup que jouerait notre meilleure IA.</p>
       <!-- the download is read from data/overlay-release.json (js/release.js): the button below shows only for a valid, available
            release; every other state draws the note and no link to any installer (README, "The overlay page") -->
       <div class="hero-act">
@@ -93,14 +93,14 @@
           <svg class="ico i-play" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M5 3.2v9.6L12.5 8z"/></svg>
         </button>
       </div>
-      <div class="stage-in" role="img" aria-label="Illustration de l’overlay sur un plateau de SPAM : au repos, ta chance de gagner au-dessus de Fin du tour et un point sur le sort conseillé ; quand tu survoles ce sort, le point passe sur la meilleure cible, avec sa chance de mort et les dégâts. Chiffres fictifs." data-i18n-aria="ov.stage.aria">
+      <div class="stage-in" role="img" aria-label="Illustration de l’overlay sur un plateau de SPAM : au repos, ta chance de gagner au-dessus de Fin du tour et un point sur le coup de l’IA ; quand tu survoles ce sort, le point passe sur la meilleure cible, avec sa chance de mort et les dégâts. Chiffres fictifs." data-i18n-aria="ov.stage.aria">
         <div class="board" aria-hidden="true">
           <div class="row them" id="row-them"></div>
           <div class="row you" id="row-you"></div>
         </div>
         <!-- stand-ins for the game's own END TURN disc and timer ring: they only place the readout and the end-turn dot where the game does -->
         <div class="dock" aria-hidden="true">
-          <div class="ol-win"><svg class="ico crown" viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M2 12.5 1.7 5.2 5.4 8 8 3.2 10.6 8l3.7-2.8L14 12.5z"/></svg><b id="g-now">58 %</b></div>
+          <div class="ol-win"><svg class="ico crown" viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M2 12.5 1.7 5.2 5.4 8 8 3.2 10.6 8l3.7-2.8L14 12.5z"/></svg><b id="g-now">~58 %</b></div>
           <div class="hud">
             <span class="mk mk-dot dot-end" id="dot-end"></span>
             <span class="hud-timer"></span>
@@ -164,31 +164,28 @@
           <ul class="flist">
             <li class="feat">
               <div class="feat-t"><h4 data-i18n="ov.f.gauge">Ta chance de gagner, au-dessus de Fin du tour</h4></div>
-              <p data-i18n="ov.f.gaugeT">Un petit chiffre couronné, centré juste au-dessus du bouton Fin du tour, et au-dessus du minuteur en boutique. C’est tout ce qui reste au repos, avec un point.</p>
-              <span class="sample ol-voice" aria-hidden="true"><svg class="ico crown" viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M2 12.5 1.7 5.2 5.4 8 8 3.2 10.6 8l3.7-2.8L14 12.5z"/></svg><b data-num="0.58">58 %</b></span>
+              <p data-i18n="ov.f.gaugeT">Un chiffre couronné au-dessus de Fin du tour : ta chance de gagner, vue par l’IA. Laisse le curseur dessus pour le détail.</p>
+              <!-- the overlay's own hedge since 0.1.14: one figure at rest, "~" before it -->
+              <span class="sample ol-voice" aria-hidden="true"><svg class="ico crown" viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M2 12.5 1.7 5.2 5.4 8 8 3.2 10.6 8l3.7-2.8L14 12.5z"/></svg><b data-num="0.58" data-hedge="~">~58 %</b></span>
             </li>
             <li class="feat">
-              <div class="feat-t"><h4 data-i18n="ov.f.best">Un point sur le meilleur coup</h4></div>
-              <p data-i18n="ov.f.bestT">Le point cyan marque le sort conseillé. Quand tu survoles sa ligne, il passe sur la meilleure cible. Quand finir le tour est le mieux, il se pose à gauche du minuteur.</p>
+              <div class="feat-t"><h4 data-i18n="ov.f.best">Un point sur le coup de l’IA</h4></div>
+              <p data-i18n="ov.f.bestT">Le point cyan marque le coup que jouerait l’IA : sur la ligne du sort, puis sur sa meilleure cible, ou à gauche du minuteur quand finir le tour est le mieux.</p>
               <span class="sample ol-voice" aria-hidden="true"><i class="dot-s"></i></span>
             </li>
             <li class="feat">
               <div class="feat-t"><h4 data-i18n="ov.f.honest">Jamais plus précis que ses données</h4></div>
-              <p data-i18n="ov.f.honestT">Un chiffre n’est jamais plus fin que ses données : « &lt;8 % » plutôt que « 0 % ». Quand les parties de test de l’IA et le réseau de valeur s’écartent de 30 points, les deux s’affichent.</p>
+              <p data-i18n="ov.f.honestT">Un chiffre n’est jamais plus fin que ses données : « &lt;8 % » plutôt que « 0 % ».</p>
               <span class="sample ol-voice" aria-hidden="true"><span data-i18n="ov.f.honestS">&lt;8 %</span></span>
             </li>
             <li class="feat">
               <div class="feat-t"><h4 data-i18n="ov.f.safe">Prudent ou gourmand</h4></div>
-              <p data-i18n="ov.f.safeT">Gourmand classe les coups par victoire moyenne, prudent par leur pire issue. Alt+R pour basculer.</p>
+              <p data-i18n="ov.f.safeT">Par défaut, le point suit l’IA. Le mode prudent (Alt+R) choisit le coup dont la pire issue est la meilleure.</p>
             </li>
-            <li class="feat">
+            <li class="feat s-under">
               <div class="feat-t"><h4 data-i18n="ov.f.threat">Menaces du prochain tour</h4></div>
               <p data-i18n="ov.f.threatT">Alt+L montre, au repos, la chance de mort de tes cartes et une alerte quand leur tour peut gagner le combat.</p>
               <span class="sample ol-voice" aria-hidden="true"><svg class="ico warn" viewBox="0 0 16 16" width="16" height="16" focusable="false"><path d="M8 2.2 14.3 13H1.7zM8 6.5v3M8 11.3v.1"/></svg><span data-i18n="ov.f.threatS">Ils peuvent gagner au prochain tour</span></span>
-            </li>
-            <li class="feat">
-              <div class="feat-t"><h4 data-i18n="ov.f.vis">Des cartes montrées, pas nommées</h4></div>
-              <p data-i18n="ov.f.visT">Sur une carte, les sorts sont en haut et les tox en dessous. Partout où une ligne désigne une carte ou un tox, l’overlay dessine son illustration et non son nom : l’œil la trouve d’un coup, dans toutes les langues.</p>
             </li>
             <li class="feat">
               <div class="feat-t"><h4 data-i18n="ov.f.fit">Fenêtré ou plein écran</h4></div>
@@ -200,15 +197,20 @@
     </div>
   </section>
 
-  <!-- how it works: a real sequence, so numbered -->
+  <!-- how it works: a real sequence, so numbered; then the AI behind the dot in two facts (showcase.js AI: its first-move time,
+       the game patch), each a figure over one line -->
   <section class="band" id="how" aria-labelledby="how-h">
     <div class="wrap">
       <h2 id="how-h" data-i18n="ov.how.h">Comment ça marche</h2>
       <ol class="steps">
-        <li><span class="step-n" aria-hidden="true">1</span><div><h3 data-i18n="ov.how.1">Lance SPAM, puis l’overlay</h3><p data-i18n="ov.how.1t">Il se pose au-dessus de la fenêtre du jeu, dans une fenêtre transparente.</p></div></li>
-        <li><span class="step-n" aria-hidden="true">2</span><div><h3 data-i18n="ov.how.2">Il lit la partie</h3><p data-i18n="ov.how.2t">Il lit ce que le serveur du jeu envoie à ton jeu, en écoute passive sur ton PC, ou la fenêtre du jeu quand ce n’est pas possible. Puis il joue chaque action dans un simulateur sur ton PC, jusqu’à 240 parties par action.</p></div></li>
-        <li><span class="step-n" aria-hidden="true">3</span><div><h3 data-i18n="ov.how.3">Survole, décide, joue</h3><p data-i18n="ov.how.3t">Survole la ligne d’un sort ou une offre de la boutique : les effets et ta victoire après s’affichent. Alt+O masque tout.</p></div></li>
+        <li><span class="step-n" aria-hidden="true">1</span><div><h3 data-i18n="ov.how.1">Lance SPAM, puis l’overlay</h3><p data-i18n="ov.how.1t">Il se pose sur la fenêtre du jeu, en transparence.</p></div></li>
+        <li><span class="step-n" aria-hidden="true">2</span><div><h3 data-i18n="ov.how.2">Il lit la partie</h3><p data-i18n="ov.how.2t">Ce que le serveur du jeu envoie à ton jeu, en écoute passive sur ton PC (Npcap), ou la fenêtre du jeu quand ce n’est pas possible.</p></div></li>
+        <li><span class="step-n" aria-hidden="true">3</span><div><h3 data-i18n="ov.how.3">Notre meilleure IA choisit son coup</h3><p data-i18n-p="ov.how.3t">v3s9, la meilleure IA actuelle du labo, décide aussitôt ; des parties jouées jusqu’au bout sur ton PC vérifient ensuite chaque option. Alt+O masque tout.</p></div></li>
       </ol>
+      <dl class="ai-facts">
+        <div><dt id="ai-time">0,26 s</dt><dd id="ai-speed">Temps médian pour afficher son coup, sur notre PC de test chargé. 9 fois sur 10 en moins de 0,48 s.</dd></div>
+        <div><dt id="ai-patch">Patch 1.26</dt><dd id="ai-patchT">Son moteur est construit à partir de ta copie du jeu et reconstruit après chaque mise à jour.</dd></div>
+      </dl>
     </div>
   </section>
 
@@ -219,7 +221,7 @@
       <ul class="checks priv">
         <li class="reads"><svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M1.5 8s2.4-4.5 6.5-4.5S14.5 8 14.5 8 12.1 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></svg><span data-i18n="ov.priv.1">Ce que ton jeu reçoit du serveur : lu en écoute passive sur ton PC. Quand ce n’est pas possible, il lit la fenêtre du jeu à l’écran.</span></li>
         <li><svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="5.6"/><path d="M4 12 12 4"/></svg><span data-i18n="ov.priv.2">Ce que ton jeu envoie : jamais lu ni gardé, ni tes données de connexion ni rien de ton trafic sortant.</span></li>
-        <li><svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="5.6"/><path d="M4 12 12 4"/></svg><span data-i18n="ov.priv.3">Rien de ton jeu n’est envoyé : tout est calculé sur ton PC. L’overlay ne va en ligne que lorsque tu appuies sur ses boutons de mise à jour.</span></li>
+        <li><svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="5.6"/><path d="M4 12 12 4"/></svg><span data-i18n="ov.priv.3">Rien de ton jeu n’est envoyé : tout est calculé sur ton PC. L’overlay ne va en ligne que lorsque tu appuies sur un de ses boutons (mise à jour, Npcap).</span></li>
         <li><svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="5.6"/><path d="M4 12 12 4"/></svg><span data-i18n="ov.priv.4">Le jeu n’est pas touché : aucune injection, ni le client ni ses fichiers ne sont modifiés, et sa mémoire n’est pas lue.</span></li>
       </ul>
     </div>
@@ -232,9 +234,9 @@
         <h2 id="install-h" data-i18n="ov.inst.h">Installer et premier lancement</h2>
         <ol class="steps small">
           <li><span class="step-n" aria-hidden="true">1</span><div><h3 data-i18n="ov.inst.1">Télécharge SPAM Overlay</h3><p id="inst-1t" data-i18n="ov.inst.1t.soon">Un seul téléchargement, pour Windows, dès sa sortie.</p></div></li>
-          <li><span class="step-n" aria-hidden="true">2</span><div><h3 data-i18n="ov.inst.2">Ouvre-le : la configuration trouve ton jeu</h3><p id="inst-2t" data-i18n="ov.inst.2t.soon">Elle cherche dans tes bibliothèques Steam, puis prépare son moteur à partir de ta propre copie de SPAM, en priorité basse, en une à trois minutes. Le dossier du jeu est seulement lu, et rien n’est installé dans Windows.</p></div></li>
-          <li><span class="step-n" aria-hidden="true">3</span><div><h3 data-i18n="ov.inst.3">Lance SPAM</h3><p data-i18n="ov.inst.3t">L’overlay tourne en arrière-plan, près de l’horloge de Windows. Clic droit sur son icône pour les raccourcis, la configuration, l’aide et quitter.</p></div></li>
-          <li><span class="step-n" aria-hidden="true">4</span><div><h3 data-i18n="ov.inst.4">Entre en combat et survole une carte</h3><p data-i18n="ov.inst.4t">Les chances s’affichent autour de la carte.</p></div></li>
+          <li><span class="step-n" aria-hidden="true">2</span><div><h3 data-i18n="ov.inst.2">Ouvre-le : la configuration trouve ton jeu</h3><p id="inst-2t" data-i18n="ov.inst.2t.soon">Elle trouve SPAM dans tes bibliothèques Steam et prépare son moteur à partir de ta propre copie, en une à trois minutes. Le dossier du jeu est seulement lu et l’overlay n’installe rien dans Windows. Si Npcap manque, elle propose d’aller chercher l’installateur de Npcap.</p></div></li>
+          <li><span class="step-n" aria-hidden="true">3</span><div><h3 data-i18n="ov.inst.3">Lance SPAM</h3><p data-i18n="ov.inst.3t">L’overlay tourne en arrière-plan, près de l’horloge de Windows. Clic droit sur son icône pour ses réglages, la configuration et l’aide.</p></div></li>
+          <li><span class="step-n" aria-hidden="true">4</span><div><h3 data-i18n="ov.inst.4">Entre en combat</h3><p data-i18n="ov.inst.4t">Survole un de tes sorts : ses dégâts et les chances de mort s’affichent sur les cartes.</p></div></li>
         </ol>
         <!-- the download, in the state data/overlay-release.json puts it in (showcase.js sets body[data-dl]): loading, soon (no public
              release: a strip, no link), ready (the button, then the check-the-file details) or error (the file could not be read) -->
@@ -332,7 +334,7 @@
       <div class="sec-head row-head">
         <div>
           <h2 id="meta-h"><span data-i18n="ov.meta.h">Avant le combat : SPAM Meta</span></h2>
-          <p class="sec-lede" data-i18n="ov.meta.lede">Le site compagnon : les meilleurs decks du patch, la force de chaque carte, et les decks que tu peux monter avec tes cartes. Même simulateur, mêmes IA.</p>
+          <p class="sec-lede" data-i18n="ov.meta.lede">Le site compagnon : les meilleurs decks du patch, la force de chaque carte, et les decks que tu peux monter avec tes cartes. Même simulateur, même labo.</p>
         </div>
         <a class="btn" href="../#tiers"><span data-i18n="ov.meta.open">Ouvrir SPAM Meta</span></a>
       </div>
@@ -371,6 +373,6 @@
 
 <noscript><div class="wrap noscript"><p lang="fr">Cette page a besoin de JavaScript pour dessiner les cartes.</p><p lang="en">This page needs JavaScript to draw the cards.</p></div></noscript>
 
-<script type="module" src="js/showcase.js?v=47b1396378"></script>
+<script type="module" src="js/showcase.js?v=97c4732cce"></script>
 </body>
 </html>

@@ -178,6 +178,9 @@ main { display: block; }
 .feat > p { grid-area: p; color: var(--ink-2); }
 .sample { grid-area: s; align-self: start; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 12px; border-radius: 8px; background: var(--socket); box-shadow: var(--sunken); white-space: nowrap; }
 .sample.ol-voice { font-size: 16px; }
+/* a sample wider than a word (the danger alert): under the name, so the text keeps the row's full measure */
+.feat.s-under { grid-template-columns: minmax(0, 1fr); grid-template-areas: "t" "s" "p"; }
+.feat.s-under .sample { justify-self: start; margin: 4px 0; }
 kbd { display: inline-flex; align-items: center; height: 28px; padding: 0 8px; border-radius: 4px; background: var(--panel-hi); box-shadow: 0 2px 0 var(--socket); color: var(--ink); font: 700 14px/1 var(--text); white-space: nowrap; }
 
 /* the four headline features (damage, death, shop odds, win change): each a picture, then its name and two sentences, then what the
@@ -238,6 +241,13 @@ kbd { display: inline-flex; align-items: center; height: 28px; padding: 0 8px; b
 .steps p { color: var(--ink-2); }
 .steps.small { grid-template-columns: minmax(0, 1fr); gap: 16px; margin: 24px 0; }
 .steps.small h3 { font-size: 18px; margin: 12px 0 4px; }
+/* the AI behind the dot: two facts under the steps, each a measured figure in the display face (Title 22, under the section's
+   28 so the heading leads) over one Soft Lavender line, ruled like the feature rows; two columns from 1024px, a figure beside
+   its line under it */
+.ai-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 48px; margin: 48px 0 0; }
+.ai-facts > div { display: grid; gap: 8px; align-content: start; padding-top: 16px; border-top: 1px solid var(--line); }
+.ai-facts dt { font: 400 22px/1 var(--display); letter-spacing: .01em; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ai-facts dd { margin: 0; color: var(--ink-2); max-width: 44ch; text-wrap: pretty; }
 
 /* ---------------------------------------------------------------- privacy: four ruled lines at the reading measure; the first
    (what it reads) carries the eye, the three others (never) the cross */
@@ -273,7 +283,8 @@ kbd { display: inline-flex; align-items: center; height: 28px; padding: 0 8px; b
 .hero-note .ico { display: none; vertical-align: -3px; margin-right: 8px; }
 body[data-dl="soon"] .hero-note .i-soon, body[data-dl="error"] .hero-note .i-err { display: inline-block; }
 body[data-dl="loading"] .hero-note { visibility: hidden; }
-.hero-note .link { margin-left: 4px; font-weight: 700; }
+/* the link follows the note after its word space; when it wraps it starts flush left (no margin to indent it) */
+.hero-note .link { font-weight: 700; white-space: nowrap; }
 /* the download button: label, then the version and size after a hairline, on the one cyan face */
 .dl-btn { gap: 12px; }
 .dl-btn .dl-label { display: inline; }
@@ -342,6 +353,8 @@ body[data-dl="loading"] .hero-note { visibility: hidden; }
 .faq-q .ico { color: var(--muted); transition: transform var(--t-move) var(--curve); }
 .faq-q[aria-expanded="true"] .ico { transform: rotate(180deg); }
 .faq-a p { padding: 8px 0 8px; color: var(--ink-2); }
+/* a config line quoted in an answer: the hash socket's mono face, inline, on the Panel step (a fact, not a control) */
+.ov-code { padding: 0 4px; border-radius: 4px; background: var(--panel); color: var(--ink); font: 600 14px/1.5 ui-monospace, "Cascadia Mono", Consolas, monospace; overflow-wrap: anywhere; }
 
 /* ---------------------------------------------------------------- SPAM Meta previews */
 .meta-band { border-top: 1px solid var(--line); }
@@ -375,6 +388,9 @@ body[data-dl="loading"] .hero-note { visibility: hidden; }
 .mp-tier-c { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 0 4px 4px; }
 /* a mini card (cards.css .mc) that is not a control: art and element orb, no hover ring */
 .mp-mini { position: relative; display: block; width: 48px; aspect-ratio: 1432 / 2048; border: 2px solid var(--card-edge); border-radius: 6px; background: var(--card-edge); }
+/* the rest of a crowded tier: one mini-card-sized socket with the count, not a control (the panel is the link) */
+.mp-more { display: grid; place-items: center; width: 48px; aspect-ratio: 1432 / 2048; border-radius: 6px; background: var(--socket); box-shadow: var(--sunken);
+  color: var(--ink-2); font: 400 18px/1 var(--display); font-variant-numeric: tabular-nums; }
 .mp-mini img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 4px; display: block; }
 .mp-fig { font: 400 40px/1 var(--display); }
 .mp-err { margin-top: 16px; }
@@ -392,6 +408,9 @@ body[data-dl="loading"] .hero-note { visibility: hidden; }
   .dock { grid-area: 2 / 1; padding: 0 0 16px; }
   .flist { grid-template-columns: minmax(0, 1fr); }
   .steps { grid-template-columns: minmax(0, 1fr); }
+  .ai-facts { grid-template-columns: minmax(0, 1fr); margin-top: 32px; }
+  .ai-facts > div { grid-template-columns: 128px minmax(0, 1fr); gap: 16px; align-items: baseline; padding: 16px 0; }
+  .ai-facts > div:last-child { border-bottom: 1px solid var(--line); }
   .install { grid-template-columns: minmax(0, 1fr); }
   .meta-grid { grid-template-columns: minmax(0, 1fr); }
   .mp-decks { grid-row: auto; }
@@ -435,6 +454,11 @@ body[data-dl="loading"] .hero-note { visibility: hidden; }
   .dl-hash { grid-template-columns: minmax(0, 1fr); }
   .dl-hash .copy { justify-self: start; }
   .keys h3 { font-size: 18px; }
+  .ai-facts { margin-top: 24px; }
+  .ai-facts > div { grid-template-columns: 104px minmax(0, 1fr); gap: 12px; padding: 12px 0; }
+  .ai-facts dt { font-size: 18px; }
+  /* the step titles under the section heading: Control 18, as the install steps (the 22px h2 leads) */
+  .steps h3 { font-size: 18px; }
   .row-head { grid-template-columns: minmax(0, 1fr); }
   .row-head .btn { justify-self: start; }
   .keys dl > div { grid-template-columns: minmax(0, 1fr); gap: 4px; }

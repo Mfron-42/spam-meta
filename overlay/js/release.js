@@ -3,7 +3,7 @@
 // loads it through loadRelease(), and tools/check_overlay_release.mjs runs validateRelease() on the file before a publish
 // (SPEC.md, section 5, "Overlay release record").
 
-import { versioned } from "../../js/version.js?v=47b1396378";
+import { versioned } from "../../js/version.js?v=97c4732cce";
 
 // "setup": the per-user installer (the recommended download); "zip": the portable package (no installation).
 export const SETUP_KINDS = ["setup", "zip"];

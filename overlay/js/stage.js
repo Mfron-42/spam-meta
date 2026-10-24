@@ -1,6 +1,6 @@
-// The hero stage of the overlay page: two rows of real game cards (the top two visible decks of the Deck tier list) with the
-// overlay drawn on them as the live overlay (0.1.5) draws it in the game: a clear, quiet layer. At rest only the win chance
-// readout, centred just above the END TURN button, and ONE cyan dot on the line of the spell the overlay suggests (or beside
+// The hero stage of the overlay page: two rows of real game cards (the top two decks of the Deck tier list) with the overlay
+// drawn on them as the live overlay (0.1.19) draws it in the game: a clear, quiet layer. At rest only the win chance readout
+// ("~58%"), centred just above the END TURN button, and ONE cyan dot on the line of the spell the AI would cast (or beside
 // the end-turn button when ending the turn is the best move). Hovering that spell line moves the dot to the best target, which
 // shows its death chance (a skull and a figure) and the damage the spell deals (a red range under a down triangle).
 // Every figure here is made up and the stage says so ("Illustration, made-up numbers").
@@ -12,9 +12,9 @@
 // mark stays in the page and only its opacity changes. The loop runs only while the stage is on screen and the tab is
 // visible, stops on the pause button, and never starts with reduced motion (the stage then holds one informative frame).
 
-import { t } from "../../js/i18n.js?v=47b1396378";
-import { h, pct, reducedMotion } from "../../js/util.js?v=47b1396378";
-import { gameCard, L } from "../../js/cards.js?v=47b1396378";
+import { t } from "../../js/i18n.js?v=97c4732cce";
+import { h, pct, reducedMotion } from "../../js/util.js?v=97c4732cce";
+import { gameCard, L } from "../../js/cards.js?v=97c4732cce";
 
 const NOW = 0.58;
 const per = (p) => pct(p, 0);
@@ -135,7 +135,7 @@ export function createStage(stage, { onPlaying = () => {} } = {}) {
     if (!m) return;
     marks.out.querySelector(".fate").replaceChildren(glyph("skull"), h("b", per(m.kill)));
     marks.out.querySelector(".dmg").replaceChildren(h("span.lost", ["▾ ", h("b", `${m.lo}–${m.hi}`)]));
-    $("g-now").textContent = per(NOW);
+    $("g-now").textContent = "~" + per(NOW);        // the readout's hedge since overlay 0.1.14: one figure, "~" before it
     $("hud-end").textContent = t("ov.stage.end");
     if (cur) show(cur);
     // the card faces were built in the previous language: rebuilt by the page's relabel (showcase.js), the spell line moves with them

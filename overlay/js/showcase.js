@@ -2,15 +2,16 @@
 // own modules (store, i18n, data, cards), so it draws the same game cards from the same data, speaks the same two languages
 // and shares the visitor's language choice with SPAM Meta. Its strings are the "ov." keys of js/i18n.js.
 
-import { setLang, langChosen, on, getLang } from "../../js/store.js?v=47b1396378";
-import { t, applyStatic } from "../../js/i18n.js?v=47b1396378";
-import { h, pct, pct1, icon } from "../../js/util.js?v=47b1396378";
-import { DB, loadCore, loadTier, loadCardTiers } from "../../js/data.js?v=47b1396378";
-import { gameCard, cardName } from "../../js/cards.js?v=47b1396378";
-import { ambient } from "../../js/ambient.js?v=47b1396378";
-import { copyText, disclosure } from "../../js/ui.js?v=47b1396378";
-import { createStage } from "./stage.js?v=47b1396378";
-import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=47b1396378";
+import { setLang, langChosen, on, getLang } from "../../js/store.js?v=97c4732cce";
+import { t, tx, applyStatic } from "../../js/i18n.js?v=97c4732cce";
+import { h, pct, pct1, dec, icon } from "../../js/util.js?v=97c4732cce";
+import { DB, loadCore, loadRanking, loadCardTiers } from "../../js/data.js?v=97c4732cce";
+import { gameCard, cardName } from "../../js/cards.js?v=97c4732cce";
+import { GAME_PATCH, DECK_RANKING_SHOWN, CARD_TIERS_SHOWN } from "../../js/patch.js?v=97c4732cce";
+import { ambient } from "../../js/ambient.js?v=97c4732cce";
+import { copyText, disclosure } from "../../js/ui.js?v=97c4732cce";
+import { createStage } from "./stage.js?v=97c4732cce";
+import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=97c4732cce";
 
 // The overlay's own display: four crops of the real renderer's output over a stand-in board with made-up figures (tools/overlay_media/:
 // shoot.js drives the overlay build's UX harness, crop.py writes these files), so every one is a composite and carries
@@ -24,7 +25,22 @@ const MEDIA = {
 };
 const mediaUrl = (name, w) => new URL(`../media/${name}-${w}.webp`, import.meta.url).href;
 
+// The AI the published overlay plays with, and its measured figures: the one place the page names them (step 3 and the facts of
+// "How it works", two FAQ answers). Sources, to re-read at every overlay release that changes the AI or its search:
+// spam-overlay SPEC.md 6.33 and its release notes (overlay 0.1.19: the default stack v3s9, `ai_pick` full by default);
+// spam-lab ai/weights/BEST_AI.md (v3s9 is the lab's current best AI; the full search against the fast one, m=8 n=64 against m=4
+// n=16, read 0.541 head to head on an earlier generation, v3s5 against v3s4); spam-lab overlay/contract.md 4.1 (first move with
+// v3s9 full, 186 decisions of the owner's 1.26 matches on his PC under a lab ranking holding every thread: p50 259 ms, p90 477 ms;
+// `fast` about 0.15 s sooner). No gain of v3s9 over v3s8 is quoted: BEST_AI.md's +0.038 was read against an exact champion that
+// aimed its own cards (the AI PC's CHANGELOG entry of 2026-10-24 15:03: fair yardstick 0.607 instead of 0.784); quote one only
+// once the lab publishes the fair re-read. The game patch is the site's (patch.js).
+const AI = { name: "v3s9", firstS: 0.26, p90S: 0.48, fastSoonerS: 0.15, fullShare: 54, fullGen: "v3s5", fastGen: "v3s4" };
+const secs = (s) => `${dec(s, 2)}\u00a0s`;
+const aiParams = () => ({ ai: AI.name, p90: secs(AI.p90S), sooner: secs(AI.fastSoonerS), share: AI.fullShare,
+  newer: AI.fullGen, older: AI.fastGen });
+
 const FAQ = [1, 2, 3, 4, 5, 6, 7, 8];
+const FAQ_P = new Set([2, 4]);     // the answers that quote the AI (aiParams; data-i18n-p, as step 3 of "How it works")
 const ROOT = new URL("../../", import.meta.url);
 const thumb = (key) => new URL(`assets/thumbs/s/${key}.webp`, ROOT).href;
 
@@ -159,7 +175,8 @@ for (const n of FAQ) {
   const id = `faq-a${n}`;
   const btn = h("button.faq-q", { type: "button", "aria-expanded": "false", "aria-controls": id },
     [h("span", { "data-i18n": `ov.faq.q${n}` }), icon("chevron", 16)]);
-  const ans = h("div.collapse.faq-a", { id, role: "region", "aria-labelledby": `faq-q${n}` }, h("div.collapse-in", h("p", { "data-i18n": `ov.faq.a${n}${n === 5 ? ".soon" : ""}` })));
+  const ans = h("div.collapse.faq-a", { id, role: "region", "aria-labelledby": `faq-q${n}` },
+    h("div.collapse-in", h("p", FAQ_P.has(n) ? { "data-i18n-p": `ov.faq.a${n}` } : { "data-i18n": `ov.faq.a${n}${n === 5 ? ".soon" : ""}` })));
   btn.id = `faq-q${n}`;
   btn.addEventListener("click", () => {
     const open = btn.getAttribute("aria-expanded") !== "true";
@@ -316,45 +333,77 @@ function picture() {
   return svg;
 }
 
-// ---- the SPAM Meta previews: the first visible decks of the Deck tier list, the top of the Card tier list, the Codex
-let tier = null, cardTiers = null;
-const visible = (d) => Array.isArray(d.cards) && !d.withheld && !d.secret;
+// ---- the SPAM Meta previews: the first decks of the Deck tier list (the deck ranking of the game patch, ranking.json), the top
+// of the Card tier list (cardtiers.json), the Codex. Each preview follows the site's own switch (patch.js): a ranking the site
+// does not show is not previewed here either.
+let ranking = null, cardTiers = null;
+const visible = (d) => Array.isArray(d.cards) && d.cards.length === 4 && !d.withheld && !d.secret;
+// the Card tier list's one view (since 2026-10-24): each card's tier and rank by the best decks it plays in (cardtiers.json rows
+// `tier`, `rank`); a tier shows at most CARD_ROW cells, its first cards by rank and a "+N" cell for the rest, so a crowded tier
+// keeps the panel short
+const CARD_ROW = 4;
+/** A deck's headline, as the Deck tier list reads it: its win rate against the rest of the top 30 once the export carries it
+ *  (`vs_top30`), else its win rate in the final against the benchmark decks (`score`). */
+const headline = (d) => (d.vs_top30
+  ? { rate: d.vs_top30.win_rate, games: d.vs_top30.games, key: "ov.meta.vsTop30" }
+  : { rate: d.score, games: d.games, key: "ov.meta.final" });
 
 function drawMeta() {
-  if (!tier) return;
-  document.getElementById("mp-decks-t").textContent = t("ov.meta.decksT", { patch: tier.patch });
-  const decks = tier.decks.filter(visible).slice(0, 3);
-  // ranks above the first one shown are withheld or secret on SPAM Meta: say so, never leave "#2" unexplained
-  const hiddenAbove = decks.length ? tier.decks.filter((d) => d.rank < decks[0].rank).length : 0;
-  const note = document.getElementById("mp-decks-hidden");
-  note.hidden = !hiddenAbove;
-  note.textContent = hiddenAbove ? t("ov.meta.hidden", { n: hiddenAbove }) : "";
-  document.getElementById("mp-decks").replaceChildren(...decks.map((d) => {
-    const m = d.vs_top || { win_rate: d.win_rate, games: d.games };
-    const cards = d.cards.map((id) => DB.byId.get(id)).filter(Boolean);
-    return h("div.mp-deck", [
-      h("span.mp-rank", t("ov.meta.rank", { n: d.rank })),
-      h("div.mp-cards", cards.map((c) => gameCard(c, { size: "list", interactive: false }))),
-      h("div.mp-stat", [h("b", pct1(m.win_rate)), h("span", t("ov.meta.vsTop", { games: m.games }))]),
-    ]);
-  }));
+  if (!DB.cards.length) return;      // the skeletons stay until the card data is in
+  const off = t("ov.meta.off");
+  const decksT = document.getElementById("mp-decks-t");
+  if (!DECK_RANKING_SHOWN) {
+    decksT.textContent = off;
+    document.getElementById("mp-decks").replaceChildren();
+  } else if (ranking) {
+    decksT.textContent = t(ranking.final ? "ov.meta.decksTf" : "ov.meta.decksT", { patch: ranking.patch });
+    const list = ranking.by_score.decks;
+    const decks = list.filter(visible).slice(0, 3);
+    // ranks above the first one shown are withheld or secret on SPAM Meta: say so, never leave "#2" unexplained
+    const hiddenAbove = decks.length ? list.filter((d) => d.rank < decks[0].rank).length : 0;
+    const note = document.getElementById("mp-decks-hidden");
+    note.hidden = !hiddenAbove;
+    note.textContent = hiddenAbove ? t("ov.meta.hidden", { n: hiddenAbove }) : "";
+    document.getElementById("mp-decks").replaceChildren(...decks.map((d) => {
+      const m = headline(d);
+      return h("div.mp-deck", [
+        h("span.mp-rank", t("ov.meta.rank", { n: d.rank })),
+        h("div.mp-cards", d.cs.filter(Boolean).map((c) => gameCard(c, { size: "list", interactive: false }))),
+        h("div.mp-stat", [h("b", pct1(m.rate)), h("span", t(m.key, { games: m.games }))]),
+      ]);
+    }));
+  }
   document.getElementById("mp-codex-t").textContent = t("ov.meta.codexT", { n: DB.cards.length });
-  if (cardTiers) {
+  if (!CARD_TIERS_SHOWN) document.getElementById("mp-cards-t").textContent = off;
+  else if (cardTiers) {
     document.getElementById("mp-cards-t").textContent = t("ov.meta.cardsT", { patch: cardTiers.patch });
-    // a tier with no card draws no row (patch 1.26's competitive measurement has no S+ card)
+    // a tier with no card draws no row
     const rows = [["S+", "t-sp"], ["S", "t-s"]].map(([tierName, cls]) => {
-      const cards = cardTiers.cards.filter((r) => r.competitive && r.competitive.tier === tierName)
-        .sort((a, b) => a.competitive.rank - b.competitive.rank).map((r) => r.card);
+      const cards = cardTiers.cards.filter((r) => r.tier === tierName).sort((a, b) => a.rank - b.rank).map((r) => r.card);
+      const shown = cards.length > CARD_ROW ? cards.slice(0, CARD_ROW - 1) : cards, rest = cards.length - shown.length;
       return cards.length ? h("div.mp-tier", [
         h("span", { class: "mp-tier-l " + cls }, tierName),
-        h("div.mp-tier-c", cards.map((c) => h("span.mp-mini", { title: cardName(c) }, [
-          h("img", { loading: "lazy", decoding: "async", alt: cardName(c), width: 48, height: 69, src: thumb(c.key) }),
-          h("i", { class: "mc-orb sp-el-" + c.element }),
-        ]))),
+        h("div.mp-tier-c", [
+          ...shown.map((c) => h("span.mp-mini", { title: cardName(c) }, [
+            h("img", { loading: "lazy", decoding: "async", alt: cardName(c), width: 48, height: 69, src: thumb(c.key) }),
+            h("i", { class: "mc-orb sp-el-" + c.element }),
+          ])),
+          rest ? h("span.mp-more", { title: t("ov.meta.more", { n: rest, tier: tierName }) }, [
+            h("span", { "aria-hidden": "true" }, "+" + rest), h("span.sr", t("ov.meta.more", { n: rest, tier: tierName }))]) : null,
+        ]),
       ]) : null;
     });
     document.getElementById("mp-cards").replaceChildren(...rows.filter(Boolean));
   }
+}
+
+// ---- the AI behind the dot, two facts under "How it works", each a measured figure over its line: how soon its move shows, and
+// the game patch its engine is built for (the site's game patch: the engine follows the visitor's own copy). Its name is in step 3.
+function drawAI(p) {
+  document.getElementById("ai-time").textContent = secs(AI.firstS);
+  document.getElementById("ai-speed").textContent = t("ov.ai.speed", p);
+  document.getElementById("ai-patch").textContent = t("ov.ai.patchV", { patch: GAME_PATCH.patch });
+  document.getElementById("ai-patchT").textContent = t("ov.ai.patch", p);
 }
 
 // ---- every text of the page, in the current language
@@ -364,7 +413,14 @@ function paint() {
   document.querySelector('meta[name="description"]').setAttribute("content", t("ov.docDesc"));
   for (const b of seg.querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.v === getLang()));
   applyStatic();
-  for (const el of document.querySelectorAll("[data-num]")) el.textContent = pct(Number(el.dataset.num), 0);
+  const p = aiParams();
+  // the FAQ answers that quote the AI; the config line is code, never translated
+  const code = (s) => h("code.ov-code", { translate: "no" }, s);
+  for (const el of document.querySelectorAll("[data-i18n-p]")) {
+    el.replaceChildren(...tx(el.dataset.i18nP, { ...p, key: code('"ai_pick": "fast"'), file: code("data\\config.local.json") }));
+  }
+  drawAI(p);
+  for (const el of document.querySelectorAll("[data-num]")) el.textContent = (el.dataset.hedge || "") + pct(Number(el.dataset.num), 0);
   for (const el of document.querySelectorAll("[data-dlt]")) { const d = Number(el.dataset.dlt); el.textContent = (d > 0 ? "+" : d < 0 ? "−" : "") + Math.abs(d); }
   faqMoreLabel();
   subnavEdges();
@@ -388,11 +444,13 @@ loadDownload();
 (async () => {
   try {
     await loadCore();
-    tier = await loadTier();
-    const decks = tier.decks.filter(visible).slice(0, 2).map((d) => d.cards.map((id) => DB.byId.get(id)));
+    // the stage draws the first two decks of the deck ranking (an illustration: any two real decks would do, these are the ones
+    // SPAM Meta leads with); the previews below read the same file
+    ranking = await loadRanking();
+    const decks = ranking.by_score.decks.filter(visible).slice(0, 2).map((d) => d.cs);
     if (decks.length === 2 && decks.every((d) => d.length === 4 && d.every(Boolean))) stage.fill(decks[0], decks[1]);
     else stage.fail();
-    cardTiers = await loadCardTiers().catch(() => null);
+    cardTiers = CARD_TIERS_SHOWN ? await loadCardTiers().catch(() => null) : null;
     paint();
   } catch (e) {
     console.error(e);
