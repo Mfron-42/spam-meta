@@ -2,16 +2,16 @@
 // own modules (store, i18n, data, cards), so it draws the same game cards from the same data, speaks the same two languages
 // and shares the visitor's language choice with SPAM Meta. Its strings are the "ov." keys of js/i18n.js.
 
-import { setLang, langChosen, on, getLang } from "../../js/store.js?v=97c4732cce";
-import { t, tx, applyStatic } from "../../js/i18n.js?v=97c4732cce";
-import { h, pct, pct1, dec, icon } from "../../js/util.js?v=97c4732cce";
-import { DB, loadCore, loadRanking, loadCardTiers } from "../../js/data.js?v=97c4732cce";
-import { gameCard, cardName } from "../../js/cards.js?v=97c4732cce";
-import { GAME_PATCH, DECK_RANKING_SHOWN, CARD_TIERS_SHOWN } from "../../js/patch.js?v=97c4732cce";
-import { ambient } from "../../js/ambient.js?v=97c4732cce";
-import { copyText, disclosure } from "../../js/ui.js?v=97c4732cce";
-import { createStage } from "./stage.js?v=97c4732cce";
-import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=97c4732cce";
+import { setLang, langChosen, on, getLang } from "../../js/store.js?v=ba926b596d";
+import { t, tx, applyStatic } from "../../js/i18n.js?v=ba926b596d";
+import { h, pct, pct1, dec, icon } from "../../js/util.js?v=ba926b596d";
+import { DB, loadCore, loadRanking, loadCardTiers } from "../../js/data.js?v=ba926b596d";
+import { gameCard, cardName } from "../../js/cards.js?v=ba926b596d";
+import { GAME_PATCH, DECK_RANKING_SHOWN, CARD_TIERS_SHOWN } from "../../js/patch.js?v=ba926b596d";
+import { ambient } from "../../js/ambient.js?v=ba926b596d";
+import { copyText, disclosure } from "../../js/ui.js?v=ba926b596d";
+import { createStage } from "./stage.js?v=ba926b596d";
+import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=ba926b596d";
 
 // The overlay's own display: four crops of the real renderer's output over a stand-in board with made-up figures (tools/overlay_media/:
 // shoot.js drives the overlay build's UX harness, crop.py writes these files), so every one is a composite and carries
@@ -34,10 +34,10 @@ const mediaUrl = (name, w) => new URL(`../media/${name}-${w}.webp`, import.meta.
 // `fast` about 0.15 s sooner). No gain of v3s9 over v3s8 is quoted: BEST_AI.md's +0.038 was read against an exact champion that
 // aimed its own cards (the AI PC's CHANGELOG entry of 2026-10-24 15:03: fair yardstick 0.607 instead of 0.784); quote one only
 // once the lab publishes the fair re-read. The game patch is the site's (patch.js).
-const AI = { name: "v3s9", firstS: 0.26, p90S: 0.48, fastSoonerS: 0.15, fullShare: 54, fullGen: "v3s5", fastGen: "v3s4" };
+const AI = { name: "v3s9", firstS: 0.26, p90S: 0.48, fastSoonerS: 0.15, fullShare: 54 };
 const secs = (s) => `${dec(s, 2)}\u00a0s`;
-const aiParams = () => ({ ai: AI.name, p90: secs(AI.p90S), sooner: secs(AI.fastSoonerS), share: AI.fullShare,
-  newer: AI.fullGen, older: AI.fastGen });
+const aiParams = () => ({ ai: AI.name, first: secs(AI.firstS), p90: secs(AI.p90S), sooner: secs(AI.fastSoonerS),
+  share: AI.fullShare });
 
 const FAQ = [1, 2, 3, 4, 5, 6, 7, 8];
 const FAQ_P = new Set([2, 4]);     // the answers that quote the AI (aiParams; data-i18n-p, as step 3 of "How it works")

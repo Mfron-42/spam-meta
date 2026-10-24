@@ -17,12 +17,12 @@
 
 <link rel="preload" href="../fonts/lilita-one-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../fonts/nunito-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="../data/cards.json?v=97c4732cce" as="fetch" crossorigin>
-<link rel="stylesheet" href="../css/base.css?v=97c4732cce">
-<link rel="stylesheet" href="../css/ambient.css?v=97c4732cce">
-<link rel="stylesheet" href="../css/cards.css?v=97c4732cce">
-<link rel="stylesheet" href="css/overlay.css?v=97c4732cce">
-<link rel="modulepreload" href="js/showcase.js?v=97c4732cce">
+<link rel="preload" href="../data/cards.json?v=ba926b596d" as="fetch" crossorigin>
+<link rel="stylesheet" href="../css/base.css?v=ba926b596d">
+<link rel="stylesheet" href="../css/ambient.css?v=ba926b596d">
+<link rel="stylesheet" href="../css/cards.css?v=ba926b596d">
+<link rel="stylesheet" href="css/overlay.css?v=ba926b596d">
+<link rel="modulepreload" href="js/showcase.js?v=ba926b596d">
 </head>
 <body class="ov" data-dl="loading">
 <a class="skip" href="#main" data-i18n="head.skip">Aller au contenu</a>
@@ -118,7 +118,7 @@
     <div class="wrap">
       <div class="sec-head">
         <h2 id="what-h" data-i18n="ov.what.h">Ce qu’il te montre avant ton clic</h2>
-        <p class="sec-lede" data-i18n="ov.what.lede">Survole un sort ou ouvre la boutique : les chiffres s’affichent sur les cartes. Ceux du moteur sont des estimations ; un ≈ marque les moins sûres.</p>
+        <p class="sec-lede" data-i18n="ov.what.lede">Survole un sort ou ouvre la boutique : les chiffres s’affichent sur les cartes.</p>
       </div>
 
       <!-- every picture is a composite of the overlay's own renderer on made-up figures (overlay/media/, showcase.js MEDIA): its frame opens the larger file -->
@@ -143,7 +143,7 @@
           <div class="shot-frame"></div>
           <div class="kf-text">
             <h3 data-i18n="ov.k.odds">Chances de rareté</h3>
-            <p data-i18n="ov.k.oddsT">Sous Relancer, la chance de chaque rareté au prochain tirage, à ton niveau de chance. Ces chiffres viennent de la boutique du jeu, pas du moteur.</p>
+            <p data-i18n="ov.k.oddsT">Sous Relancer, la chance de chaque rareté au prochain tirage, à ton niveau de chance.</p>
           </div>
           <figcaption><span data-i18n="ov.cap.odds">Prochain tirage : 52 % commune, 30 % rare, 13 % épique, 5 % légendaire.</span></figcaption>
         </figure>
@@ -151,12 +151,11 @@
           <div class="shot-frame"></div>
           <div class="kf-text">
             <h3 data-i18n="ov.k.win">Chaque choix, en points de victoire</h3>
-            <p data-i18n="ov.k.winT">Sur chaque tox, sous Relancer et près de Passer : ce que le choix change à ta chance de gagner, en points (wr, pour win rate). Rien pour un choix que le moteur n’a pas évalué.</p>
+            <p data-i18n="ov.k.winT">Sur chaque tox, sous Relancer et près de Passer : ce que le choix change à ta chance de gagner, en points (wr, pour win rate).</p>
           </div>
           <figcaption><span data-i18n="ov.cap.win">+3 et +7 wr sur deux tox (≈ : moins sûr), le point cyan sur le meilleur, −1 en passant.</span></figcaption>
         </figure>
       </div>
-      <p class="shots-legal" data-i18n="ov.shots.legal">Outil de fan non officiel. L’arène et les illustrations de cartes appartiennent à l’éditeur du jeu ; les images sont reconstituées à partir de l’affichage de l’overlay, avec des chiffres inventés, sans nom de joueur ni donnée de compte.</p>
 
       <div class="feats">
         <div class="fgroup wide">
@@ -204,12 +203,12 @@
       <h2 id="how-h" data-i18n="ov.how.h">Comment ça marche</h2>
       <ol class="steps">
         <li><span class="step-n" aria-hidden="true">1</span><div><h3 data-i18n="ov.how.1">Lance SPAM, puis l’overlay</h3><p data-i18n="ov.how.1t">Il se pose sur la fenêtre du jeu, en transparence.</p></div></li>
-        <li><span class="step-n" aria-hidden="true">2</span><div><h3 data-i18n="ov.how.2">Il lit la partie</h3><p data-i18n="ov.how.2t">Ce que le serveur du jeu envoie à ton jeu, en écoute passive sur ton PC (Npcap), ou la fenêtre du jeu quand ce n’est pas possible.</p></div></li>
-        <li><span class="step-n" aria-hidden="true">3</span><div><h3 data-i18n="ov.how.3">Notre meilleure IA choisit son coup</h3><p data-i18n-p="ov.how.3t">v3s9, la meilleure IA actuelle du labo, décide aussitôt ; des parties jouées jusqu’au bout sur ton PC vérifient ensuite chaque option. Alt+O masque tout.</p></div></li>
+        <li><span class="step-n" aria-hidden="true">2</span><div><h3 data-i18n="ov.how.2">Il lit la partie</h3><p data-i18n="ov.how.2t">Ce que le serveur du jeu envoie à ton jeu, lu en écoute passive sur ton PC.</p></div></li>
+        <li><span class="step-n" aria-hidden="true">3</span><div><h3 data-i18n="ov.how.3">Notre meilleure IA choisit son coup</h3><p data-i18n-p="ov.how.3t">v3s9, la meilleure IA actuelle du labo, décide aussitôt ; des parties jouées jusqu’au bout vérifient ensuite chaque option.</p></div></li>
       </ol>
       <dl class="ai-facts">
-        <div><dt id="ai-time">0,26 s</dt><dd id="ai-speed">Temps médian pour afficher son coup, sur notre PC de test chargé. 9 fois sur 10 en moins de 0,48 s.</dd></div>
-        <div><dt id="ai-patch">Patch 1.26</dt><dd id="ai-patchT">Son moteur est construit à partir de ta copie du jeu et reconstruit après chaque mise à jour.</dd></div>
+        <div><dt id="ai-time">0,26 s</dt><dd id="ai-speed">Temps médian pour afficher son coup.</dd></div>
+        <div><dt id="ai-patch">Patch 1.26</dt><dd id="ai-patchT">Son moteur est reconstruit à partir de ton jeu après chaque mise à jour.</dd></div>
       </dl>
     </div>
   </section>
@@ -234,7 +233,7 @@
         <h2 id="install-h" data-i18n="ov.inst.h">Installer et premier lancement</h2>
         <ol class="steps small">
           <li><span class="step-n" aria-hidden="true">1</span><div><h3 data-i18n="ov.inst.1">Télécharge SPAM Overlay</h3><p id="inst-1t" data-i18n="ov.inst.1t.soon">Un seul téléchargement, pour Windows, dès sa sortie.</p></div></li>
-          <li><span class="step-n" aria-hidden="true">2</span><div><h3 data-i18n="ov.inst.2">Ouvre-le : la configuration trouve ton jeu</h3><p id="inst-2t" data-i18n="ov.inst.2t.soon">Elle trouve SPAM dans tes bibliothèques Steam et prépare son moteur à partir de ta propre copie, en une à trois minutes. Le dossier du jeu est seulement lu et l’overlay n’installe rien dans Windows. Si Npcap manque, elle propose d’aller chercher l’installateur de Npcap.</p></div></li>
+          <li><span class="step-n" aria-hidden="true">2</span><div><h3 data-i18n="ov.inst.2">Ouvre-le : la configuration trouve ton jeu</h3><p id="inst-2t" data-i18n="ov.inst.2t.soon">Elle trouve SPAM dans tes bibliothèques Steam et prépare son moteur à partir de ta copie, en une à trois minutes, sans rien installer dans Windows. Si Npcap manque, elle propose d’aller chercher son installateur.</p></div></li>
           <li><span class="step-n" aria-hidden="true">3</span><div><h3 data-i18n="ov.inst.3">Lance SPAM</h3><p data-i18n="ov.inst.3t">L’overlay tourne en arrière-plan, près de l’horloge de Windows. Clic droit sur son icône pour ses réglages, la configuration et l’aide.</p></div></li>
           <li><span class="step-n" aria-hidden="true">4</span><div><h3 data-i18n="ov.inst.4">Entre en combat</h3><p data-i18n="ov.inst.4t">Survole un de tes sorts : ses dégâts et les chances de mort s’affichent sur les cartes.</p></div></li>
         </ol>
@@ -373,6 +372,6 @@
 
 <noscript><div class="wrap noscript"><p lang="fr">Cette page a besoin de JavaScript pour dessiner les cartes.</p><p lang="en">This page needs JavaScript to draw the cards.</p></div></noscript>
 
-<script type="module" src="js/showcase.js?v=97c4732cce"></script>
+<script type="module" src="js/showcase.js?v=ba926b596d"></script>
 </body>
 </html>

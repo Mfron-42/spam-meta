@@ -191,8 +191,7 @@ kbd { display: inline-flex; align-items: center; height: 28px; padding: 0 8px; b
 .kf-text { display: grid; gap: 4px; margin-top: 4px; }
 .kf-text h3 { font-size: 22px; text-wrap: balance; }
 .kf-text p { color: var(--ink-2); max-width: 60ch; text-wrap: pretty; }
-.shots-legal { margin-top: 24px; color: var(--muted); font: 600 14px/1.4 var(--text); max-width: 72ch; }
-.keyf + .shots-legal + .feats { margin-top: 48px; }
+.keyf + .feats { margin-top: 48px; }
 .shot { margin: 0; display: grid; gap: 8px; }
 .shot figcaption { color: var(--ink-2); font: 600 14px/1.4 var(--text); }
 .shot figcaption .tag { margin-right: 4px; vertical-align: 1px; }
@@ -439,7 +438,7 @@ body[data-dl="loading"] .hero-note { visibility: hidden; }
   .sample { flex: none; min-height: 36px; padding: 4px 8px; }
   .fgroup h3 { padding-bottom: 8px; }
   .keyf { grid-template-columns: minmax(0, 1fr); gap: 32px; }
-  .keyf + .shots-legal + .feats { margin-top: 32px; }
+  .keyf + .feats { margin-top: 32px; }
   .steps { margin-top: 16px; gap: 16px; }
   .priv { margin-top: 16px; }
   .keys-h { display: none; }
