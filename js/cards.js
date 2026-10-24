@@ -2,10 +2,10 @@
 // Cards are built like the game client builds them, from its own sprites (CSS classes sp-*), so the page carries no
 // per-card sprite <img>; only the art is an <img>, and it is lazy.
 
-import { h, icon, reEscape } from "./util.js?v=06961c2c19";
-import { DB } from "./data.js?v=06961c2c19";
-import { getLang, isOwned, setOwned } from "./store.js?v=06961c2c19";
-import { t } from "./i18n.js?v=06961c2c19";
+import { h, icon, reEscape } from "./util.js?v=5bd6bce7bc";
+import { DB } from "./data.js?v=5bd6bce7bc";
+import { getLang, isOwned, setOwned } from "./store.js?v=5bd6bce7bc";
+import { t } from "./i18n.js?v=5bd6bce7bc";
 
 // element and rarity ids in game order; their names are UI strings ("el.fire", "ra.common")
 export const ELEMENTS = ["fire", "water", "earth", "nature", "light", "shadow", "divine"];

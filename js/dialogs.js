@@ -3,17 +3,17 @@
 // drawn as a full-screen card view (card.css); its enter and exit (the card flying from its tile) are played by
 // cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, pct1, fmtDate, fmtInt } from "./util.js?v=06961c2c19";
-import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=06961c2c19";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=06961c2c19";
-import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=06961c2c19";
-import { encode, decode } from "./code.js?v=06961c2c19";
-import { copyText, disclosure } from "./ui.js?v=06961c2c19";
-import { t, tx, millions } from "./i18n.js?v=06961c2c19";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, gameSpan, medianRounds, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, GAME_PATCH } from "./patch.js?v=06961c2c19";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=06961c2c19";
-import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=06961c2c19";
-import { attachTilt } from "./cardtilt.js?v=06961c2c19";
+import { h, $, icon, reducedMotion, pct, pct1, fmtDate, fmtInt } from "./util.js?v=5bd6bce7bc";
+import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=5bd6bce7bc";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=5bd6bce7bc";
+import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=5bd6bce7bc";
+import { encode, decode } from "./code.js?v=5bd6bce7bc";
+import { copyText, disclosure } from "./ui.js?v=5bd6bce7bc";
+import { t, tx, millions } from "./i18n.js?v=5bd6bce7bc";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, gameSpan, medianRounds, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, GAME_PATCH } from "./patch.js?v=5bd6bce7bc";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=5bd6bce7bc";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=5bd6bce7bc";
+import { attachTilt } from "./cardtilt.js?v=5bd6bce7bc";
 
 let openDlg = null, pushed = false;
 

@@ -7,16 +7,16 @@
 // data/cardtiers.json (tools/export_cardtiers.py); every number on this page is that file's. No counter is shown per card.
 // A language change rebuilds the page from the same state (view, tab, filters, search).
 
-import { h, $, $$, icon, fmtInt, pct, pct1, reducedMotion } from "./util.js?v=06961c2c19";
-import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=06961c2c19";
-import { DB, loadCardTiers, loadRanking } from "./data.js?v=06961c2c19";
-import { on, getLang } from "./store.js?v=06961c2c19";
-import { cardName, otherName, chip, L, ELEMENTS, RARITIES, elName, raName } from "./cards.js?v=06961c2c19";
-import { disclosure, filterChip, setChip, cascade, band, segmented, CURVE } from "./ui.js?v=06961c2c19";
-import { t, tx } from "./i18n.js?v=06961c2c19";
-import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, provBanner, suggestedTalent, methodSection } from "./patch.js?v=06961c2c19";
-import { textNodes, hideTip } from "./cardtext.js?v=06961c2c19";
-import { deckStrip } from "./deckstrip.js?v=06961c2c19";
+import { h, $, $$, icon, fmtInt, pct, pct1, reducedMotion } from "./util.js?v=5bd6bce7bc";
+import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=5bd6bce7bc";
+import { DB, loadCardTiers, loadRanking } from "./data.js?v=5bd6bce7bc";
+import { on, getLang } from "./store.js?v=5bd6bce7bc";
+import { cardName, otherName, chip, L, ELEMENTS, RARITIES, elName, raName } from "./cards.js?v=5bd6bce7bc";
+import { disclosure, filterChip, setChip, cascade, band, segmented, CURVE } from "./ui.js?v=5bd6bce7bc";
+import { t, tx } from "./i18n.js?v=5bd6bce7bc";
+import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, provBanner, suggestedTalent, methodSection } from "./patch.js?v=5bd6bce7bc";
+import { textNodes, hideTip } from "./cardtext.js?v=5bd6bce7bc";
+import { deckStrip } from "./deckstrip.js?v=5bd6bce7bc";
 
 // a tier's class on the card tier scale; "out" is the row of the cards with no deck in the view
 const TC = { "S+": "sp", S: "s", A: "a", B: "b", C: "c", D: "d", E: "e", out: "out" };
@@ -63,6 +63,7 @@ function method() {
     h("ul.vinfo-l", [
       h("li", tx("ct.mTop30", { n: T.best, opp: T.top30.opponents })),
       h("li", tx("ct.mRace", { n: T.best, decks: fmtInt(T.decks.race), opp: T.race.opponents, k: Math.round(T.race.prior_games) })),
+      h("li", tx("ct.mFew", { n: T.best })),
       h("li", tx("ct.mTiers", { sp: sh[0], s: sh[1], a: sh[2], b: sh[3], c: sh[4], d: sh[5], e: sh[6] })),
       h("li", tx("ct.mOut", { n: out })),
       h("li", tx("ct.mReads")),

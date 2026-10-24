@@ -11,8 +11,8 @@
 // {one, other} chosen by Intl.PluralRules on the parameter `count`, else `n` (French: 0 to 1.99 are "one"). `**bold**` is honoured by tx()
 // only. French copy uses plain spaces before : ; ? ! - they become no-break spaces when the table loads.
 
-import { h, fmtInt, dec } from "./util.js?v=06961c2c19";
-import { getLang } from "./store.js?v=06961c2c19";
+import { h, fmtInt, dec } from "./util.js?v=5bd6bce7bc";
+import { getLang } from "./store.js?v=5bd6bce7bc";
 
 const EN = {
   // ---- document and header
@@ -276,7 +276,8 @@ const EN = {
   "ct.viewAria": "Rank the cards by",
   "ct.vTop30Tip": "The average win rate of its best top-30 decks against the other decks of the top 30",
   "ct.vRaceTip": "The average win rate of its best race decks against the benchmark decks",
-  "ct.mTop30": "**Top 30:** a card’s figure is the average win rate of its {n} best decks of the top 30 (all of them when it is in fewer), each deck’s win rate against the {opp} other decks of the top 30; 50% is the level of the top.",
+  "ct.mTop30": "**Top 30:** a card’s figure is the average win rate of its {n} best decks of the top 30, each deck’s win rate against the {opp} other decks of the top 30; 50% is the level of the top.",
+  "ct.mFew": "**Fewer than {n} decks:** a card with fewer than {n} decks counts its missing decks at the average (50% in Top 30, the race average in Race).",
   "ct.mRace": "**Race:** the average win rate of its {n} best decks among the {decks} decks that played the race, against the {opp} benchmark decks, race and final games together. Each record counts {k} extra games at the race average, so a lucky short record does not pass a finalist.",
   "ct.mTiers": "**Tiers,** in each view, by place among the cards it ranks: the best {sp} of the cards are S+, then {s} S, {a} A, {b} B, {c} C, {d} D and {e} E; cards with the same figure share a tier.",
   "ct.mOut": "**Not in the top 30:** {n} cards play in none of its decks; their race figure is shown with them. Every card played the race.",
@@ -958,7 +959,8 @@ const FR = {
   "ct.viewAria": "Classer les cartes par",
   "ct.vTop30Tip": "Le taux de victoire moyen de ses meilleurs decks du top 30 contre les autres decks du top 30",
   "ct.vRaceTip": "Le taux de victoire moyen de ses meilleurs decks de la course contre les decks de mesure",
-  "ct.mTop30": "**Top 30 :** le chiffre d’une carte est le taux de victoire moyen de ses {n} meilleurs decks du top 30 (tous quand elle est dans moins de decks), chaque deck jugé contre les {opp} autres decks du top 30 ; 50 % = le niveau du top.",
+  "ct.mTop30": "**Top 30 :** le chiffre d’une carte est le taux de victoire moyen de ses {n} meilleurs decks du top 30, chaque deck jugé contre les {opp} autres decks du top 30 ; 50 % = le niveau du top.",
+  "ct.mFew": "**Moins de {n} decks :** une carte dans moins de {n} decks compte ses decks manquants à la moyenne (50 % en Top 30, la moyenne de la course en Course).",
   "ct.mRace": "**Course :** le taux de victoire moyen de ses {n} meilleurs decks parmi les {decks} decks qui ont joué la course, contre les {opp} decks de mesure, parties de la course et de la finale ensemble. Chaque bilan compte {k} parties de plus à la moyenne de la course : un bilan court et chanceux ne passe pas devant un finaliste.",
   "ct.mTiers": "**Les tiers,** dans chaque vue, selon la place parmi les cartes classées : les {sp} meilleures sont S+, puis {s} S, {a} A, {b} B, {c} C, {d} D et {e} E ; deux cartes au même chiffre partagent le tier.",
   "ct.mOut": "**Hors du top 30 :** {n} cartes ne jouent dans aucun de ses decks ; leur chiffre de la course les accompagne. Toutes les cartes ont joué la course.",
