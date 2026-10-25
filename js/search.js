@@ -3,11 +3,11 @@
 // Matching is accent- and case-insensitive and every word must match ("chouette", "leviathan", "lames en"); a phrase in
 // double quotes must match as written. The field clears with its clear button or Escape.
 
-import { h, icon, norm, debounce } from "./util.js?v=1c78715fe5";
-import { DB } from "./data.js?v=1c78715fe5";
-import { chip } from "./cards.js?v=1c78715fe5";
-import { t, tx } from "./i18n.js?v=1c78715fe5";
-import { DECK_TABLE_SHOWN } from "./patch.js?v=1c78715fe5";
+import { h, icon, norm, debounce } from "./util.js?v=22136ba32f";
+import { DB } from "./data.js?v=22136ba32f";
+import { chip } from "./cards.js?v=22136ba32f";
+import { t, tx } from "./i18n.js?v=22136ba32f";
+import { DECK_TABLE_SHOWN } from "./patch.js?v=22136ba32f";
 
 /** The words of a query, normalised: `polychrome "en peine"` -> ["polychrome", "en peine"]. */
 export function terms(q) {

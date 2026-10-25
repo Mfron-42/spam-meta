@@ -8,9 +8,10 @@
 // noun). A bracket group whose text starts with a keyword ("[Taunt]", "[Cost 10 Fire]") becomes one chip without its
 // brackets; a bracket of numbers ("[30 to 50]") stays text. Card names are never touched. Tokens are cached per text.
 
-import { h } from "./util.js?v=1c78715fe5";
-import { DB } from "./data.js?v=1c78715fe5";
-import { getLang } from "./store.js?v=1c78715fe5";
+import { h } from "./util.js?v=22136ba32f";
+import { DB } from "./data.js?v=22136ba32f";
+import { getLang } from "./store.js?v=22136ba32f";
+import { chromeBottom } from "./ui.js?v=22136ba32f";
 
 // element words of the card texts, accent-free and lower case, singular and plural
 const EL_WORDS = {
@@ -170,11 +171,23 @@ export function cardText(text, { tips = true, marks = null, from = 0, to = null 
 /** cardText's nodes only (the common case). */
 export const textNodes = (text, opts) => cardText(text, opts).nodes;
 
-// ---------------------------------------------------------------- the keyword tooltip
-// One tooltip for the page, moved into the open <dialog> when the chip sits in one (a modal dialog is the top layer, and
-// the rest of the page is inert), placed above the chip (below when there is no room), kept inside the viewport and the
-// chip's dialog. Hover opens it on a mouse (and it stays while the pointer moves onto it); a tap or a click pins it
-// until the next tap elsewhere; keyboard focus opens it; Escape closes it (before the dialog).
+/**
+ * A button that explains itself with the page's tooltip, as a keyword chip does (the Deck tier list's figures, DESIGN.md "Deck
+ * figures"): `head` titles the tooltip, `desc` is its text and the button's description for a screen reader. `tag` is the
+ * button's h() tag ("button.rf"). Returns the button and its hidden description, to place side by side.
+ */
+export function tipButton(tag, head, kids, desc) {
+  const id = "tipd-" + ++descN;
+  return [h(tag + ".has-tip", { type: "button", "data-tip": head, "aria-describedby": id }, kids), h("span", { id, hidden: true }, desc)];
+}
+
+// ---------------------------------------------------------------- the page's tooltip
+// One tooltip for the page, for the keyword chips and the other self-explaining buttons (tipButton), moved into the open
+// <dialog> when the chip sits in one (a modal dialog is the top layer, and the rest of the page is inert), placed above the
+// chip (below when there is no room), kept inside the viewport, under the sticky header and toolbar (ui.js chromeBottom), and
+// inside the chip's dialog. Hover opens it on a mouse (and it stays while the pointer moves onto it); a tap or a click pins it
+// until the next tap elsewhere; keyboard focus opens it; Escape closes it (before the dialog); it goes when its chip scrolls
+// under the chrome or out of the view.
 // The tooltip is visual (aria-hidden): each chip carries its own hidden description, read with it by a screen reader.
 
 let tip = null, cur = null, pinned = false, raf = 0;
@@ -188,7 +201,8 @@ function place() {
   if (!cur || !cur.isConnected) { hideTip(); return; }
   const r = cur.getBoundingClientRect();
   const box = cur.closest("dialog, [role='dialog']");
-  const vb = { l: 0, t: 0, r: document.documentElement.clientWidth, b: innerHeight };
+  // in the page, the room starts under the sticky header and toolbar; a modal dialog covers them
+  const vb = { l: 0, t: cur.closest("dialog") ? 0 : chromeBottom(), r: document.documentElement.clientWidth, b: innerHeight };
   if (box) {
     const d = box.getBoundingClientRect();
     vb.l = Math.max(vb.l, d.left); vb.t = Math.max(vb.t, d.top); vb.r = Math.min(vb.r, d.right); vb.b = Math.min(vb.b, d.bottom);
@@ -206,10 +220,20 @@ function place() {
   tip.style.top = Math.round(top) + "px";
 }
 
+/** What a chip's tooltip says: a keyword's name and definition (keywords.json), or a tipButton's head and description. */
+function tipText(btn) {
+  if (btn.dataset.kw) {
+    const kw = matcher(getLang()).byId.get(btn.dataset.kw);
+    const desc = kw && kw["desc_" + getLang()];
+    return desc ? { head: kw["name_" + getLang()] || btn.textContent, desc } : null;
+  }
+  const d = document.getElementById(btn.getAttribute("aria-describedby"));
+  return d && d.textContent ? { head: btn.dataset.tip || "", desc: d.textContent } : null;
+}
+
 function showTip(btn, pin) {
-  const kw = matcher(getLang()).byId.get(btn.dataset.kw);
-  const desc = kw && kw["desc_" + getLang()];
-  if (!desc) return;
+  const x = tipText(btn);
+  if (!x) return;
   const t = tipEl();
   const host = btn.closest("dialog") || document.body;
   if (t.parentNode !== host) host.append(t);
@@ -217,8 +241,9 @@ function showTip(btn, pin) {
   cur = btn;
   pinned = pin;
   btn.classList.add("on");
-  t.firstChild.textContent = kw["name_" + getLang()] || btn.textContent;
-  t.lastChild.textContent = desc;
+  t.firstChild.textContent = x.head;
+  t.firstChild.hidden = !x.head;
+  t.lastChild.textContent = x.desc;
   t.lang = getLang();
   place();
   if (cur) t.classList.add("on");
@@ -235,7 +260,7 @@ export function hideTip() {
   return true;
 }
 
-const chipOf = (e) => (e.target instanceof Element ? e.target.closest(".kw.has-tip") : null);
+const chipOf = (e) => (e.target instanceof Element ? e.target.closest(".has-tip") : null);
 const inTip = (n) => !!(tip && n instanceof Node && tip.contains(n));
 
 // a mouse leaving the chip has 120ms to reach the tooltip (it can be hovered and its text selected, WCAG 1.4.13)

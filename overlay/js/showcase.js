@@ -2,16 +2,16 @@
 // own modules (store, i18n, data, cards), so it draws the same game cards from the same data, speaks the same two languages
 // and shares the visitor's language choice with SPAM Meta. Its strings are the "ov." keys of js/i18n.js.
 
-import { setLang, langChosen, on, getLang } from "../../js/store.js?v=1c78715fe5";
-import { t, tx, applyStatic } from "../../js/i18n.js?v=1c78715fe5";
-import { h, pct, pct1, dec, icon } from "../../js/util.js?v=1c78715fe5";
-import { DB, loadCore, loadRanking, loadCardTiers } from "../../js/data.js?v=1c78715fe5";
-import { gameCard, cardName } from "../../js/cards.js?v=1c78715fe5";
-import { GAME_PATCH, DECK_RANKING_SHOWN, CARD_TIERS_SHOWN } from "../../js/patch.js?v=1c78715fe5";
-import { ambient } from "../../js/ambient.js?v=1c78715fe5";
-import { copyText, disclosure } from "../../js/ui.js?v=1c78715fe5";
-import { createStage } from "./stage.js?v=1c78715fe5";
-import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=1c78715fe5";
+import { setLang, langChosen, on, getLang } from "../../js/store.js?v=22136ba32f";
+import { t, tx, applyStatic } from "../../js/i18n.js?v=22136ba32f";
+import { h, pct, pct1, dec, icon } from "../../js/util.js?v=22136ba32f";
+import { DB, loadCore, loadRanking, loadCardTiers } from "../../js/data.js?v=22136ba32f";
+import { gameCard, cardName } from "../../js/cards.js?v=22136ba32f";
+import { GAME_PATCH, DECK_RANKING_SHOWN, CARD_TIERS_SHOWN } from "../../js/patch.js?v=22136ba32f";
+import { ambient } from "../../js/ambient.js?v=22136ba32f";
+import { copyText, disclosure } from "../../js/ui.js?v=22136ba32f";
+import { createStage } from "./stage.js?v=22136ba32f";
+import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=22136ba32f";
 
 // The overlay's own display: four crops of the real renderer's output over a stand-in board with made-up figures (tools/overlay_media/:
 // shoot.js drives the overlay build's UX harness, crop.py writes these files), so every one is a composite and carries
@@ -342,11 +342,13 @@ const visible = (d) => Array.isArray(d.cards) && d.cards.length === 4 && !d.with
 // `tier`, `rank`); a tier shows at most CARD_ROW cells, its first cards by rank and a "+N" cell for the rest, so a crowded tier
 // keeps the panel short
 const CARD_ROW = 4;
-/** A deck's headline, as the Deck tier list reads it: its win rate against the rest of the top (the final round robin) once the
- *  export carries it (`vs_top`), else its win rate in the final against the benchmark decks (`score`). */
-const headline = (d) => (d.vs_top
-  ? { rate: d.vs_top.win_rate, games: d.vs_top.games, key: "ov.meta.vsTop", top: ranking.by_score.decks.length }
-  : { rate: d.score, games: d.games, key: "ov.meta.final" });
+/** The list the Deck tier list opens on (owner, 2026-10-25: the Tournament first and by default), else the Final list. */
+const firstList = () => (ranking.by_race && ranking.by_race.decks.length ? ranking.by_race : ranking.by_score);
+/** A deck's headline, as that list reads it: its Tournament win rate against the benchmark decks (`rate`), else its win rate in
+ *  the Final (`vs_top`), else its Qualifier score (an export without the Final). */
+const headline = (d) => (d.rate != null ? { rate: d.rate, games: d.games, key: "ov.meta.race" }
+  : d.vs_top ? { rate: d.vs_top.win_rate, games: d.vs_top.games, key: "ov.meta.final" }
+  : { rate: d.score, games: d.games, key: "ov.meta.qual" });
 
 function drawMeta() {
   if (!DB.cards.length) return;      // the skeletons stay until the card data is in
@@ -357,7 +359,7 @@ function drawMeta() {
     document.getElementById("mp-decks").replaceChildren();
   } else if (ranking) {
     decksT.textContent = t(ranking.final ? "ov.meta.decksTf" : "ov.meta.decksT", { patch: ranking.patch });
-    const list = ranking.by_score.decks;
+    const list = firstList().decks;
     const decks = list.filter(visible).slice(0, 3);
     // ranks above the first one shown are withheld or secret on SPAM Meta: say so, never leave "#2" unexplained
     const hiddenAbove = decks.length ? list.filter((d) => d.rank < decks[0].rank).length : 0;
@@ -369,7 +371,7 @@ function drawMeta() {
       return h("div.mp-deck", [
         h("span.mp-rank", t("ov.meta.rank", { n: d.rank })),
         h("div.mp-cards", d.cs.filter(Boolean).map((c) => gameCard(c, { size: "list", interactive: false }))),
-        h("div.mp-stat", [h("b", pct1(m.rate)), h("span", t(m.key, { games: m.games, top: m.top }))]),
+        h("div.mp-stat", [h("b", pct1(m.rate)), h("span", t(m.key, { games: m.games }))]),
       ]);
     }));
   }

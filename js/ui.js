@@ -1,7 +1,7 @@
 // Shared interface pieces: the disclosure (collapsible region), FLIP reordering, segmented control, filter chip, and the
 // small "go to a tab" helper used by the Owned <-> My decks links.
 
-import { h, icon, reducedMotion } from "./util.js?v=1c78715fe5";
+import { h, icon, reducedMotion } from "./util.js?v=22136ba32f";
 
 export const CURVE = "cubic-bezier(.4, 0, .2, 1)";
 
@@ -85,6 +85,25 @@ export function band(bar) {
   qs.forEach((m) => m.addEventListener("change", rearm));
   rearm();
   return bar;
+}
+
+/**
+ * The bottom edge, on screen, of the page's sticky chrome: the header, and a toolbar band while it is stuck under it (band()
+ * above). A floating layer (the page's tooltip, the Card tier list's card preview) keeps below it: never over the toolbar, never
+ * under it. A band that sits in the page is not chrome; a view that is not shown has no box and does not count.
+ */
+export function chromeBottom() {
+  let b = 0;
+  for (const el of document.querySelectorAll(".chrome, .band")) {
+    const r = el.getBoundingClientRect();
+    if (!r.height) continue;
+    if (el.classList.contains("band")) {
+      const cs = getComputedStyle(el);
+      if (cs.position !== "sticky" || r.top > (parseFloat(cs.top) || 0) + 1) continue;
+    }
+    b = Math.max(b, r.bottom);
+  }
+  return b;
 }
 
 /** Segmented control: sunken track, raised active segment. options: [[value, label]]. */

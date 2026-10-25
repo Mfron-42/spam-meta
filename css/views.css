@@ -39,6 +39,7 @@
   margin: 8px calc(-1 * var(--gut)) 0; padding: 8px var(--gut); }
 .rk-bar + .find { margin-top: 8px; }
 .rk-list .deck { scroll-margin-top: calc(var(--chrome-h) + 64px); }      /* a deck reached by Enter or a link clears the sort bar */
+.rk-sec .rk-list :is(button, a) { scroll-margin-top: 64px; }      /* so does a card or a figure reached by Tab (the page's scroll padding clears the header) */
 /* the ranked list (an ordered list, one deck per item) and its empty state when "Ready to play" leaves no deck */
 .rk-list { display: grid; margin-top: 8px; }
 .rk-empty { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 24px; max-width: none; color: var(--ink-2); }
@@ -177,38 +178,42 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 4px; 
 .deck-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; padding: 8px 8px 12px; }
 .slot { position: relative; min-width: 0; }
 .deck-facts { display: grid; gap: 16px; align-content: start; }
-/* a deck's facts, the one component of every deck row (decklist.js deckFacts, DESIGN.md "Deck facts"): big, on the Deck tier
-   list the active sort's number with no label (the Top 50 win rate with its bar, the race win rate, the rounds to win with their
-   unit), on My decks and the Deck builder the last completed round (the stage meter, its name in Title 22, the value in Headline
-   28, the margin); then the stage meter and the other results small, each its one-word name (Dusk Lavender 14) and its value
-   (Lilita 18 Soft Lavender); every value's basis is its title, so the cursor says there is more */
+/* a deck's facts on My decks and the Deck builder (decklist.js deckFacts, DESIGN.md "Deck facts"): the last completed stage big
+   (the stage meter, its name in Title 22, the value in Headline 28, the margin); then the other stages small, each its one-word
+   name (Dusk Lavender 14) and its value (Lilita 18 Soft Lavender); every value's basis is its title, so the cursor says there is
+   more. The Deck tier list's rows wear the three figures below in the same .dfacts box. */
 .dfacts { display: grid; gap: 8px; justify-items: start; align-content: start; padding-top: 8px; }
 .dr-fig { cursor: help; }
 .fig-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: 0; }
 .fig-line .meter { align-self: center; margin-right: 4px; }
-.ms-row { display: flex; align-items: flex-start; gap: 12px; }      /* the tier lists: the stage meter in its own column */
-.ms-row > .meter { flex: none; margin-top: 4px; }
-.ms-row > .ms { min-width: 0; }
 .fig-k { color: var(--ink-2); font: 400 22px/1 var(--display); letter-spacing: .01em; }
-.fig-pm, .fig-u { color: var(--muted); font: 600 14px/1 var(--text); }
-.fig-n { display: inline-flex; align-items: baseline; gap: 8px; white-space: nowrap; }
+.fig-pm { color: var(--muted); font: 600 14px/1 var(--text); }
 .ms { display: flex; flex-wrap: wrap; gap: 4px 24px; margin: 0; padding: 0; list-style: none; }
 .ms li { display: inline-flex; align-items: baseline; gap: 8px; margin: 0; white-space: nowrap; cursor: help; }
-.ms li.ms-u { gap: 4px; }      /* "18 rounds": the number and its unit read as one */
 @media (max-width: 640px) { .ms { display: grid; grid-template-columns: repeat(2, max-content); gap: 4px 24px; } }      /* pairs in two columns, no orphan */
 .ms-k { color: var(--muted); font: 600 14px/1.4 var(--text); }
 .ms-n { color: var(--ink-2); font: 400 18px/1 var(--display); letter-spacing: .01em; }
-/* the top-level bar (DESIGN.md "Top-level bar"): under the Top 50 number, a plot, not a control (the critique of 2026-10-24: the
-   sunken groove and its knob read as a slider): a 2px Line Indigo axis on one scale for every row (25% to 75%, decklist.js
-   BAR_AXIS), the 50% mark (the level of the top) a 2 x 16 Dusk Lavender upright across it, the margin a 4px Field Edge band on
-   the axis, the value an 8px Cream Lavender dot in front, ringed in Night so the mark stays visible beside it; 12px above it,
-   12px below (it belongs to the figure); nothing moves */
-.vt-bar { position: relative; display: block; width: 192px; height: 16px; margin: 12px 0; }
-.vt-bar::before { content: ""; position: absolute; left: 0; right: 0; top: 7px; height: 2px; border-radius: 4px; background: var(--line); }
-.vt-bar i { position: absolute; display: block; }
-.vt-band { top: 6px; height: 4px; left: calc(var(--lo) * 100%); width: calc((var(--hi) - var(--lo)) * 100%); border-radius: 4px; background: var(--edge); }
-.vt-mid { top: 0; bottom: 0; left: 50%; width: 2px; margin-left: -1px; background: var(--muted); }
-.vt-v { z-index: 1; top: 4px; width: 8px; height: 8px; left: calc(var(--v) * 100%); margin-left: -4px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 2px var(--night); }
+/* a ranked deck's three figures (decklist.js rankFigures, DESIGN.md "Deck figures"): Tournament, Final, Win speed in three equal
+   columns, the lists' order, so they line up on every card. Each is its name (Nunito 600 14 Dusk Lavender, the dotted underline
+   of a word that explains itself) over its value (Lilita 18 Soft Lavender; the active list's in Headline 28 Cream Lavender, its
+   unit Nunito 600 14 Dusk Lavender 4px after it); the values of a card share one baseline (the columns are subgrids of its two
+   rows). A figure the deck lacks keeps its column with a quiet state (Nunito 600 14 Dusk Lavender, two lines at most). Each is a
+   button, a socket chip with the 2px cyan ring under the pointer, while its tooltip is open and on keyboard focus (the keyword
+   chip's states, cards.css); the chip reaches 8px past its text at the sides and 4px above and below, outside the column, so
+   the text stays on the grid. */
+.rfig { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: auto auto; gap: 4px 24px; width: min(100%, 432px); }
+.rf { grid-row: span 2; justify-self: start; display: grid; grid-template-rows: subgrid; justify-items: start; min-width: 0; max-width: calc(100% + 16px); margin: -4px -8px; padding: 4px 8px; border: 0; border-radius: 8px;
+  background: none; color: var(--ink-2); font: inherit; text-align: left; cursor: pointer; transition: background var(--t-state) var(--curve), box-shadow var(--t-state) var(--curve); }
+.rf:hover, .rf.on, .rf:focus-visible { outline: none; background: var(--socket); box-shadow: var(--ring); }
+.rf-k { max-width: 100%; color: var(--muted); font: 600 14px/1.4 var(--text); white-space: nowrap; text-decoration: underline dotted var(--edge) 1.5px; text-underline-offset: 4px;
+  transition: text-decoration-color var(--t-state) var(--curve); }
+.rf:hover .rf-k, .rf.on .rf-k, .rf:focus-visible .rf-k { text-decoration-color: transparent; }
+.rf-n { align-self: baseline; max-width: 100%; white-space: nowrap; }
+.rf-v { font: 400 18px/1 var(--display); letter-spacing: .01em; }
+.rf.act { color: var(--ink); }
+.rf.act .rf-v { font-size: 28px; }
+.rf-u { color: var(--muted); font: 600 14px/1 var(--text); }
+.rf-s { display: block; color: var(--muted); font: 600 14px/1.15 var(--text); white-space: normal; text-wrap: balance; }
 .deck.spot .deck-body { grid-template-columns: minmax(0, 1fr); }
 .deck.spot .deck-facts { order: -1; }      /* the first deck's number above its four big cards, so it is read before the fold */
 .deck.spot .deck-cards { gap: 24px; padding: 12px 12px 16px; }

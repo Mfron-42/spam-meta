@@ -1,23 +1,24 @@
 // Card tier list tab: every card ranked in two views behind one switch (owner, 2026-10-24: "sort by top-30 win rate or by race
-// win rate, it is simpler"): Top 50 (named by the list's size, cardtiers.json `decks.top`), the average win rate of its best decks
-// of the final round robin against the other finalists there; Race, the average win rate
-// of its best race decks against the benchmark decks. Classic tier rows S+ to E plus the cards with no deck in the view; switching
-// the view slides the icons to their new rows. Hover, focus or tap previews a card: its tier, the view's figure big, the other
-// view's small, the strip of its decks (js/deckstrip.js); a click pins it with its talent and links to the card dialog. A Details
+// win rate, it is simpler"; the views named after the ranking's stages since 2026-10-25): Final (`top`: the Final's decks,
+// cardtiers.json `decks.top`), the average win rate of its best decks of the Final against the other decks there; Tournament
+// (`race`), the average win rate of its best Tournament decks against the benchmark decks. Classic tier rows S+ to E plus the
+// cards with no deck in the view; switching the view slides the icons to their new rows. Hover, focus or tap previews a card: its
+// tier, the view's figure big, the other view's small, the strip of its decks (js/deckstrip.js); a click pins it with its talent
+// and links to the card dialog; the open card keeps clear of the sticky toolbar (roomTop, follow). A Details
 // view lists every card in a sortable table. The method is in the footer's Method section (patch.js methodSection), not at the top. Data:
 // data/cardtiers.json (tools/export_cardtiers.py); every number on this page is that file's. No counter is shown per card.
 // A language change rebuilds the page from the same state (view, tab, filters, search).
 
-import { h, $, $$, icon, fmtInt, pct, pct1, reducedMotion } from "./util.js?v=1c78715fe5";
-import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=1c78715fe5";
-import { DB, loadCardTiers, loadRanking } from "./data.js?v=1c78715fe5";
-import { on, getLang } from "./store.js?v=1c78715fe5";
-import { cardName, otherName, chip, L, ELEMENTS, RARITIES, elName, raName } from "./cards.js?v=1c78715fe5";
-import { disclosure, filterChip, setChip, cascade, band, segmented, CURVE } from "./ui.js?v=1c78715fe5";
-import { t, tx } from "./i18n.js?v=1c78715fe5";
-import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, provBanner, suggestedTalent, methodSection } from "./patch.js?v=1c78715fe5";
-import { textNodes, hideTip } from "./cardtext.js?v=1c78715fe5";
-import { deckStrip } from "./deckstrip.js?v=1c78715fe5";
+import { h, $, $$, icon, fmtInt, pct, pct1, reducedMotion } from "./util.js?v=22136ba32f";
+import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=22136ba32f";
+import { DB, loadCardTiers, loadRanking } from "./data.js?v=22136ba32f";
+import { on, getLang } from "./store.js?v=22136ba32f";
+import { cardName, otherName, chip, L, ELEMENTS, RARITIES, elName, raName } from "./cards.js?v=22136ba32f";
+import { disclosure, filterChip, setChip, cascade, band, segmented, chromeBottom, CURVE } from "./ui.js?v=22136ba32f";
+import { t, tx } from "./i18n.js?v=22136ba32f";
+import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, provBanner, suggestedTalent, methodSection } from "./patch.js?v=22136ba32f";
+import { textNodes, hideTip } from "./cardtext.js?v=22136ba32f";
+import { deckStrip } from "./deckstrip.js?v=22136ba32f";
 
 // a tier's class on the card tier scale; "out" is the row of the cards with no deck in the view
 const TC = { "S+": "sp", S: "s", A: "a", B: "b", C: "c", D: "d", E: "e", out: "out" };
@@ -54,7 +55,8 @@ const tierOf = (x, v = S.view) => rec(x, v).tier || "out";
 const fig = (s) => (s == null ? "—" : pct1(s));
 const other = (v) => (v === "top" ? "race" : "top");
 const decksWord = (n, v) => t(v === "top" ? "ct.decksTop" : "ct.decksRace", { n, top: T.decks.top });
-// a view's one-word name ("Top 50", "Race") and the row of the cards it does not rank ("Not in the top 50", "Not in the race")
+// a view's one-word name ("Final", "Tournament") and the row of the cards it does not rank ("Not in the Final", "Not in the
+// Tournament")
 const viewName = (v) => t(VK[v], { n: T.decks.top });
 const outName = (v) => t(v === "top" ? "ct.outTop" : "ct.outRace", { n: T.decks.top });
 
@@ -128,10 +130,11 @@ function toolbar() {
     onclick: () => setTab(v),
     onkeydown: (e) => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { e.preventDefault(); setTab(S.tab === "list" ? "details" : "list", true); } },
   }, label));
-  return band(h("div.ct-bar", [
+  ui.bar = band(h("div.ct-bar", [
     ui.viewSeg.el,
     h("div.ct-bar-r", [ui.fbtn, h("div.seg.ct-tabs", { role: "tablist", "aria-label": t("ct.view") }, ui.tabs)]),
   ]));
+  return ui.bar;
 }
 
 function filtersRegion() {
@@ -203,7 +206,7 @@ function place() {
   rove(roving && roving.isConnected ? roving : ui.list.querySelector(".ct-ic"));
 }
 
-/** One view's words for a reader: "Top 50: tier S, 56.1%, 9 top-50 decks" or "Top 50: not in it". */
+/** One view's words for a reader: "Final: tier S, 56.1%, 9 Final decks" or "Final: not in it". */
 function viewWords(x, v) {
   const r = rec(x, v);
   return r.tier ? t("ct.sumT", { view: viewName(v), tier: r.tier, fig: fig(r.score), decks: decksWord(r.decks, v) }) : t("ct.sumNone", { view: viewName(v) });
@@ -387,7 +390,14 @@ function jumpToFirst() {
 
 // ---------------------------------------------------------------- the card preview (hover, focus, tap) and pinned card
 let cur = null, pinned = false, hoverT = 0, restoring = false;
+// where the open card was placed: its top from its icon's top, so it follows the icon when the page scrolls
+let anchor = { dy: 0 };
 const sheet = matchMedia("(max-width: 759px)");
+const M = 16;      // the card's air to the window's edges and the toolbar
+/** The top of the room the card may take on screen: under the header and the toolbar, wherever the toolbar sits (stuck under
+ * the header, or still in the page above the rows). The card never sits over the toolbar, nor under it. The phone's bottom
+ * sheet is a layer of its own over the page (the toolbar does not stick there): it only keeps clear of the header. */
+const roomTop = () => (sheet.matches ? chromeBottom() : Math.max(chromeBottom(), ui.bar ? ui.bar.getBoundingClientRect().bottom : 0));
 
 /**
  * The preview and the pinned card share one body: the header with the tier chip and its place; the view's figure big with its
@@ -418,8 +428,9 @@ function popContent(x, full) {
         : h("div.ct-pop-big.none", h("b", outName(v))),
       // the other view small, led by its tier chip: the two figures are measured against different decks, so the chip says
       // where the card stands there
+      // (its name leads the line, so its deck count does not repeat it)
       h("p.ct-pop-other", [h("span", viewName(o)), ro.tier ? tchip(ro.tier) : null,
-        ro.decks ? [h("b", fig(ro.score)), h("span", decksWord(ro.decks, o))] : h("span", outName(o))]),
+        ro.decks ? [h("b", fig(ro.score)), h("span", t("ct.decksN", { n: ro.decks }))] : h("span", outName(o))]),
     ]),
     // the strip of the view on screen, or, without a deck there, the strip of the view where the card plays, named
     r.decks ? h("div.ct-pop-st", deckStrip(r, v, T, { axis: true, key: true }))
@@ -467,22 +478,48 @@ function showPop(b, pin) {
   b.setAttribute("aria-expanded", String(pinned));
   b.classList.toggle("pinned", pinned);            // only a pinned icon is ringed (selected); a hover preview is not
   if (pinned) say(summary(x));
+  const room = roomTop();
+  // never taller than the room under the header and the toolbar (it scrolls inside when it has more)
+  pop.style.setProperty("--room", Math.round(innerHeight - room - 2 * M) + "px");
   if (sheet.matches) { pop.style.left = pop.style.top = ""; pop.classList.add("on"); return; }     // a bottom sheet on a phone, placed by the stylesheet
   const rc = b.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight;
-  const vw = document.documentElement.clientWidth, m = 16;
-  const left = Math.max(m, Math.min(rc.left + rc.width / 2 - pw / 2, vw - pw - m));
-  // below the card, else above it, else as low as it fits under the header (it scrolls inside when taller than the window)
-  const head = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--chrome-h")) || 64;
+  const vw = document.documentElement.clientWidth;
+  const left = Math.max(M, Math.min(rc.left + rc.width / 2 - pw / 2, vw - pw - M));
+  // below the card, else above it, else as low as it fits under the toolbar
   let top = rc.bottom + 12, oy = "0";
-  if (top + ph > innerHeight - m) {
-    if (rc.top - 12 - ph > head + m) { top = rc.top - 12 - ph; oy = "100%"; }
-    else top = Math.max(head + m, innerHeight - m - ph);
+  if (top + ph > innerHeight - M) {
+    if (rc.top - 12 - ph >= room + M) { top = rc.top - 12 - ph; oy = "100%"; }
+    else top = Math.max(room + M, innerHeight - M - ph);
   }
+  anchor = { dy: top - rc.top };
   pop.style.left = left + scrollX + "px";
   pop.style.top = top + scrollY + "px";
   pop.style.setProperty("--ox", (rc.left + rc.width / 2 - left) + "px");
   pop.style.setProperty("--oy", oy);
   pop.classList.add("on");
+}
+
+/**
+ * The page scrolls under an open card: it follows its icon, and never rides over the sticky toolbar nor slides under it: where
+ * the scroll would carry it into the toolbar it holds 16px under it while its icon slides by, and follows again on the way back.
+ * It goes once its icon is under the toolbar or off the window (nothing left to point at); focus inside it returns to the icon
+ * without scrolling. The phone's bottom sheet stays put and only keeps clear of the header. (The card paints under the toolbar,
+ * so a frame the scroll draws before this runs never shows it over the toolbar.)
+ */
+function follow() {
+  const pop = ui.pop;
+  if (!cur || !pop || !pop.classList.contains("on")) return;
+  // every read first, then the writes (no layout forced between them)
+  const room = roomTop(), rc = cur.getBoundingClientRect(), y = scrollY;
+  const top = Math.max(room + M, rc.top + anchor.dy);
+  if (!sheet.matches && (rc.bottom <= room || rc.top >= innerHeight)) {
+    const b = cur, inside = pop.contains(document.activeElement);
+    hidePop(true);
+    if (inside) { restoring = true; b.focus({ preventScroll: true }); restoring = false; }
+    return;
+  }
+  pop.style.setProperty("--room", Math.round(innerHeight - room - 2 * M) + "px");
+  if (!sheet.matches) pop.style.top = top + y + "px";
 }
 
 function summary(x) { return `${cardName(x.c)}. ${viewWords(x, S.view)} ${viewWords(x, other(S.view))}`; }
@@ -548,6 +585,8 @@ function wireOnce() {
     if (e.key === "Escape" && cur && !document.querySelector("dialog[open]")) { const b = cur; hidePop(true); refocus(b); }
   });
   addEventListener("resize", () => { if (!sheet.matches) hidePop(true); });
+  // in the scroll's own frame (before it is painted), so the card never shows a frame over the toolbar
+  addEventListener("scroll", follow, { passive: true });
 }
 
 // ---------------------------------------------------------------- details table

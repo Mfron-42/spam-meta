@@ -3,17 +3,17 @@
 // drawn as a full-screen card view (card.css); its enter and exit (the card flying from its tile) are played by
 // cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, pct1, fmtDate, fmtInt, softBreak } from "./util.js?v=1c78715fe5";
-import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=1c78715fe5";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=1c78715fe5";
-import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=1c78715fe5";
-import { encode, decode } from "./code.js?v=1c78715fe5";
-import { copyText, disclosure } from "./ui.js?v=1c78715fe5";
-import { t, tx, millions } from "./i18n.js?v=1c78715fe5";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, gameSpan, medianRounds, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, GAME_PATCH, isMatchupTalent, matchupMark } from "./patch.js?v=1c78715fe5";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=1c78715fe5";
-import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=1c78715fe5";
-import { attachTilt } from "./cardtilt.js?v=1c78715fe5";
+import { h, $, icon, reducedMotion, pct, pct1, fmtDate, fmtInt, softBreak } from "./util.js?v=22136ba32f";
+import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=22136ba32f";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=22136ba32f";
+import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=22136ba32f";
+import { encode, decode } from "./code.js?v=22136ba32f";
+import { copyText, disclosure } from "./ui.js?v=22136ba32f";
+import { t, tx, millions } from "./i18n.js?v=22136ba32f";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, gameSpan, medianRounds, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, GAME_PATCH, isMatchupTalent, matchupMark } from "./patch.js?v=22136ba32f";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=22136ba32f";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=22136ba32f";
+import { attachTilt } from "./cardtilt.js?v=22136ba32f";
 
 let openDlg = null, pushed = false;
 
@@ -425,7 +425,7 @@ function counterSection(c) {
 const TC = { "S+": "sp", S: "s", A: "a", B: "b", C: "c", D: "d", E: "e" };
 
 /**
- * The card's tier in both views of the Card tier list (data/cardtiers.json, one line each, Top first, the list's default): the
+ * The card's tier in both views of the Card tier list (data/cardtiers.json, one line each, the Final first, the list's default): the
  * tier chip, the view's one-word name, its figure (the average win rate of the card's best decks in that view) and its deck count;
  * a card with no deck in a view has the dash chip and "none". The place among the view's cards is the line's title.
  */
@@ -443,7 +443,8 @@ function cardTierRows(c, T) {
     return h("li.cd-ct", { title: tip }, [
       h("span.ct-tchip.tc-" + TC[x.tier], x.tier),
       h("span.cd-ct-v", name),
-      h("span", [h("b", pct1(x.score)), " ", t(v === "top" ? "ct.decksTop" : "ct.decksRace", { n: x.decks, top }), h("span.sr", t("ui.sep") + tip)]),
+      // the view's name is the line's second column, so its deck count does not repeat it
+      h("span", [h("b", pct1(x.score)), " ", t("ct.decksN", { n: x.decks }), h("span.sr", t("ui.sep") + tip)]),
     ]);
   });
 }
