@@ -1,7 +1,8 @@
 /* SPAM Meta: the Card tier list tab (js/cardtiers.js). Tier rows on the ground: the tier letter in its tier colour (the card
    tier scale of DESIGN.md) as the row's anchor, the card icons beside it, a hairline between rows, no panel and no socket;
-   the view switch (Top 50 | Race); the card preview and pinned card with the strip of the card's decks; the Details table. Every
-   class is prefixed ct-. */
+   the view switch (All games | Tournament | Final); the card preview and pinned card with the strip of the card's decks (All games:
+   its likely range, the tiers it spans, the rough-estimate notice, the average contribution); the Details table. Every class is
+   prefixed ct-. */
 
 .ct-head { margin-bottom: 0; }
 
@@ -77,6 +78,10 @@
 /* the 50% hairline, the level of the top: Dusk Lavender, so it reads on the socket (the anchor of every Top 50 figure) */
 .ct-st-mid { position: absolute; top: 0; bottom: 0; display: block; width: 1px; margin-left: -.5px; background: var(--muted); }
 .ct-st-h { position: absolute; bottom: 0; display: block; background: color-mix(in srgb, var(--ink-2) 38%, transparent); }
+/* All games: the likely range of the card's figure, a soft bar in its tier colour across the track's middle, under the marks, and
+   the figure itself on it, a short Cream Lavender tick (the bar belongs to the number printed above) */
+.ct-st-ci { position: absolute; top: 8px; bottom: 8px; display: block; min-width: 2px; border-radius: 4px; background: color-mix(in srgb, var(--tc) 60%, transparent); }
+.ct-st-f { position: absolute; z-index: 2; top: 6px; bottom: 6px; display: block; width: 2px; margin-left: -1px; border-radius: 4px; background: var(--ink); }
 .ct-st-d { position: absolute; z-index: 1; top: 3px; bottom: 3px; display: block; width: 2px; margin-left: -1px; border-radius: 4px; background: var(--tc); }
 .ct-st-d.cp { top: 13px; }
 .ct-st-ax { position: relative; display: flex; justify-content: space-between; color: var(--muted); font: 600 14px/1.2 var(--text); }
@@ -88,10 +93,14 @@
 .ct-st-k.cp { height: 6px; transform: translateY(4px); }
 .ct-st-k.mid { width: 1px; background: var(--muted); }
 .ct-st-k.h { width: 8px; height: 10px; border-radius: 0; background: color-mix(in srgb, var(--ink-2) 38%, transparent); transform: translateY(2px); }
+.ct-st-k.ci { position: relative; width: 16px; height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--tc) 60%, transparent); }
+.ct-st-k.ci::after { content: ""; position: absolute; left: 7px; top: -2px; bottom: -2px; width: 2px; border-radius: 4px; background: var(--ink); }
 .ct-c-where .ct-st, .ct-th-ax { max-width: 280px; }
 .ct-c-where .ct-st { height: 16px; }
 .ct-c-where .ct-st-d { top: 2px; bottom: 2px; }
 .ct-c-where .ct-st-d.cp { top: 9px; }
+.ct-c-where .ct-st-ci { top: 5px; bottom: 5px; }
+.ct-c-where .ct-st-f { top: 3px; bottom: 3px; }
 .ct-th-ax { display: block; margin-top: 4px; }
 
 /* ---------------------------------------------------------------- the card preview and pinned card */
@@ -114,7 +123,10 @@
 /* the tier, large, at the end of the header: the first thing the eye reads after the name */
 .ct-pop-tier { display: grid; justify-items: center; gap: 4px; }
 .ct-pop-tier .ct-tchip { min-width: 44px; height: 36px; padding: 0 8px; border-radius: 8px; font-size: 22px; }
-.ct-pop-tier > span:last-child { color: var(--muted); font: 600 14px/1.2 var(--text); white-space: nowrap; }
+.ct-pop-tier > span:not(.ct-tchip) { color: var(--muted); font: 600 14px/1.2 var(--text); white-space: nowrap; }
+/* All games: the tiers the likely range spans ("likely D–S"), under the tier and its place (and under the Details chip) */
+.ct-pop-tier > .ct-span, .ct-span { color: var(--ink-2); }
+.ct-c-tier .ct-span { display: block; margin-top: 4px; white-space: nowrap; }
 .ct-pop-st { margin-top: 16px; }
 /* the view's figure big with its deck count beside it, the other view's figure small under it with its one-word name */
 .ct-pop-fig { display: grid; gap: 4px; margin-top: 16px; }
@@ -125,6 +137,25 @@
 .ct-pop-other b { color: var(--ink-2); font-weight: 700; }
 .ct-pop-other .ct-tchip { min-width: 24px; height: 20px; font-size: 14px; }
 .ct-pop-big.none b { color: var(--ink-2); font-size: 22px; }
+/* All games: the likely range right after the figure (Soft Lavender, one step above its basis, so it reads with the number), its
+   decks and games under them */
+.ct-pop-big .ct-pop-ci { color: var(--ink-2); white-space: nowrap; }
+.ct-pop-basis { color: var(--muted); font: 600 14px/1.3 var(--text); }
+/* the rough-estimate caveat: the data notice (base.css .dnote), where the figure is read */
+.ct-pop .ct-rough { margin-top: 12px; }
+/* the pinned card's average contribution (All games): a word that explains itself (the Deck tier list's figures, views.css .rf):
+   no box at rest, its name underlined in dots; a socket chip with the ring under the pointer, while its tooltip is open and on
+   keyboard focus; the chip reaches 8px past the text, so the text stays on the card's left edge */
+.ct-pop-add { margin-top: 12px; }
+.ct-add { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; max-width: calc(100% + 16px); margin: -4px -8px; padding: 4px 8px; border: 0; border-radius: 8px; background: none;
+  color: var(--muted); font: 600 14px/1.4 var(--text); text-align: left; cursor: pointer; transition: background var(--t-state) var(--curve), box-shadow var(--t-state) var(--curve); }
+.ct-add:hover, .ct-add.on, .ct-add:focus-visible { outline: none; background: var(--socket); box-shadow: var(--ring); }
+.ct-add-k { text-decoration: underline dotted var(--edge) 1.5px; text-underline-offset: 4px; transition: text-decoration-color var(--t-state) var(--curve); }
+.ct-add:hover .ct-add-k, .ct-add.on .ct-add-k, .ct-add:focus-visible .ct-add-k { text-decoration-color: transparent; }
+/* the contribution in points, signed: Win Green above an average card, Loss Red below (the number always printed), "pts" Dusk */
+.ct-add-v { color: var(--ink-2); font: 400 18px/1 var(--display); letter-spacing: .01em; }
+.ct-add-v.up { color: var(--win); } .ct-add-v.down { color: var(--loss); }
+.ct-add-u { color: var(--muted); font: 600 14px/1 var(--text); letter-spacing: 0; }
 .ct-pop-stv { margin-bottom: 4px; color: var(--muted); font: 600 14px/1.2 var(--text); }
 /* the last row's way out: its cards are all ranked in the race */
 /* a line of its own across the row, before the icons: a ghost button whose text lines up with them */
@@ -174,7 +205,16 @@
 .ct-fig { display: block; color: var(--ink); font: 400 18px/1.15 var(--display); }
 .ct-fig-n { color: var(--muted); font: 600 14px/1.3 var(--text); }
 .ct-cap b { color: var(--ink-2); font-weight: 700; }
-.ct-cap { display: block; color: var(--muted); }
+/* the other views' figures, on one line (wrapping by whole pairs) */
+.ct-cap { display: flex; flex-wrap: wrap; gap: 0 12px; color: var(--muted); }
+.ct-cap > span { white-space: nowrap; }
+/* All games: the likely range under the figure, and the rough-estimate caveat (the data notice's glyph and colour) */
+.ct-ci { display: block; color: var(--ink-2); white-space: nowrap; }
+.ct-rough-s { display: flex; align-items: center; gap: 4px; color: var(--muted); }
+.ct-rough-s .ico { flex: none; }
+/* the other views' line: "no deck" quiet, All games' rough-estimate glyph after its range */
+.ct-cap-none { color: var(--muted); }
+.ct-cap-rough { display: inline-grid; place-items: center; margin-left: 4px; vertical-align: -3px; color: var(--muted); }
 .ct-dt-empty { display: grid; justify-items: start; gap: 12px; padding: 24px 0; color: var(--ink-2); }
 
 /* ---------------------------------------------------------------- tablet and phone */

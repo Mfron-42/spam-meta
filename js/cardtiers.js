@@ -1,35 +1,45 @@
-// Card tier list tab: every card ranked in two views behind one switch (owner, 2026-10-24: "sort by top-30 win rate or by race
-// win rate, it is simpler"; the views named after the ranking's stages since 2026-10-25): Final (`top`: the Final's decks,
-// cardtiers.json `decks.top`), the average win rate of its best decks of the Final against the other decks there; Tournament
-// (`race`), the average win rate of its best Tournament decks against the benchmark decks. Classic tier rows S+ to E plus the
-// cards with no deck in the view; switching the view slides the icons to their new rows. Hover, focus or tap previews a card: its
-// tier, the view's figure big, the other view's small, the strip of its decks (js/deckstrip.js); a click pins it with its talent
-// and links to the card dialog; the open card keeps clear of the sticky toolbar (roomTop, follow). A Details
-// view lists every card in a sortable table. The method is in the footer's Method section (patch.js methodSection), not at the top. Data:
-// data/cardtiers.json (tools/export_cardtiers.py); every number on this page is that file's. No counter is shown per card.
+// Card tier list tab: every card ranked in up to three views behind one switch (owner, 2026-10-24: "sort by top-30 win rate or by
+// race win rate, it is simpler"; the views named after the ranking's stages since 2026-10-25; "every card judged", 2026-10-25):
+// All games (`all`, the default when cardtiers.json has it), the mean win rate of its 5 best decks against the benchmark decks,
+// read from every stored game of the patch, with its likely range (95%); Tournament (`race`), the average win rate of its best
+// Tournament decks against the benchmark decks; Final (`top`: the Final's decks, cardtiers.json `decks.top`), the average win rate
+// of its best decks of the Final against the other decks there. Classic tier rows S+ to E plus the cards with no deck in the view;
+// switching the view slides the icons to their new rows. Hover, focus or tap previews a card: its tier, the view's figure big (with
+// its range in All games, and a quiet "rough estimate" when only the fast AI played its best decks), the other views small, the
+// strip of its decks (js/deckstrip.js); a click pins it with its average contribution (All games), its talent and a link to the
+// card dialog; the open card keeps clear of the sticky toolbar (roomTop, follow). A Details view lists every card in a sortable
+// table. The method is in the footer's Method section (patch.js methodSection), not at the top. Data: data/cardtiers.json
+// (tools/export_cardtiers.py); every number on this page is that file's. No counter is shown per card.
 // A language change rebuilds the page from the same state (view, tab, filters, search).
 
-import { h, $, $$, icon, fmtInt, pct, pct1, reducedMotion } from "./util.js?v=48c0827afa";
-import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=48c0827afa";
-import { DB, loadCardTiers, loadRanking, loadFacets } from "./data.js?v=48c0827afa";
-import { on, getLang } from "./store.js?v=48c0827afa";
-import { cardName, otherName, chip, L, elName, raName } from "./cards.js?v=48c0827afa";
-import { disclosure, filterChip, setChip, cascade, band, segmented, chromeBottom, CURVE } from "./ui.js?v=48c0827afa";
-import { buildIndex, fromQuery, toQuery, passes as facetPasses, noFilter, filterCount } from "./facetmodel.js?v=48c0827afa";
-import { facetFilters, ownAddress, writeAddress, hashTab } from "./facets.js?v=48c0827afa";
-import { t, tx } from "./i18n.js?v=48c0827afa";
-import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, provBanner, suggestedTalent, methodSection } from "./patch.js?v=48c0827afa";
-import { textNodes, hideTip } from "./cardtext.js?v=48c0827afa";
-import { deckStrip } from "./deckstrip.js?v=48c0827afa";
+import { h, $, $$, icon, fmtInt, pct, pct1, dec, reducedMotion } from "./util.js?v=41989ff170";
+import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=41989ff170";
+import { DB, loadCardTiers, loadRanking, loadFacets } from "./data.js?v=41989ff170";
+import { on, getLang } from "./store.js?v=41989ff170";
+import { cardName, otherName, chip, L, elName, raName } from "./cards.js?v=41989ff170";
+import { disclosure, filterChip, setChip, cascade, band, segmented, chromeBottom, CURVE } from "./ui.js?v=41989ff170";
+import { buildIndex, fromQuery, toQuery, passes as facetPasses, noFilter, filterCount } from "./facetmodel.js?v=41989ff170";
+import { facetFilters, ownAddress, writeAddress, hashTab } from "./facets.js?v=41989ff170";
+import { t, tx } from "./i18n.js?v=41989ff170";
+import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, provBanner, suggestedTalent, methodSection } from "./patch.js?v=41989ff170";
+import { textNodes, hideTip, tipButton } from "./cardtext.js?v=41989ff170";
+import { deckStrip } from "./deckstrip.js?v=41989ff170";
 
 // a tier's class on the card tier scale; "out" is the row of the cards with no deck in the view
 const TC = { "S+": "sp", S: "s", A: "a", B: "b", C: "c", D: "d", E: "e", out: "out" };
-const VIEWS = ["top", "race"];
-const VK = { top: "ct.vTop", race: "ct.vRace" };
+// the switch's order: every game of the patch first (the default, every card judged), then the ranking's two stages in the Deck
+// tier list's order; VIEWS keeps the ones cardtiers.json has (`views`)
+const ORDER = ["all", "race", "top"];
+let VIEWS = ORDER;
+const VK = { all: "ct.vAll", top: "ct.vTop", race: "ct.vRace" };
+const TIPK = { all: "ct.vAllTip", top: "ct.vTopTip", race: "ct.vRaceTip" };
+// a view's word in the address (#card-tiers/<word>, #card-tiers/<word>-details); the default view has none. "race" is kept for the
+// Tournament, so the links shared since 2026-10-24 still open it; #card-tiers alone, the Final's until 2026-10-25, opens the default
+const WORD = { all: "all", race: "race", top: "final" };
 const thumb = (c) => `assets/thumbs/s/${c.key}.webp`;
 
 let root, T, TIERS, rows = [];
-const S = { view: "top", tab: "list", q: "", tier: new Set(), sort: "score", filtersOpen: false };
+const S = { view: "all", tab: "list", q: "", tier: new Set(), sort: "score", filtersOpen: false };
 let ui = {};
 // the card filters, the Codex's own (facets.js): FS their state, IX the index of every card, F the component on the page
 let FS = null, IX = null, F = null;
@@ -41,16 +51,20 @@ export async function mount(el) {
   // ranking.json names the run and its AI in the banner
   [T] = await Promise.all([loadCardTiers(), loadRanking(), loadFacets()]);
   TIERS = T.tiers.concat(["out"]);
+  VIEWS = ORDER.filter((v) => T.views.includes(v));
   IX = buildIndex(DB.cards, DB.facets);
   // the filters live in the address while this tab is shown (?fx=temporality,reset#card-tiers), as on the Codex
   FS = fromQuery(hashTab() === "card-tiers" ? location.search : "", IX);
   S.q = FS.q;
   ownAddress("card-tiers", () => toQuery({ ...FS, q: S.q }, IX));
-  // the view and the tab live in the address: #card-tiers (top), #card-tiers/race, #card-tiers/details,
-  // #card-tiers/race-details; the addresses of earlier versions (competitive, all) open the default view
+  // the view and the tab live in the address: #card-tiers (the default view, All games), #card-tiers/race (Tournament),
+  // #card-tiers/final (Final), each with "-details" for the Details tab (#card-tiers/details for the default's); the addresses of
+  // earlier versions (competitive) open the default view
   const start = (location.hash.split("/")[0] === "#card-tiers" && location.hash.split("/")[1]) || "";
   // whole words only: a card key in the address (#card-tiers/<key>, a card view) never picks a view
-  S.view = /^race(-|$)/.test(start) ? "race" : T.default_view;
+  const w = /^(all|race|final)(?=-|$)/.exec(start);
+  const byWord = Object.fromEntries(Object.entries(WORD).map(([v, k]) => [k, v]));
+  S.view = w && VIEWS.includes(byWord[w[1]]) ? byWord[w[1]] : T.default_view;
   S.tab = /(^|-)details$/.test(start) ? "details" : "list";
   wireOnce();
   build();
@@ -63,27 +77,61 @@ export async function mount(el) {
 
 const rec = (x, v = S.view) => x.r[v];
 const tierOf = (x, v = S.view) => rec(x, v).tier || "out";
-const fig = (s) => (s == null ? "—" : pct1(s));
-const other = (v) => (v === "top" ? "race" : "top");
-const decksWord = (n, v) => t(v === "top" ? "ct.decksTop" : "ct.decksRace", { n, top: T.decks.top });
-// a view's one-word name ("Final", "Tournament") and the row of the cards it does not rank ("Not in the Final", "Not in the
-// Tournament")
+// All games prints whole percentages: its ranges are several points wide, so a decimal would claim a precision it does not have.
+// A small figure (another view's, beside the big one) is whole too, as the Deck tier list's (The Big Figure Rule)
+const fig = (s, v = S.view) => (s == null ? "—" : v === "all" ? pct(s, 0) : pct1(s));
+const small = (s) => (s == null ? "—" : pct(s, 0));
+// the views other than `v`, in the switch's order
+const others = (v) => VIEWS.filter((o) => o !== v);
+const decksWord = (n, v) => t(v === "top" ? "ct.decksTop" : v === "race" ? "ct.decksRace" : "ct.decksN", { n, top: T.decks.top });
+// a view's one-word name ("All games", "Tournament", "Final") and the row of the cards it does not rank ("Not in the Final", "Not
+// in the Tournament"; All games ranks every card)
 const viewName = (v) => t(VK[v], { n: T.decks.top });
 const outName = (v) => t(v === "top" ? "ct.outTop" : "ct.outRace", { n: T.decks.top });
+// All games: the card's likely range (cardtiers.json `ci95`, whole points: "likely 73–81%") and the quiet caveat of a card whose
+// best decks only the fast AI played (`evidence` "screen")
+const pts = (p) => Math.round(p * 100);
+const range = (r, key = "ct.range") => (r.ci95 ? t(key, { lo: pts(r.ci95[0]), hi: pts(r.ci95[1]) }) : "");
+const rough = (r) => !!r && r.evidence === "screen";
+const gamesM = () => t("num.million", { n: dec(T.all.games / 1e6, 1), count: T.all.games / 1e6 });
+/** All games: the tiers a card's likely range spans ("likely D–S"), or null when it stays in the card's own tier. A bound's tier is
+ * the tier of the best-placed card whose figure it reaches (the cards' own tiers in the file, by place), so the words soften the
+ * letter where the ranges overlap the tier lines. */
+let ALLDESC = null;
+function tierAt(p) {
+  if (!ALLDESC) ALLDESC = T.cards.map((c) => c.all).filter((a) => a && a.tier).sort((a, b) => b.score - a.score);
+  return (ALLDESC.find((a) => a.score <= p) || ALLDESC[ALLDESC.length - 1]).tier;
+}
+function tierSpan(r, key = "ct.tierSpan") {
+  if (!r || !r.ci95 || !r.tier) return null;
+  const a = tierAt(r.ci95[0]), b = tierAt(r.ci95[1]);
+  return a === r.tier && b === r.tier ? null : t(key, { a, b });
+}
 
-/** This tab's part of the footer's Method section (patch.js methodSection, #method-card-tiers): what each view measures, the
- * tiers, the cards with no deck in the top, what a tier says, the AI's caveat. Every number comes from cardtiers.json. */
+/** This tab's part of the footer's Method section (patch.js methodSection, #method-card-tiers): what each view measures (in the
+ * switch's order), what the ranges say, why All games is not the Final's scale, the rough estimates, the tiers, the cards with no
+ * deck in the top, what a tier says, the AI's caveat. Every number comes from cardtiers.json. */
 function method() {
   const out = T.cards_total - T.placed.top, top = T.decks.top;
   const sh = T.tier_shares.map((s) => pct(s, 0));
+  const nRough = T.cards.filter((r) => r.all && rough(r.all)).length;
+  const per = {
+    all: () => [
+      h("li", tx("ct.mAll", { n: T.best, opp: T.all.opponents, games: gamesM() })),
+      h("li", tx("ct.mRanges")),
+      h("li", tx("ct.mField")),
+      nRough ? h("li", tx("ct.mRough", { n: nRough })) : null,
+    ],
+    race: () => [h("li", tx("ct.mRace", { n: T.best, decks: fmtInt(T.decks.race), opp: T.race.opponents, k: Math.round(T.race.prior_games) }))],
+    top: () => [h("li", tx("ct.mTop", { n: T.best, opp: T.top.opponents, top }))],
+  };
   methodSection("card-tiers", [
     h("ul.vinfo-l", [
-      h("li", tx("ct.mTop", { n: T.best, opp: T.top.opponents, top })),
-      h("li", tx("ct.mRace", { n: T.best, decks: fmtInt(T.decks.race), opp: T.race.opponents, k: Math.round(T.race.prior_games) })),
+      ...VIEWS.flatMap((v) => per[v]()),
       h("li", tx("ct.mFew", { n: T.best, top })),
       h("li", tx("ct.mTiers", { sp: sh[0], s: sh[1], a: sh[2], b: sh[3], c: sh[4], d: sh[5], e: sh[6] })),
       h("li", tx("ct.mOut", { n: out, top })),
-      h("li", tx("ct.mReads")),
+      h("li", tx(VIEWS.includes("all") ? "ct.mReadsAdd" : "ct.mReads")),
       h("li", t("rk.limit.plan_decks")),
     ]),
   ]);
@@ -134,7 +182,10 @@ function build() {
 function toolbar() {
   // the view switch: the site's one segmented control (ui.js), as the Deck tier list's
   ui.viewSeg = segmented(VIEWS.map((v) => [v, viewName(v)]), S.view, (v) => setView(v), t("ct.viewAria"));
-  ui.viewSeg.el.querySelectorAll("button").forEach((b) => { b.title = t(b.dataset.v === "top" ? "ct.vTopTip" : "ct.vRaceTip", { n: T.decks.top }); });
+  // each segment's title is its view's method in one line
+  ui.viewSeg.el.querySelectorAll("button").forEach((b) => {
+    b.title = t(TIPK[b.dataset.v], { n: T.best, opp: T.all ? T.all.opponents : T.race.opponents, games: T.all ? gamesM() : "" });
+  });
   // the Codex's Filters button: the filters glyph, the word, the count of the filters on (cyan, as on the Codex), the chevron
   ui.fbtn = h("button.btn.ghost.disc.ct-fbtn", { type: "button", "aria-controls": "ct-filters", title: t("ct.filtersTitle") },
     [icon("filters"), h("span", t("ct.filters")), h("span.fbar-n.ct-fn"), icon("chevron")]);
@@ -228,15 +279,28 @@ function place() {
   rove(roving && roving.isConnected ? roving : ui.list.querySelector(".ct-ic"));
 }
 
-/** One view's words for a reader: "Final: tier S, 56.1%, 9 Final decks" or "Final: not in it". */
-function viewWords(x, v) {
+/** One view's words for a reader: "Final: tier S, 56.1%, 9 Final decks.", "All games: tier B, likely tier D to S, 70%, likely
+ * between 58 and 78%, 2,953 decks. Rough estimate." or "Final: not in it."; `short` (the views not on screen) leaves out the deck
+ * count and the tier span, so a label stays short: "Tournament: tier S+, 79%." */
+function viewWords(x, v, short = false) {
   const r = rec(x, v);
-  return r.tier ? t("ct.sumT", { view: viewName(v), tier: r.tier, fig: fig(r.score), decks: decksWord(r.decks, v) }) : t("ct.sumNone", { view: viewName(v) });
+  if (!r.tier) return t("ct.sumNone", { view: viewName(v) });
+  const fg = short ? small(r.score) : fig(r.score, v), roughTxt = v === "all" && rough(r) ? " " + t("ct.roughSr") : "";
+  if (v === "all") {
+    return (short ? t("ct.sumAllShort", { view: viewName(v), tier: r.tier, fig: fg, range: range(r, "ct.rangeSr") })
+      : t("ct.sumAll", { view: viewName(v), tier: [r.tier, tierSpan(r, "ct.tierSpanSr")].filter(Boolean).join(t("ui.comma")), fig: fg,
+        range: range(r, "ct.rangeSr"), decks: decksWord(r.decks, v) })) + roughTxt;
+  }
+  return short ? t("ct.sumShort", { view: viewName(v), tier: r.tier, fig: fg })
+    : t("ct.sumT", { view: viewName(v), tier: r.tier, fig: fg, decks: decksWord(r.decks, v) });
 }
 
-// the icon's label: its name, then both views, the one on screen first
+// a card's words in every view, the one on screen first in full, the others short
+const summary = (x) => [cardName(x.c) + ".", viewWords(x, S.view), ...others(S.view).map((o) => viewWords(x, o, true))].join(" ");
+
+// the icon's label: its name, then every view, the one on screen first
 function label(x) {
-  return `${cardName(x.c)}. ${viewWords(x, S.view)} ${viewWords(x, other(S.view))}`
+  return summary(x)
     + (changeOf(x.c) ? t("ui.sep") + t("pc." + changeOf(x.c).class, { patch: DB.patch }) : "")
     + (x.dim ? t("ct.icDim") : "");
 }
@@ -302,7 +366,7 @@ const say = (s) => { ui.announce.textContent = s; };
  * with these words, so main.js still reads the tab and ignores the rest. */
 function saveState() {
   if (location.hash.split("/")[0] !== "#card-tiers") return;
-  const parts = [S.view === "race" ? "race" : "", S.tab === "details" ? "details" : ""].filter(Boolean).join("-");
+  const parts = [S.view === T.default_view ? "" : WORD[S.view], S.tab === "details" ? "details" : ""].filter(Boolean).join("-");
   const next = "#card-tiers" + (parts ? "/" + parts : "");
   if (location.hash !== next) { try { history.replaceState(history.state, "", next); } catch (e) { /* the address stays as it is */ } }
 }
@@ -333,9 +397,15 @@ function applyFilters() {
   F.refresh();
   const counts = {};
   rows.forEach((x) => { if (matches(x)) { const tr = tierOf(x); counts[tr] = (counts[tr] || 0) + 1; } });
+  // the last chip names the view's own row of unranked cards; in a view that ranks every card it stays, disabled, saying why
+  const ranksAll = T.placed[S.view] >= T.cards_total;
   for (const c of ui.tierChips) {
-    c.label = c.id === "out" ? outName(S.view) : c.label;
-    setChip(c, counts[c.id] || 0, S.tier.has(c.id), t("filter.show", { label: c.label }), t("ct.tierChipOff"));
+    if (c.id === "out") {
+      c.label = S.view === "all" ? t("ct.outAll") : outName(S.view);
+      c.el.querySelector(".chip-l").textContent = c.label;
+    }
+    setChip(c, counts[c.id] || 0, S.tier.has(c.id), t("filter.show", { label: c.label }),
+      c.id === "out" && ranksAll ? t("ct.outNone", { view: viewName(S.view) }) : t("ct.tierChipOff"));
   }
   const fn = ui.fbtn.querySelector(".ct-fn");
   fn.textContent = nOn ? fmtInt(nOn) : "";
@@ -424,12 +494,16 @@ const roomTop = () => (sheet.matches ? chromeBottom() : Math.max(chromeBottom(),
 
 /**
  * The preview and the pinned card share one body: the header with the tier chip and its place; the view's figure big with its
- * deck count, the other view's figure small under it with its one-word label; the strip of the card's decks in the view with its
- * axis and key. The pinned card adds what the patch changed, the talent and "Show the card"; the preview says how to get them.
- * A card with no deck in the view: no chip, a dash for the figure, the empty strip.
+ * deck count (All games: its likely range beside it, its decks and games under it, and the rough-estimate caveat), the other
+ * views' figures small under it, each with its one-word label; the strip of the card's decks in the view with its axis and key.
+ * The pinned card adds what the patch changed, the average contribution (All games), the talent and "Show the card"; the preview
+ * says how to get them. A card with no deck in the view: no chip, its words instead of the figure, the strip of a view where it
+ * plays, named.
  */
 function popContent(x, full) {
-  const c = x.c, v = S.view, r = rec(x), o = other(v), ro = rec(x, o);
+  const c = x.c, v = S.view, r = rec(x);
+  // without a deck in the view, the strip of the first view (in the switch's order) where the card plays
+  const alt = r.decks ? null : others(v).find((o) => rec(x, o).decks);
   return [
     h("div.ct-pop-h", [
       h("img.ct-pop-art", { alt: "", width: 48, height: 69, src: thumb(c) }),
@@ -439,7 +513,10 @@ function popContent(x, full) {
         h("div.ct-pop-sub", `${raName(c.rarity)}, ${elName(c.element)}`),
         patchTag(c),
       ]),
-      r.tier ? h("div.ct-pop-tier", [tchip(r.tier), h("span", t("ct.rankOf", { r: r.rank, m: T.placed[v] }))]) : null,
+      // the tier large, its place under it, and in All games the tiers its likely range spans ("likely D–S"), so the letter never
+      // claims more than the range allows
+      r.tier ? h("div.ct-pop-tier", [tchip(r.tier), h("span", t("ct.rankOf", { r: r.rank, m: T.placed[v] })),
+        v === "all" && tierSpan(r) ? h("span.ct-span", tierSpan(r)) : null]) : null,
     ]),
     // under a filter, why this card matched it (the Codex's lines)
     whyLines(x),
@@ -448,21 +525,51 @@ function popContent(x, full) {
     // the card tiers' own patch: a card the patch changed was measured after the change when it is the card data's
     full ? oldNumbersNote(c, T.patch) : null,
     h("div.ct-pop-fig", [
-      // the view's figure big; without a deck in the view, its words instead of a bare dash
-      r.decks ? h("div.ct-pop-big", [h("b", fig(r.score)), h("span", decksWord(r.decks, v))])
-        : h("div.ct-pop-big.none", h("b", outName(v))),
-      // the other view small, led by its tier chip: the two figures are measured against different decks, so the chip says
-      // where the card stands there
-      // (its name leads the line, so its deck count does not repeat it)
-      h("p.ct-pop-other", [h("span", viewName(o)), ro.tier ? tchip(ro.tier) : null,
-        ro.decks ? [h("b", fig(ro.score)), h("span", t("ct.decksN", { n: ro.decks }))] : h("span", outName(o))]),
+      // the view's figure big; without a deck in the view, its words instead of a bare dash. All games: its likely range beside
+      // it (the figure never stands without it), its decks and their games under it
+      !r.decks ? h("div.ct-pop-big.none", h("b", outName(v)))
+        : v === "all" ? h("div.ct-pop-big", [h("b", fig(r.score, v)), h("span.ct-pop-ci", range(r))])
+          : h("div.ct-pop-big", [h("b", fig(r.score, v)), h("span", decksWord(r.decks, v))]),
+      v === "all" && r.decks ? h("p.ct-pop-basis", t("ct.basisAll", { n: T.best, decks: r.decks, games: r.games })) : null,
+      // the other views small (whole points, The Big Figure Rule), each led by its tier chip: the figures are measured against
+      // different decks, so the chip says where the card stands there (its name leads the line, so its deck count does not
+      // repeat it). All games small keeps its likely range in place of its deck count: its figure never stands without it
+      ...others(v).map((o) => {
+        const ro = rec(x, o);
+        return h("p.ct-pop-other", [h("span", viewName(o)), ro.tier ? tchip(ro.tier) : null,
+          ro.decks ? [h("b", small(ro.score)), h("span", o === "all" ? range(ro) : t("ct.decksN", { n: ro.decks }))] : h("span", t("ct.noDeck"))]);
+      }),
     ]),
-    // the strip of the view on screen, or, without a deck there, the strip of the view where the card plays, named
+    // a card whose best decks only the fast AI played: its All games figure is a rough estimate, said right under the figures
+    // (in the other views, under the small All games line)
+    rough(x.r.all) && (v === "all" || others(v).includes("all"))
+      ? h("p.dnote.ct-rough", [icon("info"), h("span", t(v === "all" ? "ct.rough" : "ct.roughAll"))]) : null,
+    // pinned, All games: the second reading, the card's average contribution, one small line after the figures
+    full && v === "all" ? addLine(r) : null,
+    // the strip of the view on screen, or, without a deck there, the strip of a view where the card plays, named
     r.decks ? h("div.ct-pop-st", deckStrip(r, v, T, { axis: true, key: true }))
-      : h("div.ct-pop-st", [h("p.ct-pop-stv", viewName(o)), deckStrip(ro, o, T, { axis: true, key: true })]),
+      : alt ? h("div.ct-pop-st", [h("p.ct-pop-stv", viewName(alt)), deckStrip(rec(x, alt), alt, T, { axis: true, key: true })]) : null,
     full ? null : h("p.ct-pop-more", t("ct.popMore")),
     full ? talentBlock(x) : null,
   ];
+}
+
+/** The pinned card's second reading in All games (cardtiers.json `additive`): the card's average contribution, what an average
+ * deck of the pool gains or loses with the card in place of an average card (the lab's definition: `additive.score` against
+ * `reference.all`, the pool's average deck), in points, signed and coloured as the site's other contributions (the card dialog's
+ * "With and against"), and its place among the cards. Small: the tier reads its best decks, this reads the card on its own. It
+ * explains itself with the page's tooltip (tipButton, as the Deck tier list's figures do), which gives both win rates. */
+function addLine(r) {
+  const a = r.additive, ref = T.reference && T.reference.all;
+  if (!a || ref == null) return null;
+  const d = (a.score - ref) * 100, place = t("ct.rankOf", { r: a.rank, m: T.placed.all });
+  const delta = (d >= 0.05 ? "+" : d <= -0.05 ? "−" : "") + dec(Math.abs(d), 1);
+  const [btn, desc] = tipButton("button.ct-add", t("ct.addK"),
+    [h("span.ct-add-k", t("ct.addK")),
+      h("span.ct-add-v" + (d >= 0.05 ? ".up" : d <= -0.05 ? ".down" : ""), [delta, h("span.ct-add-u", " " + t("cm.pts"))]),
+      h("span.ct-add-r", place)],
+    t("ct.addTip", { ref: pct1(ref), opp: T.all.opponents, fig: pct1(a.score), range: range(a), delta, place }));
+  return h("div.ct-pop-add", [btn, desc]);
 }
 
 function whyLines(x) {
@@ -552,8 +659,6 @@ function follow() {
   pop.style.setProperty("--room", Math.round(innerHeight - room - 2 * M) + "px");
   if (!sheet.matches) pop.style.top = top + y + "px";
 }
-
-function summary(x) { return `${cardName(x.c)}. ${viewWords(x, S.view)} ${viewWords(x, other(S.view))}`; }
 
 function hidePop(force) {
   if (!ui.pop || (pinned && !force)) return;
@@ -658,7 +763,8 @@ function details() {
 }
 
 function rowCells(x) {
-  const c = x.c, v = S.view, r = rec(x), o = other(v), ro = rec(x, o);
+  const c = x.c, v = S.view, r = rec(x);
+  const isRough = v === "all" && rough(r);
   return [
     h("td.ct-c-rank", h("span.ct-rk", r.rank ? String(r.rank) : "—")),
     h("td.ct-c-card", h("button.ct-cardc", { type: "button", "data-card": c.key, title: t("card.show", { name: cardName(c) }) }, [
@@ -666,10 +772,20 @@ function rowCells(x) {
       h("span", [h("span.ct-nm", { translate: "no" }, [r.rank ? h("span.ct-rkm", `#${r.rank} `) : null, cardName(c)]), h("span.ct-nm-sub", `${raName(c.rarity)}, ${elName(c.element)}`),
         changeOf(c) ? h("span.ct-nm-pc", [glyph(c), t("pc." + changeOf(c).class, { patch: DB.patch })]) : null]),
     ])),
-    h("td.ct-c-tier", { "data-label": t("ct.thTier") }, tchip(tierOf(x))),
+    // the tier chip; in All games the tiers its likely range spans under it ("likely D–S")
+    h("td.ct-c-tier", { "data-label": t("ct.thTier") }, [tchip(tierOf(x)), v === "all" && tierSpan(r) ? h("span.ct-span", tierSpan(r)) : null]),
     h("td.ct-c-fig", { "data-label": t("ct.thFig") }, [
-      h("span.ct-fig", [fig(r.score), " ", h("span.ct-fig-n", r.decks ? decksWord(r.decks, v) : "")]),
-      h("span.ct-cap", [viewName(o), " ", h("b", fig(ro.score))]),
+      h("span.ct-fig", [fig(r.score, v), " ", h("span.ct-fig-n", r.decks ? decksWord(r.decks, v) : "")]),
+      // All games: the likely range under the figure, and the rough-estimate caveat (its sentence as its title and for a reader)
+      v === "all" && r.ci95 ? h("span.ct-ci", range(r)) : null,
+      isRough ? h("span.ct-rough-s", { title: t("ct.rough") }, [icon("info"), h("span", { "aria-hidden": "true" }, t("ct.roughShort")), h("span.sr", t("ct.rough"))]) : null,
+      // the other views small (whole points), on one line; All games with its range, and its caveat's glyph when it applies
+      h("span.ct-cap", others(v).map((o) => {
+        const ro = rec(x, o);
+        if (!ro.decks) return h("span", [viewName(o), " ", h("span.ct-cap-none", t("ct.noDeck"))]);
+        return h("span", [viewName(o), " ", h("b", small(ro.score)), o === "all" ? [" ", range(ro, "ct.rangeShort")] : null,
+          o === "all" && rough(ro) ? h("span.ct-cap-rough", { title: t("ct.rough") }, [icon("info"), h("span.sr", t("ct.rough"))]) : null]);
+      })),
     ]),
     // the strip is decorative: a reader hears the figures in the column before it
     h("td.ct-c-where", { "data-label": t("ct.thWhere") }, deckStrip(r, v, T)),
