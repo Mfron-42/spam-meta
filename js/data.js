@@ -1,7 +1,7 @@
 // Loads the generated JSON once and builds the lookups every view needs. Every request carries the publish version
 // (version.js), so a new publish never mixes with data an earlier visit cached.
 
-import { versioned, withQuery } from "./version.js?v=22136ba32f";
+import { versioned, withQuery } from "./version.js?v=48c0827afa";
 
 const cache = new Map();
 // data paths are resolved from this module, not from the page, so a page in a sub-folder (site/overlay/) reads the same files
@@ -17,7 +17,7 @@ async function getJSON(path) {
   return cache.get(path);
 }
 
-export const DB = { cards: [], byId: new Map(), byKey: new Map(), meta: null, keywords: null, ranking: null, tier: null, decks: null, cardTiers: null, cardCounters: null };
+export const DB = { cards: [], byId: new Map(), byKey: new Map(), meta: null, keywords: null, ranking: null, tier: null, decks: null, cardTiers: null, cardCounters: null, facets: null };
 
 /**
  * cards.json and meta.json: needed by every view; keywords.json (the card texts' keyword chips and tooltips, cardtext.js)
@@ -67,6 +67,19 @@ export async function loadTier() {
     DB.tierBySet = new Map(t.decks.filter((d) => !d.withheld && Array.isArray(d.cards)).map((d) => [deckKey(d.cards), d]));
   }
   return DB.tier;
+}
+
+/**
+ * The card search facets (tools/export_facets.py): what each card hits, generates, is related to, holds as tox and targets.
+ * A failed request resolves to null, so a view still filters on what cards.json holds (element, rarity, numbers, patch).
+ */
+let fcLoad = null;
+export function loadFacets() {
+  if (!fcLoad) {
+    fcLoad = getJSON("data/facets.json").then((d) => { DB.facets = d; return d; })
+      .catch((e) => { console.error(e); fcLoad = null; return null; });
+  }
+  return fcLoad;
 }
 
 /** The card tier list (tools/export_cardtiers.py): each record gets its card object; an unknown id is dropped. */

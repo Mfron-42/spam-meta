@@ -4,14 +4,14 @@
 // are the best). A deck of the Final (the round robin of the Qualifier's best) carries its win rate there. The card search (search.js) keeps only the decks of
 // both lists that hold a matching card; the query survives a redraw (a card ticked, a language change).
 
-import { h, icon, fmtInt } from "./util.js?v=22136ba32f";
-import { loadDecks } from "./data.js?v=22136ba32f";
-import { on, isOwned, ownedCount } from "./store.js?v=22136ba32f";
-import { deckRow, missingLine, paged, tableHead } from "./decklist.js?v=22136ba32f";
-import { findRow, terms, namedCards } from "./search.js?v=22136ba32f";
-import { openCollection } from "./dialogs.js?v=22136ba32f";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=22136ba32f";
-import { t } from "./i18n.js?v=22136ba32f";
+import { h, icon, fmtInt } from "./util.js?v=48c0827afa";
+import { loadDecks } from "./data.js?v=48c0827afa";
+import { on, isOwned, ownedCount } from "./store.js?v=48c0827afa";
+import { deckRow, missingLine, paged, tableHead } from "./decklist.js?v=48c0827afa";
+import { findRow, terms, namedCards } from "./search.js?v=48c0827afa";
+import { openCollection } from "./dialogs.js?v=48c0827afa";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=48c0827afa";
+import { t } from "./i18n.js?v=48c0827afa";
 
 let root, D, listeners = new Set();
 let result = { build: [], near: [] };

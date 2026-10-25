@@ -3,17 +3,17 @@
 // drawn as a full-screen card view (card.css); its enter and exit (the card flying from its tile) are played by
 // cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, pct1, fmtDate, fmtInt, softBreak } from "./util.js?v=22136ba32f";
-import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=22136ba32f";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=22136ba32f";
-import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=22136ba32f";
-import { encode, decode } from "./code.js?v=22136ba32f";
-import { copyText, disclosure } from "./ui.js?v=22136ba32f";
-import { t, tx, millions } from "./i18n.js?v=22136ba32f";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, gameSpan, medianRounds, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, GAME_PATCH, isMatchupTalent, matchupMark } from "./patch.js?v=22136ba32f";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=22136ba32f";
-import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=22136ba32f";
-import { attachTilt } from "./cardtilt.js?v=22136ba32f";
+import { h, $, icon, reducedMotion, pct, pct1, fmtDate, fmtInt, softBreak } from "./util.js?v=48c0827afa";
+import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=48c0827afa";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=48c0827afa";
+import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=48c0827afa";
+import { encode, decode } from "./code.js?v=48c0827afa";
+import { copyText, disclosure } from "./ui.js?v=48c0827afa";
+import { t, tx, millions } from "./i18n.js?v=48c0827afa";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, gameSpan, medianRounds, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, GAME_PATCH, isMatchupTalent, matchupMark } from "./patch.js?v=48c0827afa";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=48c0827afa";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=48c0827afa";
+import { attachTilt } from "./cardtilt.js?v=48c0827afa";
 
 let openDlg = null, pushed = false;
 

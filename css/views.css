@@ -95,28 +95,21 @@
 .track-fill { position: absolute; inset: 0; background: var(--accent); border-radius: 4px; transform-origin: left center; transform: scaleX(0); transition: transform var(--t-move) var(--curve); }
 
 /* ---------------------------------------------------------------- Codex toolbar */
+/* the search and the sort, then the filter triggers (filters.css) on their own row; on a phone the Filters button opens them
+   in a bottom sheet and the sort takes the second row */
 #view-codex .tb-top { margin-top: 24px; }
 .tb-top { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 232px; gap: 12px; padding: 8px 0; }
-#view-codex .tb-filters { margin-top: 4px; }
 #view-codex .tb-result { margin: 12px 0 20px; }
 @media (min-width: 760px) {
-  /* the search row stays under the header while the 127 cards scroll */
+  /* the search row and the triggers stay under the header while the 127 cards scroll */
   .tb-top { position: sticky; top: var(--chrome-h); z-index: 12; }
 }
 .fbtn { display: none; }
-.fcount { color: inherit; opacity: .8; }
-.tb-filters { display: grid; }
-.tb-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.tb-filters .collapse-in { display: grid; gap: 12px; }
-.tb-own { gap: 12px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .tb-result { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
-.result { font-weight: 700; color: var(--ink); }
+.result { font-weight: 700; color: var(--ink); white-space: nowrap; }
 .tb-bulk { display: flex; flex-wrap: wrap; gap: 8px; }
 .tb-bulk .btn { height: 36px; font-size: 16px; padding: 0 16px; }
-@media (min-width: 760px) {
-  .tb-filters.collapse { grid-template-rows: 1fr; visibility: visible; }
-}
 @media (max-width: 759px) {
   .tb-top { grid-template-columns: minmax(0, 1fr) auto; }
   .tb-top .select { grid-column: 1 / -1; grid-row: 2; }

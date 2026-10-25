@@ -1,33 +1,29 @@
-// Codex tab: every released card as a game card, with search, filters, sort and the Owned toggle on every card.
-// A language change rebuilds the tab from the same state (search, filters, sort, open panels).
+// Codex tab: every released card as a game card, with the card search (a text field and the filters of facets.js: element,
+// rarity, hits, element bonuses, effects, tox, targets, numbers, patch and collection), a sort and the Owned toggle on every
+// card. Each card shown under a filter or a search says why it matched. The filters live in the address (facetmodel.js
+// toQuery), so a search can be shared. A language change rebuilds the tab from the same state.
 
-import { h, icon, norm, fmtInt } from "./util.js?v=22136ba32f";
-import { searchField, terms as searchTerms, hasAll } from "./search.js?v=22136ba32f";
-import { DB } from "./data.js?v=22136ba32f";
-import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js?v=22136ba32f";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=22136ba32f";
-import { cardTile, ownToggle, setOwnedView, cardName, ELEMENTS, RARITIES, elName, raName, unsize } from "./cards.js?v=22136ba32f";
-import { disclosure, flip, segmented, filterChip, setChip, band } from "./ui.js?v=22136ba32f";
-import { toast, openCollection } from "./dialogs.js?v=22136ba32f";
-import { cardText } from "./cardtext.js?v=22136ba32f";
-import { t, STRINGS } from "./i18n.js?v=22136ba32f";
-import { GAME_PATCH, DECK_TABLE_SHOWN } from "./patch.js?v=22136ba32f";
+import { h, icon, norm, fmtInt } from "./util.js?v=48c0827afa";
+import { searchField, terms as searchTerms, hasAll, announcer } from "./search.js?v=48c0827afa";
+import { DB, loadFacets } from "./data.js?v=48c0827afa";
+import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js?v=48c0827afa";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=48c0827afa";
+import { cardTile, ownToggle, setOwnedView, cardName, RARITIES, unsize } from "./cards.js?v=48c0827afa";
+import { flip, band } from "./ui.js?v=48c0827afa";
+import { toast, openCollection } from "./dialogs.js?v=48c0827afa";
+import { cardText } from "./cardtext.js?v=48c0827afa";
+import { t, STRINGS } from "./i18n.js?v=48c0827afa";
+import { GAME_PATCH, DECK_TABLE_SHOWN } from "./patch.js?v=48c0827afa";
+import { buildIndex, fromQuery, toQuery, passes as facetPasses, noFilter, relaxations, NUMS } from "./facetmodel.js?v=48c0827afa";
+import { facetFilters, ownAddress, writeAddress, hashTab } from "./facets.js?v=48c0827afa";
 
-// ---- traits, derived from the English texts and numbers of the data (no hand-made tags); names are "trait.<id>"
-const anyText = (c, rx) => c.abilities.some((a) => rx.test(a.description_en)) || c.passives.some((p) => rx.test(p.description_en));
-const TRAITS = [
-  ["area", (c) => c.abilities.some((a) => /damage/i.test(a.description_en) && /to all enemy cards|\bAOE\b/i.test(a.description_en))],
-  ["heal", (c) => anyText(c, /\b(heals?|healing|recovers|regenerates)\b/i)],
-  ["crit", (c) => c.abilities.some((a) => a.crit_chance >= 20) || anyText(c, /critical/i)],
-  ["taunt", (c) => anyText(c, /taunt/i)],
-  ["freeze", (c) => anyText(c, /\b(freez\w*|frozen)\b/i)],
-  ["protect", (c) => anyText(c, /\b(immune|immunity|absorbs?|reflects?)\b|resistances?\b/i)],
-  ["revive", (c) => anyText(c, /\b(revives?|resurrect\w*)\b/i)],
-  ["random", (c) => anyText(c, /random/i)],
-  ["echo", (c) => c.abilities.some((a) => a.echo_chance) || anyText(c, /\becho\b/i)],
-];
+// the toolbar's filter triggers, in order, and the groups each one opens
+const TRIGGERS = [["el", ["el"]], ["ra", ["ra"]], ["hit", ["hit"]], ["gen", ["gen"]], ["fx", ["fx"]], ["tox", ["tox"]], ["tgt", ["tgt"]],
+  ["num", ["num"]], ["more", ["pc", "own"]]];
 
-const S = { q: "", els: new Set(), ras: new Set(), traits: new Set(), own: "all", sort: "order", filtersOpen: false, traitsOpen: false };
+let S = null;                // the filter state (facetmodel.js), read from the address once
+let sort = "order";
+const NUM_IDS = new Set(NUMS.map((n) => n.id));
 
 const SORTS = {
   order: ["cx.sOrder", (a, b) => a.order - b.order],
@@ -38,7 +34,7 @@ const SORTS = {
 };
 const rarityRank = (c) => RARITIES.indexOf(c.rarity);
 
-let root, grid, cells = [], traitList = [], ui = {};
+let root, grid, cells = [], index = null, F = null, ui = {};
 
 // element and rarity words of both languages, so "feu" and "fire" both find the fire cards
 const both = (key) => [STRINGS.en[key], STRINGS.fr[key]];
@@ -49,25 +45,15 @@ function haystack(c) {
   for (const tl of c.talents) parts.push(tl.name_fr, tl.name_en, tl.description_fr, tl.description_en);
   return norm(parts.filter(Boolean).join("\n"));
 }
+const hayCache = new Map();
+function hayOf(c) { if (!hayCache.has(c.key)) hayCache.set(c.key, haystack(c)); return hayCache.get(c.key); }
 
 const terms = () => searchTerms(S.q);
+const opts = (ts = terms()) => ({ owned: isOwned, text: (x) => hasAll(hayOf(x.c), ts) });
+const pass = (x, ts) => facetPasses(x, S, opts(ts));
 
-// ---- the filter predicate, with one facet left out so each chip can show "how many would I get"
-function passes(x, ts, skip) {
-  const c = x.c;
-  if (skip !== "el" && S.els.size && !S.els.has(c.element)) return false;
-  if (skip !== "ra" && S.ras.size && !S.ras.has(c.rarity)) return false;
-  if (skip !== "own") {
-    if (S.own === "owned" && !isOwned(c.key)) return false;
-    if (S.own === "missing" && isOwned(c.key)) return false;
-  }
-  if (skip !== "trait") for (const tr of S.traits) if (!x.traits.has(tr)) return false;
-  return hasAll(x.hay, ts);
-}
-
-// ---- highlighting the matching effect under a card while a search is active
-function snippet(x, ts) {
-  const c = x.c;
+// ---- the matching effect quoted under a card while a search is active
+function snippet(c, ts) {
   // the text of the current language first; when the search only matches the other language, quote that one
   for (const lang of [getLang(), getLang() === "fr" ? "en" : "fr"]) {
     const f = (o, k) => o[`${k}_${lang}`] || "";
@@ -134,26 +120,28 @@ function buildCells() {
     const tg = ownToggle(c);
     const cap = h("div.cap", { hidden: true });
     const el = cardTile(c, { toggle: tg, cap });
-    return { c, el, tg, cap, hay: hayOf(c), traits: new Set(TRAITS.filter(([, test]) => test(c)).map(([id]) => id)) };
+    return { ...index.cards.get(c.key), el, tg, cap };
   });
 }
-const hayCache = new Map();
-function hayOf(c) { if (!hayCache.has(c.key)) hayCache.set(c.key, haystack(c)); return hayCache.get(c.key); }
 
-export function mount(el) {
+export async function mount(el) {
   root = el;
+  await loadFacets();
+  index = buildIndex(DB.cards, DB.facets);
+  // the address's filters are the Codex's only when it opens on the Codex (another tab's would not mean the same)
+  const q = hashTab() === "codex" ? location.search : "";
+  S = fromQuery(q, index);
+  const sp = new URLSearchParams(q).get("sort");
+  if (sp && SORTS[sp]) sort = sp;
+  // the address holds the Codex's filters and sort while the Codex is shown, so a search can be shared; they come back with it
+  ownAddress("codex", () => toQuery(S, index, { sort: sort !== "order" ? sort : "" }));
   build();
   on("owned", (d) => syncOwned(d.keys));
-  on("lang", () => {
-    S.filtersOpen = ui.fbtn.getAttribute("aria-expanded") === "true";
-    S.traitsOpen = !!ui.traitsBtn && ui.traitsBtn.getAttribute("aria-expanded") === "true";
-    build();
-  });
+  on("lang", () => { if (F) F.destroy(); build(); });
 }
 
 function build() {
   buildCells();
-  traitList = TRAITS.filter(([id]) => cells.filter((x) => x.traits.has(id)).length >= 3).map(([id]) => id);
   ui = {};
 
   // collection bar: the visible link between Owned and My decks (no link while My decks is not shown, patch.js)
@@ -177,46 +165,33 @@ function build() {
     ui.store.el,
   ]);
 
-  // toolbar
+  // toolbar: the search, the sort and (on a phone) the Filters button; under them the filter triggers (from 760px)
   ui.search = searchField({ id: "cx-q", placeholder: t("cx.searchPh"), label: t("cx.searchAria"), clearLabel: t("cx.clearSearch"), value: S.q,
-    onChange: (v) => { S.q = v; apply(); } });
-  const search = ui.search.el;
+    onChange: (v) => { S.q = v; apply(); F.refresh(); } });
 
-  ui.sort = h("select#cx-sort", { "aria-label": t("cx.sortAria"), onchange: () => { S.sort = ui.sort.value; apply(); } },
+  ui.sort = h("select#cx-sort", { "aria-label": t("cx.sortAria"), onchange: () => { sort = ui.sort.value; apply(); } },
     Object.entries(SORTS).map(([k, v]) => h("option", { value: k }, t(v[0]))));
-  ui.sort.value = S.sort;
+  ui.sort.value = sort;
   const sortField = h("label.field.select", [h("span.sr", t("ct.sortBy")), ui.sort, icon("chevron")]);
 
-  ui.fbtn = h("button.btn.ghost.fbtn", { type: "button", "aria-controls": "cx-filters" }, [icon("filters"), t("cx.filters"), h("span.fcount")]);
-
-  ui.elChips = ELEMENTS.map((id) => Object.assign(filterChip(elName(id), "sp-el-" + id, () => { toggle(S.els, id); apply(); }), { id, label: elName(id) }));
-  ui.raChips = RARITIES.map((id) => Object.assign(filterChip(raName(id), "sp-gem-" + id, () => { toggle(S.ras, id); apply(); }), { id, label: raName(id) }));
-  ui.trChips = traitList.map((id) => Object.assign(filterChip(t("trait." + id), "", () => { toggle(S.traits, id); apply(); }), { id, hint: t("trait." + id + ".tip") }));
-
-  ui.ownSeg = segmented([["all", t("cx.all")], ["owned", t("cx.owned")], ["missing", t("cx.missing")]], S.own, (v) => { S.own = v; apply(); }, t("cx.ownAria"));
-  ui.traitsBtn = traitList.length ? h("button.btn.ghost", { type: "button", "aria-controls": "cx-traits" }, [h("span", t("cx.traits")), h("span.fcount.tcount"), icon("chevron")]) : null;
-  const traitsRegion = traitList.length ? h("div#cx-traits", h("div.collapse-in", h("div.chips", { role: "group", "aria-label": t("cx.traitsAria") }, ui.trChips.map((c) => c.el)))) : null;
-  if (traitsRegion) disclosure(ui.traitsBtn, traitsRegion, { open: S.traitsOpen });
-
-  const filters = h("div#cx-filters.tb-filters.collapse", h("div.collapse-in", [
-    h("div.tb-row.chips", { role: "group", "aria-label": t("card.element") }, ui.elChips.map((c) => c.el)),
-    h("div.tb-row.chips", { role: "group", "aria-label": t("card.rarity") }, ui.raChips.map((c) => c.el)),
-    h("div.tb-row.tb-own", [ui.ownSeg.el, ui.traitsBtn]),
-    traitsRegion,
-  ]));
-  disclosure(ui.fbtn, filters, { open: S.filtersOpen });
-
-  ui.result = h("p.result", { "aria-live": "polite" });
+  ui.result = h("p.result", { tabindex: "-1" });
+  ui.voice = announcer();          // the count, spoken once the typing or clicking pauses
   ui.markAll = h("button.btn.soft", { type: "button", onclick: markShown }, [icon("check"), t("cx.markAll")]);
   ui.clearAll = h("button.btn.ghost", { type: "button", onclick: clearAll }, t("cx.clearAll"));
-  const bar = h("div.tb-result", [ui.result, h("div.tb-bulk", [ui.markAll, ui.clearAll])]);
 
   grid = h("div.grid#cx-grid");
-  ui.empty = h("div.empty", { hidden: true }, [
-    h("h2", t("cx.emptyH")),
-    h("p", t("cx.emptyP")),
-    h("button.btn.primary", { type: "button", onclick: reset }, t("cx.reset")),
-  ]);
+  // nothing matches: the nearest searches that have cards, each one press away (facetmodel.js relaxations), then the reset
+  ui.emptyP = h("p", t("cx.emptyP"));
+  ui.emptyNearT = h("p", t("fg.near"));
+  ui.emptyNear = h("div.empty-act");
+  ui.emptyReset = h("button.btn", { type: "button", onclick: reset }, t("cx.reset"));
+  ui.empty = h("div.empty", { hidden: true }, [h("h2", t("cx.emptyH")), ui.emptyP, ui.emptyNearT, ui.emptyNear, ui.emptyReset]);
+
+  F = facetFilters({
+    id: "cx", index, S, triggers: TRIGGERS, patch: DB.patch,
+    items: () => cells, opts: () => opts(), shown: () => ui.shown || 0,
+    onChange: () => apply(),
+  });
 
   root.replaceChildren(...[
     h("div.vhead", [
@@ -225,48 +200,74 @@ function build() {
     ]),
     inAppNotice(),
     cbar,
-    band(h("div.tb-top", [search, sortField, ui.fbtn])), filters, bar,
+    band(h("div.tb-top", [ui.search.el, sortField, F.sheetBtn, F.bar])),
+    h("div.tb-result", [h("div.tb-q", [ui.result, F.sentence]), h("div.tb-bulk", [ui.markAll, ui.clearAll]), ui.voice.el]),
     grid, ui.empty,
   ].filter(Boolean));
   apply(true);
   syncOwned([]);
 }
 
-function toggle(set, v) { set.has(v) ? set.delete(v) : set.add(v); }
-
 function reset() {
-  S.q = ""; S.els.clear(); S.ras.clear(); S.traits.clear(); S.own = "all";
-  ui.search.set(""); ui.ownSeg.set("all");
+  Object.assign(S, fromQuery("", index));
+  ui.search.set("");
   apply();
+  F.refresh();
 }
 
 function apply(first) {
   const ts = terms();
-  const shown = cells.filter((x) => passes(x, ts)).sort((a, b) => SORTS[S.sort][1](a.c, b.c));
+  const shown = cells.filter((x) => pass(x, ts)).sort((a, b) => SORTS[sort][1](a.c, b.c));
+  ui.shown = shown.length;
   const order = shown.map((x) => x.el);
+  const filtering = !noFilter(S);
   for (const x of cells) {
-    if (ts.length) {
-      const s = snippet(x, ts);
-      x.cap.replaceChildren(...(s ? [s] : []));
-      x.cap.hidden = !s;
-    } else x.cap.hidden = true;
+    const lines = [];
+    if (filtering) lines.push(...F.reasonsFor(x));
+    if (ts.length) { const s = snippet(x.c, ts); if (s) lines.push(s); }
+    x.cap.replaceChildren(...lines);
+    x.cap.hidden = !lines.length;
   }
   const cur = grid.children;
   const same = cur.length === order.length && order.every((el, i) => cur[i] === el);
   const mutate = () => grid.replaceChildren(...order);
   if (!same) { if (first) mutate(); else flip(grid, mutate); }
   ui.empty.hidden = shown.length > 0;
-  ui.result.textContent = shown.length === cells.length ? t("cx.result", { n: shown.length }) : t("cx.resultOf", { n: shown.length, total: cells.length });
+  if (!shown.length) paintEmpty();
+  const line =shown.length === cells.length ? t("cx.result", { n: shown.length }) : t("cx.resultOf", { n: shown.length, total: cells.length });
+  ui.result.textContent = line;
+  if (!first) ui.voice.say(line);
   ui.markAll.disabled = !shown.some((x) => !isOwned(x.c.key));
   ui.markAll.title = !shown.length ? t("cx.markNone") : ui.markAll.disabled ? t("cx.markDone") : t("cx.markN", { n: shown.filter((x) => !isOwned(x.c.key)).length });
-  // live counts on the chips (each facet counts with the other facets applied)
-  for (const c of ui.elChips) setChip(c, cells.filter((x) => x.c.element === c.id && passes(x, ts, "el")).length, S.els.has(c.id), t("filter.show", { label: c.label }), t("filter.none"));
-  for (const c of ui.raChips) setChip(c, cells.filter((x) => x.c.rarity === c.id && passes(x, ts, "ra")).length, S.ras.has(c.id), t("filter.show", { label: c.label }), t("filter.none"));
-  for (const c of ui.trChips) setChip(c, cells.filter((x) => x.traits.has(c.id) && passes(x, ts, "trait")).length, S.traits.has(c.id), c.hint, t("filter.none"));
-  const nf = S.els.size + S.ras.size + S.traits.size + (S.own !== "all" ? 1 : 0);
-  ui.fbtn.querySelector(".fcount").textContent = nf ? ` (${nf})` : "";
-  const tc = ui.traitsBtn && ui.traitsBtn.querySelector(".tcount");
-  if (tc) tc.textContent = S.traits.size ? ` (${S.traits.size})` : "";
+  writeAddress();
+}
+
+/** The empty result: up to three nearest searches with their card counts ("Without Targets: 9 cards", "Hits with “or”: 44
+ * cards"), else the plain advice; the reset is the main button only when nothing nearer exists. */
+function paintEmpty() {
+  const near = relaxations(cells, S, opts());
+  const name = (g) => (g === "own" ? t("fg.own") : NUM_IDS.has(g) ? t("fn." + g) : t("fg." + g));
+  ui.emptyNear.replaceChildren(...near.map((r) => {
+    const cards = t("cx.result", { n: r.n });
+    const label = r.kind === "or" ? t("fg.withOr", { group: name(r.g), cards })
+      : r.g === "q" ? t("fg.withoutQ", { cards }) : t("fg.without", { group: name(r.g), cards });
+    return h("button.btn", { type: "button", onclick: () => relax(r) }, label);
+  }));
+  ui.emptyNear.hidden = ui.emptyNearT.hidden = !near.length;
+  ui.emptyP.hidden = near.length > 0;
+  ui.emptyReset.className = near.length ? "btn ghost" : "btn primary";
+}
+
+/** One of the nearest searches, taken: the group, range or words left out, or the group read as "any of". */
+function relax(r) {
+  if (r.kind === "or") S.op[r.g] = "any";
+  else if (r.g === "q") { S.q = ""; ui.search.set(""); }
+  else if (r.g === "own") S.own = "all";
+  else if (NUM_IDS.has(r.g)) delete S.num[r.g];
+  else S.sel[r.g] = [];
+  apply();
+  F.refresh();
+  ui.result.focus({ preventScroll: true });
 }
 
 function syncOwned(keys) {
@@ -294,11 +295,12 @@ function syncOwned(keys) {
   ui.clearAll.disabled = n === 0;
   ui.clearAll.title = t(n ? "cx.clearOn" : "cx.clearOff");
   apply(S.own === "all");
+  F.refresh();
 }
 
 function markShown() {
   const ts = terms();
-  const todo = cells.filter((x) => passes(x, ts) && !isOwned(x.c.key)).map((x) => x.c.key);
+  const todo = cells.filter((x) => pass(x, ts) && !isOwned(x.c.key)).map((x) => x.c.key);
   if (!todo.length) return;
   const before = ownedKeys();
   addMany(todo);

@@ -12,15 +12,15 @@
 // language change redraws the page and keeps the sort, the query and the filter.
 // (The tier-grouped view of the 1.22 rankings, with its matchups, withheld and secret decks, is in the git history.)
 
-import { h, icon, pct, dec, reducedMotion } from "./util.js?v=22136ba32f";
-import { DB, loadRanking, loadDecks, deckKey } from "./data.js?v=22136ba32f";
-import { on, isOwned, ownedCount } from "./store.js?v=22136ba32f";
-import { cardName } from "./cards.js?v=22136ba32f";
-import { segmented, scrollToEl, cascade, band, CURVE } from "./ui.js?v=22136ba32f";
-import { t, tx } from "./i18n.js?v=22136ba32f";
-import { findRow, terms, namedCards } from "./search.js?v=22136ba32f";
-import { introLine, limitParams, gameSpan, medianRounds, provBanner, DECK_TABLE_SHOWN } from "./patch.js?v=22136ba32f";
-import { paintOwned, deckSlot, rankFigures, aiLine, matchupLine, LISTS } from "./decklist.js?v=22136ba32f";
+import { h, icon, pct, dec, reducedMotion } from "./util.js?v=48c0827afa";
+import { DB, loadRanking, loadDecks, deckKey } from "./data.js?v=48c0827afa";
+import { on, isOwned, ownedCount } from "./store.js?v=48c0827afa";
+import { cardName } from "./cards.js?v=48c0827afa";
+import { segmented, scrollToEl, cascade, band, CURVE } from "./ui.js?v=48c0827afa";
+import { t, tx } from "./i18n.js?v=48c0827afa";
+import { findRow, terms, namedCards } from "./search.js?v=48c0827afa";
+import { introLine, limitParams, gameSpan, medianRounds, provBanner, DECK_TABLE_SHOWN } from "./patch.js?v=48c0827afa";
+import { paintOwned, deckSlot, rankFigures, aiLine, matchupLine, LISTS } from "./decklist.js?v=48c0827afa";
 
 // the ranking.json list each sort reads, and its address: the first sort (the Tournament) is the bare #tiers. The addresses of
 // earlier versions still land on a list: "#tiers/race" (the Tournament when it was second) is read as the Tournament and

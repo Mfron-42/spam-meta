@@ -11,12 +11,12 @@
 .ct-bar-r { display: flex; align-items: center; gap: 8px; }
 /* the tabs are quieter than the view switch: one cyan control in the bar (the One Cyan Rule), the selected tab lifted, not lit */
 .ct-tabs button[aria-selected="true"] { background: var(--panel-hi); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
-.ct-fbtn .tab-n { margin-left: -4px; }
 .ct-filters { display: flex; flex-wrap: wrap; gap: 8px 24px; padding-top: 16px; }
 .ct-fgroup { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .ct-fgroup-l { margin-right: 4px; color: var(--muted); font: 600 14px/1.4 var(--text); }
-.ct-fstatus { flex: 1 1 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; }
-.ct-fcount { color: var(--ink-2); font: 600 14px/1.4 var(--text); }
+/* while a filter is on: the count, the line of active filters (filters.css) and "Clear filters", as the Codex's result row */
+.ct-fstatus { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; min-height: 44px; margin-top: 12px; }
+.ct-fcount { color: var(--ink); font: 700 16px/1.4 var(--text); white-space: nowrap; }
 .ct-find { margin-top: 16px; }
 .ct-clear { margin-left: auto; }
 

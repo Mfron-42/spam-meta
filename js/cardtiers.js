@@ -9,16 +9,18 @@
 // data/cardtiers.json (tools/export_cardtiers.py); every number on this page is that file's. No counter is shown per card.
 // A language change rebuilds the page from the same state (view, tab, filters, search).
 
-import { h, $, $$, icon, fmtInt, pct, pct1, reducedMotion } from "./util.js?v=22136ba32f";
-import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=22136ba32f";
-import { DB, loadCardTiers, loadRanking } from "./data.js?v=22136ba32f";
-import { on, getLang } from "./store.js?v=22136ba32f";
-import { cardName, otherName, chip, L, ELEMENTS, RARITIES, elName, raName } from "./cards.js?v=22136ba32f";
-import { disclosure, filterChip, setChip, cascade, band, segmented, chromeBottom, CURVE } from "./ui.js?v=22136ba32f";
-import { t, tx } from "./i18n.js?v=22136ba32f";
-import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, provBanner, suggestedTalent, methodSection } from "./patch.js?v=22136ba32f";
-import { textNodes, hideTip } from "./cardtext.js?v=22136ba32f";
-import { deckStrip } from "./deckstrip.js?v=22136ba32f";
+import { h, $, $$, icon, fmtInt, pct, pct1, reducedMotion } from "./util.js?v=48c0827afa";
+import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=48c0827afa";
+import { DB, loadCardTiers, loadRanking, loadFacets } from "./data.js?v=48c0827afa";
+import { on, getLang } from "./store.js?v=48c0827afa";
+import { cardName, otherName, chip, L, elName, raName } from "./cards.js?v=48c0827afa";
+import { disclosure, filterChip, setChip, cascade, band, segmented, chromeBottom, CURVE } from "./ui.js?v=48c0827afa";
+import { buildIndex, fromQuery, toQuery, passes as facetPasses, noFilter, filterCount } from "./facetmodel.js?v=48c0827afa";
+import { facetFilters, ownAddress, writeAddress, hashTab } from "./facets.js?v=48c0827afa";
+import { t, tx } from "./i18n.js?v=48c0827afa";
+import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, provBanner, suggestedTalent, methodSection } from "./patch.js?v=48c0827afa";
+import { textNodes, hideTip } from "./cardtext.js?v=48c0827afa";
+import { deckStrip } from "./deckstrip.js?v=48c0827afa";
 
 // a tier's class on the card tier scale; "out" is the row of the cards with no deck in the view
 const TC = { "S+": "sp", S: "s", A: "a", B: "b", C: "c", D: "d", E: "e", out: "out" };
@@ -27,14 +29,23 @@ const VK = { top: "ct.vTop", race: "ct.vRace" };
 const thumb = (c) => `assets/thumbs/s/${c.key}.webp`;
 
 let root, T, TIERS, rows = [];
-const S = { view: "top", tab: "list", q: "", ra: new Set(), el: new Set(), tier: new Set(), sort: "score", filtersOpen: false };
+const S = { view: "top", tab: "list", q: "", tier: new Set(), sort: "score", filtersOpen: false };
 let ui = {};
+// the card filters, the Codex's own (facets.js): FS their state, IX the index of every card, F the component on the page
+let FS = null, IX = null, F = null;
+const TRIGGERS = [["el", ["el"]], ["ra", ["ra"]], ["hit", ["hit"]], ["gen", ["gen"]], ["fx", ["fx"]], ["tox", ["tox"]], ["tgt", ["tgt"]],
+  ["num", ["num"]], ["more", ["pc"]]];
 
 export async function mount(el) {
   root = el;
   // ranking.json names the run and its AI in the banner
-  [T] = await Promise.all([loadCardTiers(), loadRanking()]);
+  [T] = await Promise.all([loadCardTiers(), loadRanking(), loadFacets()]);
   TIERS = T.tiers.concat(["out"]);
+  IX = buildIndex(DB.cards, DB.facets);
+  // the filters live in the address while this tab is shown (?fx=temporality,reset#card-tiers), as on the Codex
+  FS = fromQuery(hashTab() === "card-tiers" ? location.search : "", IX);
+  S.q = FS.q;
+  ownAddress("card-tiers", () => toQuery({ ...FS, q: S.q }, IX));
   // the view and the tab live in the address: #card-tiers (top), #card-tiers/race, #card-tiers/details,
   // #card-tiers/race-details; the addresses of earlier versions (competitive, all) open the default view
   const start = (location.hash.split("/")[0] === "#card-tiers" && location.hash.split("/")[1]) || "";
@@ -45,7 +56,7 @@ export async function mount(el) {
   build();
   // the one load sequence of this tab: the first time it is shown, the tier rows on screen arrive in rank order
   cascade(root, () => [...ui.list.children]);
-  on("lang", () => { S.filtersOpen = ui.fbtn.getAttribute("aria-expanded") === "true"; build(); });
+  on("lang", () => { S.filtersOpen = ui.fbtn.getAttribute("aria-expanded") === "true"; if (F) F.destroy(); build(); });
   // the tab is left: a pinned card closes, so it is not waiting there when the visitor comes back
   window.addEventListener("hashchange", () => hidePop(true));
 }
@@ -83,7 +94,7 @@ function build() {
   hidePop(true);
   ui = {};
   roving = null;
-  rows = T.cards.map((r, i) => ({ i, c: r.card, r }));
+  rows = T.cards.map((r, i) => ({ i, c: r.card, r, ix: IX.cards.get(r.card.key) }));
   ui.announce = h("p.sr", { "aria-live": "polite" });
   ui.list = h("div.ct-list", { id: "ct-list", tabindex: "-1" });
   ui.pop = h("div.ct-pop#ct-pop", { "aria-hidden": "true" });
@@ -97,6 +108,7 @@ function build() {
     ]),
     toolbar(),
     filtersRegion(),
+    ui.fstatus,
     findRow(),
     ui.announce,
     h("section.ct-view", { id: "ct-view-list", role: "tabpanel", "aria-labelledby": "ct-tab-list" }, [
@@ -123,8 +135,9 @@ function toolbar() {
   // the view switch: the site's one segmented control (ui.js), as the Deck tier list's
   ui.viewSeg = segmented(VIEWS.map((v) => [v, viewName(v)]), S.view, (v) => setView(v), t("ct.viewAria"));
   ui.viewSeg.el.querySelectorAll("button").forEach((b) => { b.title = t(b.dataset.v === "top" ? "ct.vTopTip" : "ct.vRaceTip", { n: T.decks.top }); });
+  // the Codex's Filters button: the filters glyph, the word, the count of the filters on (cyan, as on the Codex), the chevron
   ui.fbtn = h("button.btn.ghost.disc.ct-fbtn", { type: "button", "aria-controls": "ct-filters", title: t("ct.filtersTitle") },
-    [h("span", t("ct.filters")), h("span.tab-n.ct-fn", { hidden: true }), icon("chevron")]);
+    [icon("filters"), h("span", t("ct.filters")), h("span.fbar-n.ct-fn"), icon("chevron")]);
   ui.tabs = [["list", t("ct.vTiers")], ["details", t("ct.vDetails")]].map(([v, label]) => h("button", {
     type: "button", role: "tab", id: "ct-tab-" + v, "aria-controls": "ct-view-" + v, "aria-selected": String(v === "list"), tabindex: v === "list" ? null : "-1",
     onclick: () => setTab(v),
@@ -137,19 +150,28 @@ function toolbar() {
   return ui.bar;
 }
 
+/** The card filters (facets.js, the Codex's own): from 760px the "Filters" disclosure holds their triggers, each opening its
+ * popover; on a phone the button opens them in the bottom sheet. Like the search, they keep only the matching cards and the rows
+ * that hold one. Under the toolbar, while a filter is on, one status line as on the Codex: the count, the active filters, and
+ * "Clear filters". */
 function filtersRegion() {
-  const toggle = (set, v) => { if (set.has(v)) set.delete(v); else set.add(v); applyFilters(); };
-  ui.raChips = RARITIES.map((id) => Object.assign(filterChip(raName(id), "sp-gem-" + id, () => toggle(S.ra, id)), { id, label: raName(id) }));
-  ui.elChips = ELEMENTS.map((id) => Object.assign(filterChip(elName(id), "sp-el-" + id, () => toggle(S.el, id)), { id, label: elName(id) }));
+  F = facetFilters({
+    id: "ct", index: IX, S: FS, triggers: TRIGGERS, patch: DB.patch,
+    items: () => rows.map((x) => x.ix), opts: () => ({ text: (ix) => hasAll(nameHay(ix.c), TS) }),
+    shown: () => rows.filter(matches).length,
+    onChange: () => applyFilters(), sentenceClear: false,
+  });
   ui.fcount = h("p.ct-fcount", { "aria-live": "polite" });
   ui.clear = h("button.btn.ghost.ct-clear", { type: "button", disabled: true, title: t("ct.clearOff"), onclick: clearAll }, t("ct.clear"));
-  const group = (key, kids) => h("div.ct-fgroup", { role: "group", "aria-label": t(key) }, [h("span.ct-fgroup-l", { "aria-hidden": "true" }, t(key)), ...kids]);
-  const region = h("div", { id: "ct-filters" }, h("div.collapse-in", h("div.ct-filters", { role: "group", "aria-label": t("ct.filters") }, [
-    group("ct.gRarity", ui.raChips.map((c) => c.el)),
-    group("ct.gElement", ui.elChips.map((c) => c.el)),
-    h("div.ct-fstatus", [ui.fcount, ui.clear]),
-  ])));
-  disclosure(ui.fbtn, region, { open: S.filtersOpen });
+  ui.fstatus = h("div.ct-fstatus", { hidden: true }, [h("div.tb-q", [ui.fcount, F.sentence]), ui.clear]);
+  const region = h("div", { id: "ct-filters" }, h("div.collapse-in", h("div.ct-filters", [F.bar])));
+  // on a phone the button opens the sheet instead of the disclosure (its listener comes first and stops the toggle)
+  ui.fbtn.addEventListener("click", (e) => { if (matchMedia("(max-width: 759px)").matches) { e.stopImmediatePropagation(); F.openSheet(); } }, { capture: true });
+  // the region clips while it opens or closes; once open it lets a trigger's popover reach over the rows below
+  const settle = () => region.classList.toggle("settled", region.classList.contains("open"));
+  region.addEventListener("transitionend", (e) => { if (e.target === region) settle(); });
+  disclosure(ui.fbtn, region, { open: S.filtersOpen, onToggle: (o) => { if (!o) { F.close(); region.classList.remove("settled"); } else if (reducedMotion()) settle(); } });
+  if (S.filtersOpen) settle();
   return region;
 }
 
@@ -288,12 +310,13 @@ function saveState() {
 // ---------------------------------------------------------------- filters: dim on the tier rows, hide in the table
 let TS = [];                                       // the words of the card search (search.js), set by applyFilters
 const found = (x) => hasAll(nameHay(x.c), TS);
-const matches = (x) => found(x) && (!S.ra.size || S.ra.has(x.c.rarity)) && (!S.el.size || S.el.has(x.c.element));
+const matches = (x) => found(x) && facetPasses(x.ix, FS);
 const matchesTier = (x) => !S.tier.size || S.tier.has(tierOf(x));
 
 function applyFilters() {
   TS = terms(S.q);
-  const on_ = TS.length > 0 || S.ra.size + S.el.size + (S.tab === "details" ? S.tier.size : 0) > 0;
+  const nOn = filterCount(FS) + (FS.tal ? 0 : 1);   // the search has its own field, outside the filters
+  const on_ = TS.length > 0 || nOn + (S.tab === "details" ? S.tier.size : 0) > 0;
   let shown = 0;
   for (const x of rows) {
     const ok = matches(x);
@@ -306,24 +329,22 @@ function applyFilters() {
   ui.fcount.textContent = !on_ ? t("ct.countAll", { n: total }) : shown === 0
     ? t(S.tab === "list" ? "ct.countNone" : "ct.countNoneT", { total })
     : t("ct.countSome", { n: shown, total });
-  // each rarity or element chip counts the cards it would show with the other group's filter on
-  for (const c of ui.raChips) setChip(c, rows.filter((x) => found(x) && x.c.rarity === c.id && (!S.el.size || S.el.has(x.c.element))).length, S.ra.has(c.id), t("filter.show", { label: c.label }), t("filter.none"));
-  for (const c of ui.elChips) setChip(c, rows.filter((x) => found(x) && x.c.element === c.id && (!S.ra.size || S.ra.has(x.c.rarity))).length, S.el.has(c.id), t("filter.show", { label: c.label }), t("filter.none"));
+  // every chip of the filters counts the cards it would show with the other groups on (facets.js)
+  F.refresh();
   const counts = {};
   rows.forEach((x) => { if (matches(x)) { const tr = tierOf(x); counts[tr] = (counts[tr] || 0) + 1; } });
   for (const c of ui.tierChips) {
     c.label = c.id === "out" ? outName(S.view) : c.label;
     setChip(c, counts[c.id] || 0, S.tier.has(c.id), t("filter.show", { label: c.label }), t("ct.tierChipOff"));
   }
-  const nOn = S.ra.size + S.el.size;               // the search has its own field, outside the filters
   const fn = ui.fbtn.querySelector(".ct-fn");
-  fn.hidden = nOn === 0;
-  fn.textContent = String(nOn);
+  fn.textContent = nOn ? fmtInt(nOn) : "";
+  ui.fstatus.hidden = !(nOn > 0 || (S.tab === "details" && S.tier.size > 0));
   ui.fbtn.title = nOn ? t("ct.filtersOn", { n: nOn }) : t("ct.filtersTitle");
-  // row counts follow the filters: "2 of 7 cards" while some cards of the row are dimmed or, during a search, hidden.
-  // A search keeps only the matching cards and the rows that hold one, so the matches sit right under the field (on a phone
-  // too); the rarity and element filters alone only dim. Clearing the search brings every row and card back.
-  const finding = TS.length > 0;
+  // row counts follow the filters: "2 of 7 cards" while some cards of the row are hidden. A search or a filter keeps only the
+  // matching cards and the rows that hold one, so the matches sit right under the toolbar (on a phone too; the card filters
+  // can leave a dozen cards of 127, too few to find among dimmed icons). Clearing them brings every row and card back.
+  const finding = TS.length > 0 || !noFilter(FS);
   root.classList.toggle("ct-finding", finding);
   for (const tr of TIERS) {
     const all = ui.order[tr], k = all.filter(matches).length;
@@ -335,11 +356,13 @@ function applyFilters() {
   ui.clear.title = t(on_ ? "ct.clearOn" : "ct.clearOff");
   ui.dtEmpty.hidden = !(S.tab === "details" && shown === 0);
   paintFind();
+  writeAddress();
 }
 
 /** Clear filters: the chips, and the search too (the Details view's empty state uses it to show every card again). */
 function clearAll() {
-  S.ra.clear(); S.el.clear(); S.tier.clear();
+  Object.assign(FS, fromQuery("", IX));
+  S.tier.clear();
   S.q = ""; ui.search.set("");
   applyFilters();
 }
@@ -418,6 +441,8 @@ function popContent(x, full) {
       ]),
       r.tier ? h("div.ct-pop-tier", [tchip(r.tier), h("span", t("ct.rankOf", { r: r.rank, m: T.placed[v] }))]) : null,
     ]),
+    // under a filter, why this card matched it (the Codex's lines)
+    whyLines(x),
     // pinned: what the patch changed, and that the numbers below predate it
     full && patchDetail(c) ? h("p.ct-pop-pc", patchDetail(c)) : null,     // showPop drops the empty slots
     // the card tiers' own patch: a card the patch changed was measured after the change when it is the card data's
@@ -438,6 +463,12 @@ function popContent(x, full) {
     full ? null : h("p.ct-pop-more", t("ct.popMore")),
     full ? talentBlock(x) : null,
   ];
+}
+
+function whyLines(x) {
+  if (noFilter(FS) || !matches(x)) return null;
+  const lines = F.reasonsFor(x.ix);
+  return lines.length ? h("div.ct-pop-why", lines) : null;
 }
 
 /**
