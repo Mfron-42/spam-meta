@@ -1,27 +1,27 @@
 {
   "available": true,
-  "version": "0.1.21",
+  "version": "0.1.22",
   "released": "2026-10-25",
-  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.21",
-  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.21",
+  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.22",
+  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.22",
   "notes": {
-    "en": "- A stronger AI: v3s10n. The \"do this\" dot, the AI's estimate and the test games now come from v3s10n, the lab's newest best AI: v3s9's search on a new move net, which also does its own shopping. Against the lab's reference bot, both aiming as the game lets a player aim, it wins 3.7 points more often than v3s9 on the lab's wide deck pool and 7 points more on its test decks (paired reads on fresh games).\n- Only what you can see. As before, the AI knows what the game sends your client and nothing more: an opponent's talent stays unknown until it fires.\n- Same speed. The AI's move still shows about half a second after the game's last update, with the game's own settle: on our test PC, under a heavy background job, 0.52 s at the median and 9 times in 10 within 0.57 s. Shop moves no longer need a search, so they cost far less CPU.\n- `\"ai_pick\": \"fast\"` in `data\\config.local.json` now runs the new net alone: a few hundredths of a second of computing, the same move as the full search on 93 decisions in 100, but it wins less often (in the lab's tests against the same opponent, 54 games in 100 against 61), and the win chance then comes from the value net and the test games, not from the AI. `\"ai_stack\": \"v3s9\"` brings back the previous AI.",
-    "fr": "- Une IA plus forte : v3s10n. Le point \u00ab \u00e0 jouer \u00bb, l'estimation de l'IA et les parties de test viennent maintenant de v3s10n, la nouvelle meilleure IA du labo : la recherche de v3s9 sur un nouveau r\u00e9seau de coups, qui fait aussi ses propres achats. Contre le bot de r\u00e9f\u00e9rence du labo, tous deux visant comme le jeu laisse viser un joueur, elle gagne 3,7 points de plus que v3s9 sur le large lot de decks du labo et 7 points de plus sur ses decks de test (mesures appari\u00e9es sur des parties neuves).\n- Seulement ce que vous voyez. Comme avant, l'IA conna\u00eet ce que le jeu envoie \u00e0 votre client et rien de plus : le talent d'un adversaire reste inconnu tant qu'il ne s'est pas d\u00e9clench\u00e9.\n- M\u00eame vitesse. Le coup de l'IA s'affiche toujours environ une demi-seconde apr\u00e8s la derni\u00e8re mise \u00e0 jour du jeu, quand le jeu lui-m\u00eame se stabilise : sur notre PC de test, charg\u00e9 par un gros calcul en arri\u00e8re-plan, 0,52 s en m\u00e9diane et 9 fois sur 10 en moins de 0,57 s. Les coups de boutique n'ont plus besoin de recherche et co\u00fbtent bien moins de calcul.\n- `\"ai_pick\": \"fast\"` dans `data\\config.local.json` fait maintenant jouer le nouveau r\u00e9seau seul : quelques centi\u00e8mes de seconde de calcul, le m\u00eame coup que la recherche compl\u00e8te 93 fois sur 100, mais il gagne moins souvent (dans les tests du labo contre le m\u00eame adversaire, 54 parties sur 100 contre 61), et la chance de victoire vient alors du r\u00e9seau de valeur et des parties de test, pas de l'IA. `\"ai_stack\": \"v3s9\"` remet l'IA pr\u00e9c\u00e9dente."
+    "en": "- Echo chains played to the end. The AI's search and the test games used to stop a card after 4 casts of the same spell in one turn: a limit of our simulator, not of the game. They now let a chain run as long as the game's own turn timer allows (up to 55 casts of one spell and 110 actions a turn, the timer at a player's pace), so a deck built on echo, such as Imaginary Panther's Crazy Speed, gets the advice and the win chance it really has. On our test positions with Imaginary Panther, the test games now read its side 12 to 15 points higher; positions without an echo card give exactly the same advice as 0.1.21.\n- The win rate above the end-turn button always stays. During a match it shows a figure or, while it is being computed or the position is unsure, the soft calculating sweep with the last figure greyed: it no longer leaves an empty slot, on your turn or the opponent's. The shop still shows none (its offers cover the button).\n- No misleading jump. When the AI's estimate and the test games disagree widely, the badge shows the whole span (\"\u224818\u201394%\") instead of one confident number, and a figure that comes from another source than the previous move's is marked \"\u2248\".",
+    "fr": "- Les cha\u00eenes d'\u00e9cho jou\u00e9es jusqu'au bout. La recherche de l'IA et les parties de test arr\u00eataient une carte apr\u00e8s 4 lancers du m\u00eame sort dans un tour : une limite de notre simulateur, pas du jeu. Elles laissent maintenant une cha\u00eene aller aussi loin que le chrono du tour du jeu le permet (jusqu'\u00e0 55 lancers d'un m\u00eame sort et 110 actions par tour, le chrono au rythme d'un joueur), si bien qu'un deck b\u00e2ti sur l'\u00e9cho, comme Vitesse folle de la Panth\u00e8re imaginaire, re\u00e7oit les conseils et la chance de victoire qu'il a vraiment. Sur nos positions de test avec la Panth\u00e8re imaginaire, les parties de test donnent maintenant son camp 12 \u00e0 15 points plus haut ; les positions sans carte \u00e0 \u00e9cho donnent exactement les m\u00eames conseils qu'en 0.1.21.\n- Le taux de victoire au-dessus du bouton de fin de tour reste toujours affich\u00e9. Pendant une partie, il montre un chiffre ou, pendant le calcul ou quand la position est incertaine, le balayage doux \u00ab calcul en cours \u00bb avec le dernier chiffre gris\u00e9 : il ne laisse plus de place vide, \u00e0 votre tour comme \u00e0 celui de l'adversaire. La boutique n'en affiche toujours pas (ses offres couvrent le bouton).\n- Plus de saut trompeur. Quand l'estimation de l'IA et les parties de test divergent fortement, le badge affiche tout l'\u00e9cart (\u00ab \u224818\u201394 % \u00bb) au lieu d'un seul chiffre s\u00fbr de lui, et un chiffre qui vient d'une autre source que celui du coup pr\u00e9c\u00e9dent est marqu\u00e9 \u00ab \u2248 \u00bb."
   },
   "assets": [
     {
       "kind": "setup",
-      "name": "SPAM-Overlay-Setup-0.1.21.exe",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.21/SPAM-Overlay-Setup-0.1.21.exe",
-      "size_bytes": 165069326,
-      "sha256": "ea550d9be9a1c54fda3e82040613c668b9b6ee80a30160d32b4783139bdf4070"
+      "name": "SPAM-Overlay-Setup-0.1.22.exe",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.22/SPAM-Overlay-Setup-0.1.22.exe",
+      "size_bytes": 165043365,
+      "sha256": "76aec05bd33c6d0426b07a0a9d89d4421fbf64517160e4dd4e7d36c0ecd55690"
     },
     {
       "kind": "zip",
-      "name": "spam-overlay-0.1.21-win64.zip",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.21/spam-overlay-0.1.21-win64.zip",
-      "size_bytes": 250215926,
-      "sha256": "dc2ad97c9548a29a6cb3cfcd6870ae6782bab216e5a125fe93a246dc4c1e5187"
+      "name": "spam-overlay-0.1.22-win64.zip",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.22/spam-overlay-0.1.22-win64.zip",
+      "size_bytes": 250221934,
+      "sha256": "b916408490730d6da4543658f3b4202e4f3ab64ef587332f142ccd26c5f8f41d"
     }
   ]
 }

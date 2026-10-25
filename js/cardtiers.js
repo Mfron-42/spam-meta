@@ -12,18 +12,18 @@
 // (tools/export_cardtiers.py); every number on this page is that file's. No counter is shown per card.
 // A language change rebuilds the page from the same state (view, tab, filters, search).
 
-import { h, $, $$, icon, fmtInt, pct, pct1, dec, reducedMotion } from "./util.js?v=efb01bc2c2";
-import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=efb01bc2c2";
-import { DB, loadCardTiers, loadRanking, loadFacets } from "./data.js?v=efb01bc2c2";
-import { on, getLang } from "./store.js?v=efb01bc2c2";
-import { cardName, otherName, chip, L, elName, raName } from "./cards.js?v=efb01bc2c2";
-import { disclosure, filterChip, setChip, cascade, band, segmented, chromeBottom, CURVE } from "./ui.js?v=efb01bc2c2";
-import { buildIndex, fromQuery, toQuery, passes as facetPasses, noFilter, filterCount } from "./facetmodel.js?v=efb01bc2c2";
-import { facetFilters, ownAddress, writeAddress, hashTab } from "./facets.js?v=efb01bc2c2";
-import { t, tx } from "./i18n.js?v=efb01bc2c2";
-import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, provBanner, suggestedTalent, methodSection } from "./patch.js?v=efb01bc2c2";
-import { textNodes, hideTip, tipButton } from "./cardtext.js?v=efb01bc2c2";
-import { deckStrip } from "./deckstrip.js?v=efb01bc2c2";
+import { h, $, $$, icon, fmtInt, pct, pct1, dec, reducedMotion } from "./util.js?v=68682df7d6";
+import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=68682df7d6";
+import { DB, loadCardTiers, loadRanking, loadFacets } from "./data.js?v=68682df7d6";
+import { on, getLang } from "./store.js?v=68682df7d6";
+import { cardName, otherName, chip, L, elName, raName } from "./cards.js?v=68682df7d6";
+import { disclosure, filterChip, setChip, cascade, band, segmented, chromeBottom, CURVE } from "./ui.js?v=68682df7d6";
+import { buildIndex, fromQuery, toQuery, passes as facetPasses, noFilter, filterCount } from "./facetmodel.js?v=68682df7d6";
+import { facetFilters, ownAddress, writeAddress, hashTab } from "./facets.js?v=68682df7d6";
+import { t, tx } from "./i18n.js?v=68682df7d6";
+import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, provBanner, suggestedTalent, methodSection } from "./patch.js?v=68682df7d6";
+import { textNodes, hideTip, tipButton } from "./cardtext.js?v=68682df7d6";
+import { deckStrip } from "./deckstrip.js?v=68682df7d6";
 
 // a tier's class on the card tier scale; "out" is the row of the cards with no deck in the view
 const TC = { "S+": "sp", S: "s", A: "a", B: "b", C: "c", D: "d", E: "e", out: "out" };
