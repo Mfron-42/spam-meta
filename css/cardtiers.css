@@ -116,7 +116,7 @@
 .ct-pop-more { margin-top: 8px; color: var(--muted); font: 600 14px/1.4 var(--text); }
 .ct-pop-x { top: 4px; right: 4px; background: transparent; }
 .ct-pop.pinned .ct-pop-h { padding-right: 40px; }
-.ct-pop-h { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+.ct-pop-h { display: grid; grid-template-columns: 48px minmax(0, 1fr) min-content; gap: 12px; align-items: center; }
 .ct-pop-art { display: block; width: 48px; height: auto; aspect-ratio: 1432 / 2048; border: 1px solid var(--card-edge); border-radius: 4px; object-fit: cover; object-position: top; background: var(--socket); }
 .ct-pop-name { font: 400 18px/1.15 var(--display); }
 .ct-pop-sub { color: var(--muted); font: 600 14px/1.4 var(--text); }
@@ -126,6 +126,9 @@
 .ct-pop-tier > span:not(.ct-tchip) { color: var(--muted); font: 600 14px/1.2 var(--text); white-space: nowrap; }
 /* All games: the tiers the likely range spans ("likely D–S"), under the tier and its place (and under the Details chip) */
 .ct-pop-tier > .ct-span, .ct-span { color: var(--ink-2); }
+/* in the header the span may wrap ("fourchette" over "A–S+" in French), so the column keeps the place's width and the names
+   beside it never narrow */
+.ct-pop-tier > span.ct-span { white-space: normal; text-align: center; text-wrap: balance; }
 .ct-c-tier .ct-span { display: block; margin-top: 4px; white-space: nowrap; }
 .ct-pop-st { margin-top: 16px; }
 /* the view's figure big with its deck count beside it, the other view's figure small under it with its one-word name */

@@ -5,13 +5,13 @@
 // above the list until 2026-10-24). Rows arrive sorted by the furthest stage reached, then the score there (docs/DATA.md,
 // "ranking-decks.json"), so a filter that keeps their order keeps the canonical ranking.
 
-import { h, icon, pct, pct1, pm, dec, fmtInt } from "./util.js?v=41989ff170";
-import { DB, deckKey } from "./data.js?v=41989ff170";
-import { getLang, isOwned, ownedCount } from "./store.js?v=41989ff170";
-import { gameCard, chip, cardName, L } from "./cards.js?v=41989ff170";
-import { t, tx } from "./i18n.js?v=41989ff170";
-import { tipButton } from "./cardtext.js?v=41989ff170";
-import { introLine, provBanner, gameSpan, medianRounds, isMatchupTalent, matchupMark } from "./patch.js?v=41989ff170";
+import { h, icon, pct, pct1, pm, dec, fmtInt } from "./util.js?v=efb01bc2c2";
+import { DB, deckKey } from "./data.js?v=efb01bc2c2";
+import { getLang, isOwned, ownedCount } from "./store.js?v=efb01bc2c2";
+import { gameCard, chip, cardName, L } from "./cards.js?v=efb01bc2c2";
+import { t, tx } from "./i18n.js?v=efb01bc2c2";
+import { tipButton } from "./cardtext.js?v=efb01bc2c2";
+import { introLine, provBanner, gameSpan, medianRounds, isMatchupTalent, matchupMark } from "./patch.js?v=efb01bc2c2";
 
 // ---------------------------------------------------------------- stages, in plain words
 // The stages of the ranking, in order (owner, 2026-10-25: each name means one stage only): the First sort (a fast AI), the
