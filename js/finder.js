@@ -4,16 +4,19 @@
 // are never sorted together). When no measured deck holds every pick, one line says so and the decks holding the most of them
 // follow, most first inside each scale, each with a "Without:" line. Only the table's rows are read: the decks the privacy rules
 // keep off the site have none, so they can never be proposed, and a pick that matches nothing gets the same generic line.
-// The picks live in memory only (the address holds a tab and, while a card dialog is open, a card key; SPEC.md); the card
-// dialog's "Decks with this card" sets them through pick().
+// "Without these cards" (owner, 2026-10-27, for the game's ban mode; search.js outRow) leaves out every deck holding one of the
+// cards the visitor names, the order unchanged; with no pick it lists the whole table without them. A card is a pick or left
+// out, never both: the last choice wins.
+// The picks and the cards left out live in memory only (the address holds a tab and, while a card dialog is open, a card key;
+// SPEC.md); the card dialog's "Decks with this card" sets the picks through pick().
 
-import { h, icon, fmtInt } from "./util.js?v=7a68f47bac";
-import { DB, loadDecks } from "./data.js?v=7a68f47bac";
-import { on, isOwned, ownedCount } from "./store.js?v=7a68f47bac";
-import { cardName, chip } from "./cards.js?v=7a68f47bac";
-import { t } from "./i18n.js?v=7a68f47bac";
-import { searchField, announcer, terms, namedCards } from "./search.js?v=7a68f47bac";
-import { deckRow, scaleGroups, paintOwned, tableHead } from "./decklist.js?v=7a68f47bac";
+import { h, icon, fmtInt } from "./util.js?v=e6624c9207";
+import { DB, loadDecks } from "./data.js?v=e6624c9207";
+import { on, isOwned, ownedCount } from "./store.js?v=e6624c9207";
+import { cardName, chip } from "./cards.js?v=e6624c9207";
+import { t } from "./i18n.js?v=e6624c9207";
+import { searchField, announcer, terms, namedCards, outRow, bringBack } from "./search.js?v=e6624c9207";
+import { deckRow, scaleGroups, paintOwned, tableHead } from "./decklist.js?v=e6624c9207";
 
 const MAX = 4;           // four picks are a whole deck
 const PAGE = 10;         // results shown, then ten more on request
@@ -21,8 +24,8 @@ const SUGGEST = 4;       // cards offered under the field (one row on a desktop,
 const OFTEN_FROM = 40;   // "Often with" counts the cards of the best results only
 
 let root, D, popular = [];
-let picks = [], query = "", mineOnly = false;
-let field, sugEl, slotsEl, resEl, voice;
+let picks = [], out = [], query = "", outQuery = "", mineOnly = false;
+let field, sugEl, slotsEl, resEl, voice, outEl;
 
 export async function mount(el) {
   root = el;
@@ -33,9 +36,10 @@ export async function mount(el) {
   on("lang", () => render());
 }
 
-/** Start over with these cards picked (the card dialog's "Decks with this card"). */
+/** Start over with these cards picked (the card dialog's "Decks with this card"); the cards left out stay, but a pick. */
 export function pick(keys) {
   picks = keys.map((k) => DB.byKey.get(k)).filter(Boolean).slice(0, MAX);
+  out = out.filter((c) => !picks.includes(c));
   query = "";
   if (root) render();
 }
@@ -56,13 +60,22 @@ function oftenWith(rows) {
 }
 
 // ---------------------------------------------------------------- matching
-/** The rows holding every pick (`full`), else the rows holding the most of them, most first (`near`). */
+/** Whether a row holds none of the cards left out (`skip`: the list to test, the visitor's by default). */
+const allowed = (r, skip = out) => !skip.some((c) => r.cards.includes(c));
+const holdsPicks = (r) => picks.every((p) => r.cards.includes(p));
+
+/**
+ * The rows holding every pick and none of the cards left out (`full`), else the rows holding the most picks, most first
+ * (`near`). With no pick but cards left out, every row without them (`full`); with neither, nothing.
+ */
 function match() {
-  if (!picks.length) return null;
-  const full = D.rows.filter((r) => picks.every((p) => r.cards.includes(p)));
+  if (!picks.length && !out.length) return null;
+  const rows = out.length ? D.rows.filter((r) => allowed(r)) : D.rows;
+  if (!picks.length) return { full: rows, near: [] };
+  const full = rows.filter(holdsPicks);
   if (full.length || picks.length === 1) return { full, near: [] };
   const near = [];
-  for (const r of D.rows) {
+  for (const r of rows) {
     const k = picks.filter((p) => r.cards.includes(p)).length;
     if (k) near.push({ r, k });
   }
@@ -79,9 +92,20 @@ function render() {
   slotsEl = h("ul.fd-slots", { "aria-label": t("fd.picks") });
   resEl = h("div.fd-res");
   voice = announcer();
+  // the cards left out: a card left out stops being a pick (the last choice wins, said on the offer and announced)
+  outEl = outRow({ id: "fd-out", out, value: outQuery, onQuery: (v) => { outQuery = v; },
+    note: (c) => (picks.includes(c) ? t("out.notePick") : null),
+    onOut: (list, change) => {
+      out = list;
+      const dropped = change && change.left && picks.includes(change.left);
+      picks = picks.filter((p) => !out.includes(p));
+      paintPicks();
+      if (dropped) say(t("out.saidPick", { name: cardName(change.left) }));
+    } });
   root.replaceChildren(
     tableHead("builder", t("fd.h1"), t("fd.lede")),
     h("div.fd-pick", [h("div.fd-field", field.el), sugEl, slotsEl, voice.el]),
+    outEl.el,
     resEl,
   );
   paintPicks();
@@ -102,11 +126,20 @@ function paintPicks() {
 function add(c) {
   if (picks.length >= MAX || picks.includes(c)) return;
   picks = [...picks, c];
+  const back = out.includes(c);
+  if (back) { out = out.filter((x) => x !== c); outEl.set(out); }     // a pick is never left out
   query = "";
   field.set("");
   paintPicks();
+  if (back) say(t("out.saidBack", { name: cardName(c) }));
   if (picks.length < MAX) field.input.focus();
   else { const hd = resEl.querySelector("h2"); if (hd) hd.focus(); }     // a whole deck: the results come into view
+}
+
+/** Says a side effect of a choice, then the results' heading, in one polite announcement (the last one said wins). */
+function say(text) {
+  const hd = resEl.querySelector("h2");
+  voice.say(text + (hd ? " " + hd.textContent + "." : ""));
 }
 
 function remove(c) {
@@ -148,19 +181,24 @@ function paintSuggest() {
     label = t("fd.matches", { n: list.length });
     voice.say(label.replace(/\s*:\s*$/, "") + ": " + list.slice(0, SUGGEST).map(cardName).join(", "));
   } else {
-    const m = match();
+    // "Often with" needs a pick; a card left out is never offered (no deck shown holds it)
+    const m = picks.length ? match() : null;
     const often = m && m.full.length ? oftenWith(m.full) : [];
     label = t(often.length ? "fd.often" : "fd.popular");
-    list = (often.length ? often : popular).filter((c) => !picks.includes(c));
+    list = (often.length ? often : popular).filter((c) => !picks.includes(c) && !out.includes(c));
   }
   const shown = list.slice(0, SUGGEST);     // the label counts the matches; typing more letters narrows them
   sugEl.replaceChildren(...[
     h("span.fd-sug-l", label),
-    ...shown.map((c) => h("button.chip.fd-add", { type: "button", title: t("fd.add", { name: cardName(c) }), onclick: () => add(c) }, [
-      h("img", { class: "cc-art", loading: "lazy", decoding: "async", alt: "", width: 18, height: 24, src: `assets/thumbs/s/${c.key}.webp` }),
-      h("span.chip-l", { translate: "no" }, cardName(c)),
-      icon("plus"),
-    ])),
+    ...shown.map((c) => {
+      // the verb in its name, so it never reads as the "Leave out" offers; a card left out says it comes back
+      const s = t(out.includes(c) ? "fd.addBack" : "fd.add", { name: cardName(c) });
+      return h("button.chip.fd-add", { type: "button", title: s, "aria-label": s, onclick: () => add(c) }, [
+        h("img", { class: "cc-art", loading: "lazy", decoding: "async", alt: "", width: 18, height: 24, src: `assets/thumbs/s/${c.key}.webp` }),
+        h("span.chip-l", { translate: "no" }, cardName(c)),
+        icon("plus"),
+      ]);
+    }),
   ]);
 }
 
@@ -180,19 +218,33 @@ function paintResults() {
   [h("span.chip-l", t("tl.ready")), h("span.n", fmtInt(ready))]) : null;
 
   const parts = [];
-  let items, mk, head;
+  let items, mk, head, none = null;
   if (m.full.length) {
     items = m.full.filter((r) => !mineOnly || mine(r));
     head = t("fd.resH", { n: items.length });
     mk = (r, i) => deckRow(r, String(i + 1), { cards: order(r), badge: badge(r) });
   } else {
-    parts.push(h("p.fd-none", t("fd.none", { n: picks.length })));
+    // the cards left out empty the list when some deck holds every pick without that rule: say so, and offer to bring one back
+    const blocked = out.length > 0 && D.rows.some(holdsPicks);
+    none = !picks.length ? t("out.none") : t(blocked ? "fd.noneOut" : "fd.none", { n: picks.length });
+    parts.push(h("p.fd-none", none));
+    if (blocked) {
+      // each count is what the list would show with that card back, "Ready to play" included
+      parts.push(bringBack(out, (c) => D.rows.filter((r) => holdsPicks(r) && allowed(r, out.filter((x) => x !== c)) && (!mineOnly || mine(r))).length, (c) => {
+        out = out.filter((x) => x !== c);
+        outEl.set(out);
+        paintPicks();
+        const hd = resEl.querySelector("h2");
+        (hd || outEl.field.input).focus();
+      }));
+    }
     items = m.near.filter((x) => !mineOnly || mine(x.r));
     head = m.near.length ? t("fd.closeH") : null;
     mk = (x, i) => deckRow(x.r, String(i + 1), {
       cards: order(x.r),
-      // "Without: <chips>" says which picks it lacks (the old "3 of your 4 cards" tag said it twice)
-      note: h("p.dr-miss", [h("span.muted", t("fd.without") + " "), ...picks.filter((p) => !x.r.cards.includes(p)).map(chip)]),
+      // "Missing: <chips>" says which picks it lacks (the old "3 of your 4 cards" tag said it twice; "Without:" until 2026-10-27,
+      // when "Without these cards" came to mean the cards left out)
+      note: h("p.dr-miss", [h("span.muted", t("md.missing") + " "), ...picks.filter((p) => !x.r.cards.includes(p)).map(chip)]),
       badge: badge(x.r),
     });
   }
@@ -201,7 +253,7 @@ function paintResults() {
     parts.push(...(items.length ? scaleGroups(items, m.full.length ? (r) => r : (x) => x.r, mk, PAGE) : [h("p.fd-none", t("fd.mineNone"))]));
   }
   resEl.replaceChildren(...parts);
-  voice.say(m.full.length ? head : t("fd.none", { n: picks.length }));
+  voice.say(m.full.length ? head : none);
 }
 
 function badge(r) {

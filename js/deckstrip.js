@@ -6,8 +6,8 @@
 // marks, and the figure itself as a short Cream Lavender tick on the bar. The marks and the range take the card's tier colour in
 // that view. Decorative: the figures printed beside it say the same in words.
 
-import { h, pct } from "./util.js?v=7a68f47bac";
-import { t } from "./i18n.js?v=7a68f47bac";
+import { h, pct } from "./util.js?v=e6624c9207";
+import { t } from "./i18n.js?v=e6624c9207";
 
 const TC = { "S+": "sp", S: "s", A: "a", B: "b", C: "c", D: "d", E: "e" };
 

@@ -230,6 +230,8 @@ main.wrap { padding-block: 32px 64px; }
 .field.select .ico { position: absolute; right: 12px; pointer-events: none; }
 .field-clear { display: inline-grid; place-items: center; width: 32px; height: 32px; margin-right: -8px; border: 0; border-radius: 50%; background: transparent; color: var(--ink-2); cursor: pointer;
   transition: background var(--t-state) var(--curve); }
+.field-clear { position: relative; }
+.field-clear::after { content: ""; position: absolute; inset: -6px; }   /* a 44px hit area (DESIGN.md: touch targets) */
 .field-clear:hover { background: rgba(255, 255, 255, .1); }
 .field-clear:active { background: rgba(0, 0, 0, .35); }
 

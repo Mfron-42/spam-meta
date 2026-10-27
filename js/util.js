@@ -1,6 +1,6 @@
 // Small DOM and formatting helpers shared by every module. Numbers follow the page language (store.js).
 
-import { getLang } from "./store.js?v=7a68f47bac";
+import { getLang } from "./store.js?v=e6624c9207";
 
 /** Create an element: h("div.cls#id", {attr: v, onclick}, child, [children], "text"). Text is always set as text. */
 export function h(tag, props, ...kids) {
@@ -92,6 +92,7 @@ export const reEscape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const ICONS = {
   check: "M3.5 8.5l3 3 6-7",
   plus: "M8 3.5v9M3.5 8h9",
+  minus: "M3.5 8h9",
   close: "M4 4l8 8M12 4l-8 8",
   search: "M7 12.5a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11zM11 11l3.5 3.5",
   chevron: "M4 6l4 4 4-4",

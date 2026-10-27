@@ -3,7 +3,8 @@
 // card texts are game data (cards.json `*_fr` / `*_en`).
 //
 // Add a string: give it a key in BOTH tables (the same key, dotted by view: "tl." deck tier list, "ct." card tier list,
-// "cx." codex, "md." my decks, "fd." deck builder, "pend." the placeholder of a ranking view being computed, "card." card dialog,
+// "cx." codex, "md." my decks, "fd." deck builder, "out." the "Without these cards" row of the deck builder and my decks,
+// "pend." the placeholder of a ranking view being computed, "card." card dialog,
 // "about.", "code." collection code, "keep." keeping the collection
 // (keep.js), "foot.", "head."). Placeholders are
 // {name}; an integer parameter is formatted for the language (1,148,832 / 1 148 832), any other value is printed as given,
@@ -11,8 +12,8 @@
 // {one, other} chosen by Intl.PluralRules on the parameter `count`, else `n` (French: 0 to 1.99 are "one"). `**bold**` is honoured by tx()
 // only. French copy uses plain spaces before : ; ? ! - they become no-break spaces when the table loads.
 
-import { h, fmtInt, dec } from "./util.js?v=7a68f47bac";
-import { getLang } from "./store.js?v=7a68f47bac";
+import { h, fmtInt, dec } from "./util.js?v=e6624c9207";
+import { getLang } from "./store.js?v=e6624c9207";
 
 const EN = {
   // ---- document and header
@@ -558,15 +559,34 @@ const EN = {
   "fd.slotEmpty": "Add a card",
   "fd.remove": "Remove {name}",
   "fd.add": "Add {name}",
+  "fd.addBack": "Add {name} (it was left out)",
   "fd.popular": "Popular:",
   "fd.often": "Often with:",
   "fd.matches": { one: "{n} card:", other: "{n} cards:" },
   "fd.resH": { one: "{n} deck", other: "{n} decks" },
   "fd.none": { one: "No measured deck holds this card.", other: "No measured deck holds these {n} cards." },
   "fd.closeH": "Closest decks",
-  "fd.without": "Without:",
   "fd.mineOff": "You do not own all 4 cards of any of these decks yet",
   "fd.mineNone": "No deck here is fully in your collection.",
+  "fd.noneOut": { one: "Every measured deck with this card plays a card you left out.", other: "Every measured deck with these {n} cards plays a card you left out." },
+
+  // ---- without these cards (Deck builder, My decks: search.js outRow)
+  "out.label": "Without these cards",
+  "out.ph": "Leave out a card…",
+  "out.hint": "Ban mode or Fearless tournament: leave out the cards banned or already played.",
+  "out.list": "Cards left out",
+  "out.offer": "Leave out:",
+  "out.add": "Leave out {name}",
+  "out.already": "{name}: already left out",
+  "out.notePick": "(it leaves your cards)",
+  "out.saidPick": "{name} left out and removed from your cards.",
+  "out.saidBack": "{name} added back from the cards left out.",
+  "out.del": "Bring back {name}",
+  "out.shown": { one: "{n} deck shown", other: "{n} decks shown" },
+  "out.none": "Every deck here plays a card you left out.",
+  "out.back": "Bring back {name}: {decks}",
+  "out.hintNone": "No single card brings decks back: bring back several.",
+  "out.mMethod": "“Without these cards” only hides the decks that play them: every figure was measured with every card in play.",
 
   // ---- about
   "about.h": "About SPAM Meta",
@@ -1338,15 +1358,34 @@ const FR = {
   "fd.slotEmpty": "Ajouter une carte",
   "fd.remove": "Retirer {name}",
   "fd.add": "Ajouter {name}",
+  "fd.addBack": "Ajouter {name} (elle était écartée)",
   "fd.popular": "Populaires :",
   "fd.often": "Souvent avec :",
   "fd.matches": { one: "{n} carte :", other: "{n} cartes :" },
   "fd.resH": { one: "{n} deck", other: "{n} decks" },
   "fd.none": { one: "Aucun deck mesuré n’a cette carte.", other: "Aucun deck mesuré n’a ces {n} cartes." },
   "fd.closeH": "Les plus proches",
-  "fd.without": "Sans :",
   "fd.mineOff": "Tu n’as encore les 4 cartes d’aucun de ces decks",
   "fd.mineNone": "Aucun de ces decks n’est complet dans ta collection.",
+  "fd.noneOut": { one: "Chaque deck mesuré avec cette carte joue une carte écartée.", other: "Chaque deck mesuré avec ces {n} cartes joue une carte écartée." },
+
+  // ---- sans ces cartes (Deck builder, Mes decks : search.js outRow)
+  "out.label": "Sans ces cartes",
+  "out.ph": "Écarter une carte…",
+  "out.hint": "Mode ban ou tournoi Fearless : écarte les cartes bannies ou déjà jouées.",
+  "out.list": "Cartes écartées",
+  "out.offer": "Écarter :",
+  "out.add": "Écarter {name}",
+  "out.already": "{name} : déjà écartée",
+  "out.notePick": "(elle quitte tes cartes)",
+  "out.saidPick": "{name} écartée et retirée de tes cartes.",
+  "out.saidBack": "{name} ajoutée, elle n’est plus écartée.",
+  "out.del": "Remettre {name}",
+  "out.shown": { one: "{n} deck affiché", other: "{n} decks affichés" },
+  "out.none": "Chaque deck ici joue une carte écartée.",
+  "out.back": "Remettre {name} : {decks}",
+  "out.hintNone": "Aucune carte seule ne ramène de deck : remets-en plusieurs.",
+  "out.mMethod": "« Sans ces cartes » ne fait que masquer les decks qui les jouent : chaque chiffre a été mesuré avec toutes les cartes en jeu.",
 
   "about.h": "À propos de SPAM Meta",
   "about.lead": "**Ce site est généré par IA**, données et analyse comprises.",

@@ -302,6 +302,38 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 4px; 
 .fd-head + .guide-wrap { margin: 8px 0 16px; }
 .fd-none { color: var(--ink-2); font-size: 18px; line-height: 1.5; margin-bottom: 24px; }
 .fd-res > .fd-none:last-child { margin-bottom: 0; }
+
+/* ---------------------------------------------------------------- Without these cards (search.js outRow: the Deck builder, My
+   decks), in the builder's order: the label, the field, one reserved line (the hint at rest, "Leave out:" and cards while typing),
+   then the cards left out */
+.out { display: grid; gap: 8px; }
+.fd-pick + .out { margin-top: 32px; }
+.find + .out { margin-top: 24px; }
+/* a field's label, not a heading: the Method sub-section's label step (Nunito 600 16 Soft Lavender), quieter than the picks */
+.out-l { justify-self: start; color: var(--ink-2); font: 600 16px/1.4 var(--text); }
+.out .field { max-width: 420px; }
+.out-sug { display: flex; align-items: center; min-height: 36px; max-width: none; color: var(--muted); font: 600 14px/1.4 var(--text); }
+/* the offers keep the one row at every width: they shrink and cut their names rather than wrap (typing moves nothing) */
+.out-m { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; min-width: 0; color: var(--ink-2); }
+.out-m .fd-sug-l { flex: none; }
+.out-add { flex: 0 1 auto; min-width: 0; padding: 0 12px 0 8px; }
+.out-add .chip-l { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.out-add .ico { flex: none; color: var(--muted); }
+.out-add:not(:disabled):hover .ico { color: var(--ink); }
+/* every line of chips is 44px (their hit area), so a second line only grows downward */
+.out-list { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; min-width: 0; }
+.out-list > li { display: flex; align-items: center; min-height: 44px; min-width: 0; }
+/* a card left out: the card chip's size (28px, its 18 x 24 art) on the active filters' removable chip; the whole chip brings it back */
+.out-chip { gap: 4px; padding: 0 8px 0 4px; max-width: 100%; }
+.out-chip .cc-art { margin-right: 4px; }
+/* nothing left: the cards that, brought back alone, show decks again (the Codex's nearest searches); the name gives way to the count */
+.out-back { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.out-back .btn { max-width: 100%; min-width: 0; padding: 0 16px 0 12px; }
+.ob-t { display: flex; min-width: 0; white-space: pre; }
+.ob-n { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.ob-d { flex: none; }
+.md-out-none { margin-top: 48px; }
+.mdsec h2 { scroll-margin-top: calc(var(--chrome-h) + 24px); }
 /* ability orb and talent glyph (card dialog, Card tier list pinned card); the card dialog itself lives in card.css */
 .ab-orb, .ab-talent { width: 24px; height: 24px; flex: none; background-size: contain; background-repeat: no-repeat; background-position: center; }
 /* data notice: where a value comes from, before the numbers it qualifies; a caption line, no box, never an error colour (DESIGN.md) */
@@ -379,4 +411,14 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 4px; 
   .fd-add .ico { margin-left: auto; }
   /* a pick's name wraps to two lines instead of being cut */
   .fd-name { font-size: 14px; line-height: 1.15; white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+  /* without these cards: the field full width; while typing two cards share the one reserved row evenly, the field's label
+     above saying the verb (the line's "Leave out:" stays for screen readers); a two-line hint or "No card named" fits the row */
+  .fd-pick + .out { margin-top: 24px; }
+  .find + .out { margin-top: 16px; }
+  .out .field { max-width: none; }
+  .out-sug { min-height: 44px; }
+  .out-m { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+  .out-m .fd-sug-l { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .out-m .out-no { grid-column: 1 / -1; }
+  .out-add .ico { margin-left: auto; }
 }

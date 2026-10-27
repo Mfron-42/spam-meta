@@ -5,13 +5,13 @@
 // the two scales as two groups (scaleGroups: never sorted together), the paging and their footer Method sub-section. Rows arrive
 // in the table's order (the full AI's scale by its rating, then the fast AI's picks), so a filter that keeps it keeps the ranking.
 
-import { h, icon, pct, pct1, pm, dec, fmtInt } from "./util.js?v=7a68f47bac";
-import { DB } from "./data.js?v=7a68f47bac";
-import { getLang, isOwned, ownedCount } from "./store.js?v=7a68f47bac";
-import { gameCard, chip, cardName, L } from "./cards.js?v=7a68f47bac";
-import { t, tx } from "./i18n.js?v=7a68f47bac";
-import { tipButton } from "./cardtext.js?v=7a68f47bac";
-import { introLine, provBanner, medianRounds, isMatchupTalent, matchupMark } from "./patch.js?v=7a68f47bac";
+import { h, icon, pct, pct1, pm, dec, fmtInt } from "./util.js?v=e6624c9207";
+import { DB } from "./data.js?v=e6624c9207";
+import { getLang, isOwned, ownedCount } from "./store.js?v=e6624c9207";
+import { gameCard, chip, cardName, L } from "./cards.js?v=e6624c9207";
+import { t, tx } from "./i18n.js?v=e6624c9207";
+import { tipButton } from "./cardtext.js?v=e6624c9207";
+import { introLine, provBanner, medianRounds, isMatchupTalent, matchupMark } from "./patch.js?v=e6624c9207";
 
 // ---------------------------------------------------------------- a deck's card
 /**
@@ -141,6 +141,8 @@ export function tableHead(key, h1, lede) {
     t("dt.mTable", { full: fmtInt(D.scales.full.rows), ai: P.full, fast: fmtInt(F.rows), fai: P.fast }),
     h("p", tx("dt.mRating", { ai: P.full })),
     h("p", tx("dt.mFast", { ai: P.fast, of: fmtInt(F.of), per: F.per_family })),
+    // the cards left out ("Without these cards", search.js outRow) filter the table: no figure is re-measured without them
+    h("p", t("out.mMethod")),
     D.not_listed ? t("md.mNotListed", { n: D.not_listed }) : null,
     DB.lists && DB.lists.matchup_talents ? matchupLine() : null,
   ];
