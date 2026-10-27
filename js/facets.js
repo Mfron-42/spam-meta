@@ -3,13 +3,13 @@
 // each group's values joined by its "and" / "or" (a button that switches it), and every card can say why it matched. The model
 // (matching, counts, reasons, the address) is facetmodel.js; the Codex and the Card tier list use this one component.
 
-import { h, icon, fmtInt, norm } from "./util.js?v=78a4a1c01f";
-import { t } from "./i18n.js?v=78a4a1c01f";
-import { getLang } from "./store.js?v=78a4a1c01f";
-import { elName, raName } from "./cards.js?v=78a4a1c01f";
-import { elementNode } from "./cardtext.js?v=78a4a1c01f";
-import { segmented, chromeBottom } from "./ui.js?v=78a4a1c01f";
-import { OP_GROUPS, TALENT_GROUPS, NUMS, chipCount, filterCount, reasons } from "./facetmodel.js?v=78a4a1c01f";
+import { h, icon, fmtInt, norm } from "./util.js?v=321e769800";
+import { t } from "./i18n.js?v=321e769800";
+import { getLang } from "./store.js?v=321e769800";
+import { elName, raName } from "./cards.js?v=321e769800";
+import { elementNode } from "./cardtext.js?v=321e769800";
+import { segmented, chromeBottom } from "./ui.js?v=321e769800";
+import { OP_GROUPS, TALENT_GROUPS, NUMS, chipCount, filterCount, reasons } from "./facetmodel.js?v=321e769800";
 
 const PHONE = "(max-width: 759px)";
 const L = (o, k) => o[`${k}_${getLang()}`] || o[`${k}_en`] || "";

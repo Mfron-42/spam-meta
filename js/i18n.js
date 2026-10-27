@@ -11,8 +11,8 @@
 // {one, other} chosen by Intl.PluralRules on the parameter `count`, else `n` (French: 0 to 1.99 are "one"). `**bold**` is honoured by tx()
 // only. French copy uses plain spaces before : ; ? ! - they become no-break spaces when the table loads.
 
-import { h, fmtInt, dec } from "./util.js?v=78a4a1c01f";
-import { getLang } from "./store.js?v=78a4a1c01f";
+import { h, fmtInt, dec } from "./util.js?v=321e769800";
+import { getLang } from "./store.js?v=321e769800";
 
 const EN = {
   // ---- document and header
@@ -231,8 +231,8 @@ const EN = {
   "rk.tiedTip.top": "Same win rate against the top as another deck: they share the rank.",
   "rk.tiedTip.speed": "Same win speed as another deck: they share the rank.",
   "rk.mHow": "{entrants} decks entered. Pairing rounds kept the strongest, a search tried one-card and one-talent changes to the best, and a round against the strongest decks picked the {top} finalists, at most {cap} per family (decks sharing 3 of their 4 cards).",
-  "rk.mPilots": "**AIs:** {full} on both sides in the ranking’s games; our fast AI {fast} in the first sorts and in the players’ meta past the final’s {n} best.",
-  "rk.mMeta": "**Players’ meta** (the default): each deck’s win rate against the {n} decks players bring most (Céleste rank and up, patch {pp} games), each weighted by how often it is played. The final’s {full} best were played by {ai}; the others by {fast}, adjusted by {shift} points, the mean gap between the two AIs over the {both} decks both played.",
+  "rk.mPilots": "**AIs:** {full} on both sides in the ranking’s games; our fast AI {fast} in the first sorts and for the players’ meta figures marked “adjusted”.",
+  "rk.mMeta": "**Players’ meta** (the default): each deck’s win rate against the {n} decks players bring most (Céleste rank and up, patch {pp} games), each weighted by how often it is played. {ai} played the final’s {f0} best and every deck that reached this list’s top {top}, {full} decks in all; the others were played by {fast}, adjusted by {shift} points, the mean gap between the two AIs over the {both} decks both played.",
   "rk.mTop": "**Against the top**: the {top} finalists played each other, {gpp} games a pair; each one’s figure is its average win rate against the {opp} others, ±{mlo} to ±{mhi} points (95%); 50% is the level of the final. **Core**: a finalist that the best mix of decks for this final (its Nash equilibrium) plays in at least half of our redraws.",
   "rk.mSpeed": "**Speed**: the finalists that win {min} or more against the top, with {wins} wins or more, by the mean round of their wins, fewest first. It is not a measure of strength. 1 round = both players act once; among the listed decks, the median win takes {median} rounds.",
   "rk.mFigs": "Each deck shows the three figures, named like the lists, the list’s own big. Pointing at a figure, focusing it or tapping it says what it measures. Do not compare them with each other: each has its own opponents.",
@@ -280,7 +280,7 @@ const EN = {
   "rk.mMatchup": "Our games play one fixed talent per card; shield talents (marked) are picked against the opponent in real games, so these decks can do a little better than shown.",
   // the deck lists' caveats (deck-lists.json `limits`); plan_decks is also the Card tier list's
   "rk.limit.intervals_overlap": "Margins overlap: close decks can swap places.",
-  "rk.limit.meta_fast": "Past the final’s {full} best, the players’ meta figure comes from our fast AI, adjusted: close decks there can swap places more easily.",
+  "rk.limit.meta_fast": "The players’ meta figures marked “adjusted” come from our fast AI: close decks there can swap places more easily.",
   "rk.limit.meta_patch": "The players’ meta comes from patch {pp} games: what players bring on {patch} can differ.",
   "rk.limit.plan_decks": "Our AI plays some decks that need a precise plan less well than a good player.",
   "rk.limit.screen_gaps": "A strong deck may still be missing: the fast AI of the first sorts misjudges some decks.",
@@ -599,7 +599,7 @@ const EN = {
   "about.whatRkProv": "A fan guide to the card game SPAM: every card, read from the game files, and a temporary deck ranking of patch {patch}. The card ranking is being computed.",
   "about.whatRkCt": "A fan guide to the card game SPAM: every card, read from the game files, the deck ranking of patch {patch} and a card tier list.",
   "about.whatRkProvCt": "A fan guide to the card game SPAM: every card, read from the game files, a temporary deck ranking of patch {patch} and a card tier list.",
-  "about.rkHow": "Our AIs played both sides in an offline copy of the game, {games} games in all. Of {entrants} decks, pairing rounds and a search kept the strongest; the {top} best then played each other in a final ({ai} on both sides), and every listed deck played the {panel} decks players bring most (past the final’s {full} best, with our fast AI, adjusted).",
+  "about.rkHow": "Our AIs played both sides in an offline copy of the game, {games} games in all. Of {entrants} decks, pairing rounds and a search kept the strongest; the {top} best then played each other in a final ({ai} on both sides), and every listed deck played the {panel} decks players bring most (the top {topm} of that list with {ai}, some others with our fast AI, adjusted).",
   "about.rkSpeed": "The speed is the average round a deck’s wins end in; among the listed decks, the median win takes {median} rounds.",
   "about.howH": "How the rankings were made",
   "about.how": "**In short:** AIs played each deck against many others, thousands of times, in an offline copy of the game. The decks that win most rank highest.",
@@ -1043,8 +1043,8 @@ const FR = {
   "rk.tiedTip.top": "Même taux de victoire contre le top qu’un autre deck : ils partagent le rang.",
   "rk.tiedTip.speed": "Même vitesse de victoire qu’un autre deck : ils partagent le rang.",
   "rk.mHow": "{entrants} decks au départ. Des rondes d’appariement ont gardé les plus forts, une recherche a essayé de changer une carte ou un talent des meilleurs, puis une ronde contre les decks les plus forts a choisi les {top} finalistes, {cap} au plus par famille (des decks qui partagent 3 de leurs 4 cartes).",
-  "rk.mPilots": "**IA :** {full} des deux côtés dans les parties du classement ; notre IA rapide {fast} dans les premiers tris et dans le méta joueurs au-delà des {n} meilleurs de la finale.",
-  "rk.mMeta": "**Méta joueurs** (par défaut) : le taux de victoire de chaque deck contre les {n} decks que les joueurs jouent le plus (rang Céleste et plus, parties du patch {pp}), chacun pesé selon sa fréquence. Les {full} meilleurs de la finale ont été joués par {ai} ; les autres par {fast}, ajustés de {shift} points, l’écart moyen entre les deux IA sur les {both} decks joués par les deux.",
+  "rk.mPilots": "**IA :** {full} des deux côtés dans les parties du classement ; notre IA rapide {fast} dans les premiers tris et pour les chiffres du méta joueurs marqués « ajusté ».",
+  "rk.mMeta": "**Méta joueurs** (par défaut) : le taux de victoire de chaque deck contre les {n} decks que les joueurs jouent le plus (rang Céleste et plus, parties du patch {pp}), chacun pesé selon sa fréquence. {ai} a joué les {f0} meilleurs de la finale et chaque deck entré dans le top {top} de cette liste, {full} decks en tout ; les autres ont été joués par {fast}, ajustés de {shift} points, l’écart moyen entre les deux IA sur les {both} decks joués par les deux.",
   "rk.mTop": "**Contre le top** : les {top} finalistes se sont affrontés, {gpp} parties par paire ; le chiffre de chacun est son taux de victoire moyen contre les {opp} autres, à ±{mlo} à ±{mhi} points près (95 %) ; 50 % est le niveau de la finale. **Noyau** : un finaliste que le meilleur mélange de decks pour cette finale (son équilibre de Nash) joue dans au moins la moitié de nos tirages.",
   "rk.mSpeed": "**Vitesse** : les finalistes qui gagnent {min} ou plus contre le top, avec {wins} victoires ou plus, par le tour moyen de leurs victoires, le moins d’abord. Ce n’est pas une mesure de force. 1 tour = chaque joueur agit une fois ; parmi les decks classés, la victoire médiane prend {median} tours.",
   "rk.mFigs": "Chaque deck montre les trois chiffres, nommés comme les listes, celui de la liste en grand. Survoler un chiffre, le sélectionner ou le toucher dit ce qu’il mesure. Ne les compare pas entre eux : chacun a ses propres adversaires.",
@@ -1088,7 +1088,7 @@ const FR = {
   "tl.matchupTag": "À choisir selon l’adversaire",
   "rk.mMatchup": "Nos parties jouent un talent fixe par carte ; les talents de blindage (marqués) se choisissent selon l’adversaire en vraie partie : ces decks peuvent donc faire un peu mieux qu’affiché.",
   "rk.limit.intervals_overlap": "Les marges se chevauchent : des decks proches peuvent échanger leur place.",
-  "rk.limit.meta_fast": "Hors des {full} meilleurs de la finale, le chiffre du méta joueurs vient de notre IA rapide, ajusté : des decks proches y échangent plus facilement leur place.",
+  "rk.limit.meta_fast": "Les chiffres du méta joueurs marqués « ajusté » viennent de notre IA rapide : des decks proches y échangent plus facilement leur place.",
   "rk.limit.meta_patch": "Le méta joueurs vient des parties du patch {pp} : ce que les joueurs jouent en {patch} peut différer.",
   "rk.limit.plan_decks": "Notre IA joue moins bien qu’un bon joueur certains decks qui demandent un plan précis.",
   "rk.limit.screen_gaps": "Un bon deck peut encore manquer : l’IA rapide des premiers tris juge mal certains decks.",
@@ -1399,7 +1399,7 @@ const FR = {
   "about.whatRkProv": "Un guide de fan pour le jeu de cartes SPAM : toutes les cartes, lues dans les fichiers du jeu, et un classement temporaire des decks du patch {patch}. Le classement des cartes est en cours de calcul.",
   "about.whatRkCt": "Un guide de fan pour le jeu de cartes SPAM : toutes les cartes, lues dans les fichiers du jeu, le classement des decks du patch {patch} et une tier list des cartes.",
   "about.whatRkProvCt": "Un guide de fan pour le jeu de cartes SPAM : toutes les cartes, lues dans les fichiers du jeu, un classement temporaire des decks du patch {patch} et une tier list des cartes.",
-  "about.rkHow": "Nos IA ont joué les deux camps dans une copie hors ligne du jeu, {games} parties en tout. Sur {entrants} decks, des rondes d’appariement et une recherche ont gardé les plus forts ; les {top} meilleurs se sont ensuite affrontés en finale ({ai} des deux côtés), et chaque deck classé a joué les {panel} decks que les joueurs jouent le plus (hors des {full} meilleurs de la finale, avec notre IA rapide, ajustée).",
+  "about.rkHow": "Nos IA ont joué les deux camps dans une copie hors ligne du jeu, {games} parties en tout. Sur {entrants} decks, des rondes d’appariement et une recherche ont gardé les plus forts ; les {top} meilleurs se sont ensuite affrontés en finale ({ai} des deux côtés), et chaque deck classé a joué les {panel} decks que les joueurs jouent le plus (le top {topm} de cette liste avec {ai}, d’autres avec notre IA rapide, chiffre ajusté).",
   "about.rkSpeed": "La vitesse est le tour moyen où finissent les victoires d’un deck ; parmi les decks classés, la victoire médiane prend {median} tours.",
   "about.howH": "Comment sont faits les classements",
   "about.how": "**En bref :** des IA ont joué chaque deck contre beaucoup d’autres, des milliers de fois, dans une copie hors ligne du jeu. Les decks qui gagnent le plus sont en tête.",

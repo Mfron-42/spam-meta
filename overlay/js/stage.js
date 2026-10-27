@@ -12,9 +12,9 @@
 // mark stays in the page and only its opacity changes. The loop runs only while the stage is on screen and the tab is
 // visible, stops on the pause button, and never starts with reduced motion (the stage then holds one informative frame).
 
-import { t } from "../../js/i18n.js?v=78a4a1c01f";
-import { h, pct, reducedMotion } from "../../js/util.js?v=78a4a1c01f";
-import { gameCard, L } from "../../js/cards.js?v=78a4a1c01f";
+import { t } from "../../js/i18n.js?v=321e769800";
+import { h, pct, reducedMotion } from "../../js/util.js?v=321e769800";
+import { gameCard, L } from "../../js/cards.js?v=321e769800";
 
 const NOW = 0.58;
 const per = (p) => pct(p, 0);

@@ -3,11 +3,11 @@
 // filled when a value, an ability or a passive changed (the class "mechanical"), hollow when only talents or texts did.
 // The data carries codes and positions; every word comes from i18n.js ("pc.*").
 
-import { h, icon, fmtDate, dec, fmtInt, reducedMotion } from "./util.js?v=78a4a1c01f";
-import { DB } from "./data.js?v=78a4a1c01f";
-import { L } from "./cards.js?v=78a4a1c01f";
-import { t } from "./i18n.js?v=78a4a1c01f";
-import { disclosure } from "./ui.js?v=78a4a1c01f";
+import { h, icon, fmtDate, dec, fmtInt, reducedMotion } from "./util.js?v=321e769800";
+import { DB } from "./data.js?v=321e769800";
+import { L } from "./cards.js?v=321e769800";
+import { t } from "./i18n.js?v=321e769800";
+import { disclosure } from "./ui.js?v=321e769800";
 
 // Three patches can differ, and each label names the one it is about (SPEC.md, "Patch labels"):
 // - the GAME patch, the client players run today (below; the lab reads it from the game files);
@@ -56,7 +56,7 @@ export const deckRanking = () => (DECK_RANKING_SHOWN && DB.lists) || null;
  * patch and the lists' patch. */
 export function limitParams(R) {
   const ci = R.top.rows.filter((d) => d.top.win_rate != null).map((d) => d.top.ci95 * 100);
-  return { lo: dec(Math.min(...ci), 1), hi: dec(Math.max(...ci), 1), top: R.top.final, full: R.meta.full, pp: R.meta.panel_patch, patch: R.patch };
+  return { lo: dec(Math.min(...ci), 1), hi: dec(Math.max(...ci), 1), top: R.top.final, pp: R.meta.panel_patch, patch: R.patch };
 }
 
 /** The median round of a won game of the listed decks (deck-lists.json speed.median_rounds): "13" when whole, else "13.5". */

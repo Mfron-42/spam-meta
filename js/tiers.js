@@ -13,16 +13,16 @@
 // lives in the address (#tiers, #tiers/top, #tiers/speed). A language change redraws the page and keeps the list, the query, the
 // filter and the open tox and variants.
 
-import { h, icon, pct, dec, fmtInt, reducedMotion } from "./util.js?v=78a4a1c01f";
-import { DB, loadLists, loadFacets } from "./data.js?v=78a4a1c01f";
-import { on, isOwned, ownedCount, getLang } from "./store.js?v=78a4a1c01f";
-import { cardName, chip, L } from "./cards.js?v=78a4a1c01f";
-import { segmented, scrollToEl, cascade, band, CURVE, disclosure } from "./ui.js?v=78a4a1c01f";
-import { t, tx } from "./i18n.js?v=78a4a1c01f";
-import { tipButton } from "./cardtext.js?v=78a4a1c01f";
-import { findRow, terms, namedCards } from "./search.js?v=78a4a1c01f";
-import { introLine, limitParams, medianRounds, provBanner, isMatchupTalent, matchupMark, DECK_TABLE_SHOWN } from "./patch.js?v=78a4a1c01f";
-import { paintOwned, deckSlot, listFigures, matchupLine, LISTS } from "./decklist.js?v=78a4a1c01f";
+import { h, icon, pct, dec, fmtInt, reducedMotion } from "./util.js?v=321e769800";
+import { DB, loadLists, loadFacets } from "./data.js?v=321e769800";
+import { on, isOwned, ownedCount, getLang } from "./store.js?v=321e769800";
+import { cardName, chip, L } from "./cards.js?v=321e769800";
+import { segmented, scrollToEl, cascade, band, CURVE, disclosure } from "./ui.js?v=321e769800";
+import { t, tx } from "./i18n.js?v=321e769800";
+import { tipButton } from "./cardtext.js?v=321e769800";
+import { findRow, terms, namedCards } from "./search.js?v=321e769800";
+import { introLine, limitParams, medianRounds, provBanner, isMatchupTalent, matchupMark, DECK_TABLE_SHOWN } from "./patch.js?v=321e769800";
+import { paintOwned, deckSlot, listFigures, matchupLine, LISTS } from "./decklist.js?v=321e769800";
 
 // each list's address: the first (the players' meta, the default) is the bare #tiers. The addresses of the earlier ranking still
 // land on a list: "#tiers/final" (its Final) opens Against the top, "#tiers/race" (its Tournament) the default; both are
@@ -133,8 +133,8 @@ function methodLines() {
   return [
     R.final ? null : h("p", [...tx("rk.mWhy")]),
     t("rk.mHow", { entrants: R.entrants, top: R.top.final, cap: R.top.family_cap }),
-    h("p", tx("rk.mPilots", { full: P.full, fast: P.fast, n: R.meta.full })),
-    tx("rk.mMeta", { n: R.meta.panel, pp: R.meta.panel_patch, full: R.meta.full, ai: P.full, fast: P.fast,
+    h("p", tx("rk.mPilots", { full: P.full, fast: P.fast })),
+    tx("rk.mMeta", { n: R.meta.panel, pp: R.meta.panel_patch, full: R.meta.full, f0: R.meta.final_full, top: R.meta.top_full, ai: P.full, fast: P.fast,
       shift: (R.meta.shift < 0 ? "−" : "+") + dec(Math.abs(R.meta.shift) * 100, 1), both: R.meta.shift_decks }),
     tx("rk.mTop", { top: R.top.final, gpp: R.top.games_per_pair, opp: R.top.final - 1, mlo: lp.lo, mhi: lp.hi }),
     tx("rk.mSpeed", { min: pct(R.speed.min_win_rate, 0), wins: R.speed.min_wins, median: medianRounds(R) }),
