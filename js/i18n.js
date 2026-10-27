@@ -11,8 +11,8 @@
 // {one, other} chosen by Intl.PluralRules on the parameter `count`, else `n` (French: 0 to 1.99 are "one"). `**bold**` is honoured by tx()
 // only. French copy uses plain spaces before : ; ? ! - they become no-break spaces when the table loads.
 
-import { h, fmtInt, dec } from "./util.js?v=321e769800";
-import { getLang } from "./store.js?v=321e769800";
+import { h, fmtInt, dec } from "./util.js?v=c953b2bc64";
+import { getLang } from "./store.js?v=c953b2bc64";
 
 const EN = {
   // ---- document and header
@@ -518,6 +518,7 @@ const EN = {
 
   // ---- my decks
   "md.h1": "My decks",
+  "md.prev": "These decks still come from our previous ranking; they move to the current one today.",
   "md.lede": "The best decks you can build from your cards.",
   "md.canBuild": { one: " deck you can build", other: " decks you can build" },
   "md.near": { one: "{n} deck is one card away.", other: "{n} decks are one card away." },
@@ -1320,6 +1321,7 @@ const FR = {
   "fg.without": "Sans {group} : {cards}", "fg.withOr": "{group} avec « ou » : {cards}", "fg.withoutQ": "Sans les mots cherchés : {cards}",
 
   "md.h1": "Mes decks",
+  "md.prev": "Ces decks viennent encore de notre classement précédent ; ils passent au classement actuel aujourd’hui.",
   "md.lede": "Les meilleurs decks que tu peux monter avec tes cartes.",
   "md.canBuild": { one: " deck à ta portée", other: " decks à ta portée" },
   "md.near": { one: "{n} deck à une carte près.", other: "{n} decks à une carte près." },

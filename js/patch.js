@@ -3,11 +3,11 @@
 // filled when a value, an ability or a passive changed (the class "mechanical"), hollow when only talents or texts did.
 // The data carries codes and positions; every word comes from i18n.js ("pc.*").
 
-import { h, icon, fmtDate, dec, fmtInt, reducedMotion } from "./util.js?v=321e769800";
-import { DB } from "./data.js?v=321e769800";
-import { L } from "./cards.js?v=321e769800";
-import { t } from "./i18n.js?v=321e769800";
-import { disclosure } from "./ui.js?v=321e769800";
+import { h, icon, fmtDate, dec, fmtInt, reducedMotion } from "./util.js?v=c953b2bc64";
+import { DB } from "./data.js?v=c953b2bc64";
+import { L } from "./cards.js?v=c953b2bc64";
+import { t } from "./i18n.js?v=c953b2bc64";
+import { disclosure } from "./ui.js?v=c953b2bc64";
 
 // Three patches can differ, and each label names the one it is about (SPEC.md, "Patch labels"):
 // - the GAME patch, the client players run today (below; the lab reads it from the game files);
@@ -32,6 +32,10 @@ export const GAME_PATCH = { patch: "1.26", date: "2026-10-21" };
 //   footer and About lines built from meta.json.
 export const DECK_RANKING_SHOWN = true;
 export const DECK_TABLE_SHOWN = true;
+// true while My decks and the Deck builder read the stage ranking's deck table that the Deck tier list's lists replaced
+// (2026-10-27, a player: "My decks look nothing like the top decks"): their head says so in one data notice, until the lab's
+// deck table of the current ranking is wired in. The site names no version (owner, 2026-10-24), so the notice says "previous".
+export const DECK_TABLE_PREVIOUS = true;
 export const CARD_TIERS_SHOWN = true;
 export const CARD_RANKINGS_SHOWN = false;
 

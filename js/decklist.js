@@ -6,13 +6,13 @@
 // above the list until 2026-10-24). Rows arrive sorted by the furthest stage reached, then the score there (docs/DATA.md,
 // "ranking-decks.json"), so a filter that keeps their order keeps the canonical ranking.
 
-import { h, icon, pct, pct1, pm, dec, fmtInt } from "./util.js?v=321e769800";
-import { DB, deckKey } from "./data.js?v=321e769800";
-import { getLang, isOwned, ownedCount } from "./store.js?v=321e769800";
-import { gameCard, chip, cardName, L } from "./cards.js?v=321e769800";
-import { t, tx } from "./i18n.js?v=321e769800";
-import { tipButton } from "./cardtext.js?v=321e769800";
-import { introLine, provBanner, gameSpan, medianRounds, isMatchupTalent, matchupMark } from "./patch.js?v=321e769800";
+import { h, icon, pct, pct1, pm, dec, fmtInt } from "./util.js?v=c953b2bc64";
+import { DB, deckKey } from "./data.js?v=c953b2bc64";
+import { getLang, isOwned, ownedCount } from "./store.js?v=c953b2bc64";
+import { gameCard, chip, cardName, L } from "./cards.js?v=c953b2bc64";
+import { t, tx } from "./i18n.js?v=c953b2bc64";
+import { tipButton } from "./cardtext.js?v=c953b2bc64";
+import { introLine, provBanner, gameSpan, medianRounds, isMatchupTalent, matchupMark, DECK_TABLE_PREVIOUS } from "./patch.js?v=c953b2bc64";
 
 // ---------------------------------------------------------------- stages, in plain words
 // The stages of the ranking, in order (owner, 2026-10-25: each name means one stage only): the First sort (a fast AI), the
@@ -216,6 +216,8 @@ export function tableHead(key, h1, lede) {
   return h("div.vhead", [
     h("h1", h1),
     D.final ? null : provBanner(key),
+    // the deck table is still the previous ranking's (patch.js DECK_TABLE_PREVIOUS): said once, where the decks are read
+    DECK_TABLE_PREVIOUS ? h("p.dnote.md-prev", [icon("info"), h("span", t("md.prev"))]) : null,
     ...introLine(key, h("p", lede), { method, patch: D.patch, link: D.final }),
   ]);
 }
