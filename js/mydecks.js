@@ -5,14 +5,14 @@
 // carries its three figures. The card search (search.js) keeps only the decks of both lists that hold a matching card; the
 // query survives a redraw (a card ticked, a language change).
 
-import { h, icon, fmtInt } from "./util.js?v=57c092aad8";
-import { loadDecks } from "./data.js?v=57c092aad8";
-import { on, isOwned, ownedCount } from "./store.js?v=57c092aad8";
-import { deckRow, missingLine, scaleGroups, tableHead } from "./decklist.js?v=57c092aad8";
-import { findRow, terms, namedCards } from "./search.js?v=57c092aad8";
-import { openCollection } from "./dialogs.js?v=57c092aad8";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=57c092aad8";
-import { t } from "./i18n.js?v=57c092aad8";
+import { h, icon, fmtInt } from "./util.js?v=7a68f47bac";
+import { loadDecks } from "./data.js?v=7a68f47bac";
+import { on, isOwned, ownedCount } from "./store.js?v=7a68f47bac";
+import { deckRow, missingLine, scaleGroups, tableHead } from "./decklist.js?v=7a68f47bac";
+import { findRow, terms, namedCards } from "./search.js?v=7a68f47bac";
+import { openCollection } from "./dialogs.js?v=7a68f47bac";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=7a68f47bac";
+import { t } from "./i18n.js?v=7a68f47bac";
 
 let root, D, listeners = new Set();
 let result = { build: [], near: [] };

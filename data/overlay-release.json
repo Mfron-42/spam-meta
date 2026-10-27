@@ -1,27 +1,27 @@
 {
   "available": true,
-  "version": "0.1.23",
-  "released": "2026-10-26",
-  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.23",
-  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.23",
+  "version": "0.1.24",
+  "released": "2026-10-27",
+  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.24",
+  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.24",
   "notes": {
-    "en": "- Follows only your own game. The overlay now reads a match only from the game you play: SPAM.exe in your Steam library. Another copy of the game running on the same PC (a renamed or copied client, a test install) is no longer followed, so its matches never take your overlay's place, its processor time or its history. The network reading also stops 30 seconds after your game closes, and starts again when you launch it.\n- Everything else is as in 0.1.22 (the same AI, the same engine).",
-    "fr": "- Ne suit que votre propre jeu. L'overlay ne lit plus une partie que depuis le jeu auquel vous jouez : SPAM.exe dans votre biblioth\u00e8que Steam. Une autre copie du jeu lanc\u00e9e sur le m\u00eame PC (un client renomm\u00e9 ou copi\u00e9, une installation de test) n'est plus suivie : ses parties ne prennent plus la place des v\u00f4tres dans l'overlay, ni son temps de processeur, ni son historique. La lecture r\u00e9seau s'arr\u00eate aussi 30 secondes apr\u00e8s la fermeture de votre jeu, et reprend quand vous le relancez.\n- Tout le reste est comme en 0.1.22 (la m\u00eame IA, le m\u00eame moteur)."
+    "en": "- A stronger AI: v3s10n-f. The \"do this\" dot, the AI's estimate and the test games now come from v3s10n-f, the lab's newest AI: v3s10n's search on a newer move net, trained further under the same rules. In the lab's tests it wins 3 points more often than v3s10n.\n- Same speed. On 361 recorded positions under a heavy background job, the AI's first move took 109 ms at the median and 222 ms 9 times in 10, the same as 0.1.23 (109 and 226 ms).\n- Choose the game to follow. In the launcher's Display section, \"Game to follow\" is the game from your Steam library (as before) or a game folder you choose. Only that game's matches are read; any other copy on the PC stays ignored.\n- `\"ai_stack\": \"v3s10n\"` in `data\\config.local.json` brings back the previous AI.",
+    "fr": "- Une IA plus forte : v3s10n-f. Le point \u00ab \u00e0 jouer \u00bb, l'estimation de l'IA et les parties de test viennent maintenant de v3s10n-f, la plus r\u00e9cente IA du labo : la recherche de v3s10n sur un r\u00e9seau de coups plus r\u00e9cent, entra\u00een\u00e9 plus loin avec les m\u00eames r\u00e8gles. Dans les tests du labo, elle gagne 3 points de plus que v3s10n.\n- M\u00eame vitesse. Sur 361 positions enregistr\u00e9es, avec un gros calcul en arri\u00e8re-plan, le premier coup de l'IA a pris 109 ms en m\u00e9diane et 222 ms 9 fois sur 10, comme en 0.1.23 (109 et 226 ms).\n- Choisir le jeu \u00e0 suivre. Dans la section Affichage du lanceur, \u00ab Jeu \u00e0 suivre \u00bb est le jeu de votre biblioth\u00e8que Steam (comme avant) ou un dossier de jeu que vous choisissez. Seules les parties de ce jeu sont lues ; toute autre copie sur le PC reste ignor\u00e9e.\n- `\"ai_stack\": \"v3s10n\"` dans `data\\config.local.json` remet l'IA pr\u00e9c\u00e9dente."
   },
   "assets": [
     {
       "kind": "setup",
-      "name": "SPAM-Overlay-Setup-0.1.23.exe",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.23/SPAM-Overlay-Setup-0.1.23.exe",
-      "size_bytes": 165076734,
-      "sha256": "7306eff7e2a2428d281701f118e7d65d731254d28afd376d9b5ae7aadb9babea"
+      "name": "SPAM-Overlay-Setup-0.1.24.exe",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.24/SPAM-Overlay-Setup-0.1.24.exe",
+      "size_bytes": 165393646,
+      "sha256": "3b7e4766d142fec4613b62e6ed945a194d3add570019caf713ca17d4e197269a"
     },
     {
       "kind": "zip",
-      "name": "spam-overlay-0.1.23-win64.zip",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.23/spam-overlay-0.1.23-win64.zip",
-      "size_bytes": 250229142,
-      "sha256": "e62e3d12c22325d1ad4022464b04397bf3847915a65b067de001033e16b7d395"
+      "name": "spam-overlay-0.1.24-win64.zip",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.24/spam-overlay-0.1.24-win64.zip",
+      "size_bytes": 253289528,
+      "sha256": "2441b8a24611fc77d5e09d9311f5e5edb182c0a8be158bfc5e5cba8a74aee74e"
     }
   ]
 }
