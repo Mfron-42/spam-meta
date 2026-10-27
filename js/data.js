@@ -1,7 +1,7 @@
 // Loads the generated JSON once and builds the lookups every view needs. Every request carries the publish version
 // (version.js), so a new publish never mixes with data an earlier visit cached.
 
-import { versioned, withQuery } from "./version.js?v=f0b795cc40";
+import { versioned, withQuery } from "./version.js?v=e550ac9b69";
 
 const cache = new Map();
 // data paths are resolved from this module, not from the page, so a page in a sub-folder (site/overlay/) reads the same files
@@ -38,9 +38,9 @@ export async function loadCore() {
 }
 
 /**
- * The Deck tier list's three lists of the game patch (tools/export_deck_lists.py, docs/DATA.md "deck-lists.json"): every listed
+ * The Deck tier list's two lists of the game patch (tools/export_deck_lists.py, docs/DATA.md "deck-lists.json"): every listed
  * deck once, with its card objects (`cs`, board order), each card's talent (`tls`), its variants' card objects, and each list
- * (`meta`, `top`, `speed`) as its decks in order (`list.rows`). Loaded at boot with the core while the Deck tier list shows it
+ * (`elo`, `speed`) as its decks in order (`list.rows`). Loaded at boot with the core while the Deck tier list shows it
  * (main.js), so the footer, About, the card view and the talents' matchup marks can quote it. The tox are named through
  * facets.json (loadFacets), which the Deck tier list loads beside it.
  */
@@ -53,7 +53,7 @@ export async function loadLists() {
       d.tls = d.cs.map((c, i) => (c && c.talents[d.talents[i]]) || null);
       for (const v of d.variants) v.cs = cs(v.cards);
     }
-    for (const k of ["meta", "top", "speed"]) r[k].rows = r[k].decks.map((i) => r.decks[i]);
+    for (const k of ["elo", "speed"]) r[k].rows = r[k].decks.map((i) => r.decks[i]);
     DB.lists = r;
   }
   return DB.lists;

@@ -1,17 +1,17 @@
 // The one way to list measured decks (the current ranking's deck table, deck-table.json), shared by My decks and the Deck
 // builder, and the deck parts the Deck tier list reuses: a deck's card with its talent under it, a deck's facts (My decks and the
-// Deck builder: its rating on the full AI's scale, or the fast estimate's state, and a listed deck's three figures), a listed
-// deck's three figures with their notes (the Deck tier list, listFigures), the owned badge; and, for the two deck table views,
+// Deck builder: its rating on the full AI's scale, or the fast estimate's state, and a listed deck's speed), a listed deck's two
+// figures with their notes (the Deck tier list, listFigures), the owned badge; and, for the two deck table views,
 // the two scales as two groups (scaleGroups: never sorted together), the paging and their footer Method sub-section. Rows arrive
 // in the table's order (the full AI's scale by its rating, then the fast AI's picks), so a filter that keeps it keeps the ranking.
 
-import { h, icon, pct, pct1, pm, dec, fmtInt } from "./util.js?v=f0b795cc40";
-import { DB } from "./data.js?v=f0b795cc40";
-import { getLang, isOwned, ownedCount } from "./store.js?v=f0b795cc40";
-import { gameCard, chip, cardName, L } from "./cards.js?v=f0b795cc40";
-import { t, tx } from "./i18n.js?v=f0b795cc40";
-import { tipButton } from "./cardtext.js?v=f0b795cc40";
-import { introLine, provBanner, medianRounds, isMatchupTalent, matchupMark } from "./patch.js?v=f0b795cc40";
+import { h, icon, dec, fmtInt } from "./util.js?v=e550ac9b69";
+import { DB } from "./data.js?v=e550ac9b69";
+import { getLang, isOwned, ownedCount } from "./store.js?v=e550ac9b69";
+import { gameCard, chip, cardName, L } from "./cards.js?v=e550ac9b69";
+import { t, tx } from "./i18n.js?v=e550ac9b69";
+import { tipButton } from "./cardtext.js?v=e550ac9b69";
+import { introLine, provBanner, isMatchupTalent, matchupMark } from "./patch.js?v=e550ac9b69";
 
 // ---------------------------------------------------------------- a deck's card
 /**
@@ -38,8 +38,8 @@ const elo = (x) => (x < 0 ? "−" : "") + fmtInt(Math.abs(x));
 /**
  * A deck's facts on My decks and the Deck builder (DESIGN.md "Deck facts"). A deck of the full AI's scale: its rating, big, in
  * Elo points (0 = the benchmark decks' average) with its 95% margin and the AI that rated it, a word that explains itself (its
- * place among the decks of that scale in the tooltip); a deck of the Deck tier list adds its three figures there, small (the
- * Deck tier list's own component, no list active). A deck only the fast AI looked at: the quiet state "Fast estimate" with
+ * place among the decks of that scale in the tooltip); a deck of the Deck tier list adds its speed there, small (the Deck tier
+ * list's own component, no list active; its Elo is the rating already on the line). A deck only the fast AI looked at: the quiet state "Fast estimate" with
  * that AI, no number (its scale is not the rating's). `r` is a deck table row.
  */
 export function deckFacts(r) {
@@ -53,61 +53,50 @@ export function deckFacts(r) {
   const [b, d] = tipButton("button.dt-fig", t("dt.rating"), [h("span.fig-k", t("dt.rating")), h("b.stat-v", elo(r.elo)),
     h("span.fig-pm", "±" + fmtInt(r.elo95)), h("span.fig-ai", { translate: "no" }, P.full)],
   t("dt.ratingTip", { ai: P.full, v: elo(r.elo), pm: fmtInt(r.elo95), place: fmtInt(r.place), n: fmtInt(D.scales.full.rows) }));
-  return h("div.dfacts", [h("div.fig-line", [b, d]), r.listed ? listFigures(r.listed, null) : null]);
+  return h("div.dfacts", [h("div.fig-line", [b, d]), r.listed ? listFigures(r.listed, null, ["speed"]) : null]);
 }
 
-// ---------------------------------------------------------------- a listed deck's three figures (the Deck tier list)
-// the Deck tier list's three lists, in its switch's order (the lead, 2026-10-27: the players' meta first and by default); a
-// listed deck's figures follow the same names and the same order
-export const LISTS = ["meta", "top", "speed"];
-
-/** A signed number of points to one decimal: "+5.6", "−1.2". */
-const pts = (x) => (x < 0 ? "−" : "+") + dec(Math.abs(x) * 100, 1);
+// ---------------------------------------------------------------- a listed deck's two figures (the Deck tier list)
+// the Deck tier list's two lists, in its switch's order (the owner, 2026-10-27: Elo first and by default, then Speed); a listed
+// deck's figures follow the same names and the same order
+export const LISTS = ["elo", "speed"];
 
 /**
- * The three figures of a listed deck (DESIGN.md "Deck figures"): Players' meta, Against the top, Speed, named like the three lists
- * and always in their order, so they line up on every card; the active list's figure big, the others small. Each is a button that
- * explains itself with the page's tooltip (cardtext.js tipButton) on hover, keyboard focus or a tap, in plain sentences that are
- * also its description for a screen reader. Under a value, one quiet note when the figure needs it on its face: the AI that played
- * the players' meta (every row names its pilot: two AIs share that list), "core" under a finalist of the Nash core, "family cap"
- * under a deck its family's cap kept out of the final. A figure the deck lacks keeps its slot with a quiet state ("not in the
- * final", "too few wins") and its tooltip says why; no other number takes its place (a deck after the final is ranked by a rating
- * on another scale, which the site never prints). `d`: a deck of deck-lists.json; `active`: the list shown.
+ * The figures of a listed deck (DESIGN.md "Deck figures"): Elo and Speed, named like the two lists and always in their order, so
+ * they line up on every card; the active list's figure big, the other small. Each is a button that explains itself with the
+ * page's tooltip (cardtext.js tipButton) on hover, keyboard focus or a tap, in plain sentences that are also its description for
+ * a screen reader. Under the Elo, one quiet note: the AI whose games it rests on, or "not in the 64" for a deck of the speed list
+ * outside the Elo list (its Elo is still its own, on the same scale). A figure the deck lacks keeps its slot with a quiet state
+ * ("too few wins") and its tooltip says why. `d`: a deck of deck-lists.json; `active`: the list shown; `keys`: the figures drawn
+ * (My decks and the Deck builder draw the speed only: the Elo is their rating line).
  */
-export function listFigures(d, active) {
+export function listFigures(d, active, keys = LISTS) {
   const R = DB.lists, P = R.pilots;
   const big = (k) => k === active;
-  const P1 = (v, k) => (big(k) ? pct1(v) : pct(v, 0));      // the active list's figure to one decimal, the others whole
-  const fig = {};
-  const m = d.meta, fast = m.pilot === "fast";
   const ai = (name) => h("span", { translate: "no" }, name);   // an AI's name is a code token: never machine-translated
-  fig.meta = { value: P1(m.win_rate, "meta"), note: fast ? tx("fx.metaNoteFast", { ai: ai(P.fast) }) : ai(P.full),
-    desc: t("fx.meta", { v: pct1(m.win_rate), pm: dec(m.ci95 * 100, 1), n: m.decks }) + " " +
-      (fast ? t("fx.metaFast", { fast: P.fast, ai: P.full, shift: pts(R.meta.shift), n: R.meta.shift_decks }) : t("fx.metaFull", { ai: P.full })) };
-  const tp = d.top, anchor = d.anchor ? " " + t("fx.anchor", { v: pct1(d.anchor.win_rate), games: fmtInt(d.anchor.games) }) : "";
-  if (tp.win_rate != null) {
-    const core = tp.core >= 0.5;
-    fig.top = { value: P1(tp.win_rate, "top"), note: core ? t("fx.core") : null,
-      desc: t("fx.top", { v: pct1(tp.win_rate), games: fmtInt(tp.games), opp: tp.opponents, pm: dec(tp.ci95 * 100, 1) }) +
-        (core ? " " + t("fx.coreTip", { share: pct(tp.core, 0) }) : "") + anchor };
-  } else {
-    fig.top = { state: t("fx.topNo"), note: tp.family_capped ? t("fx.capped") : null,
-      desc: t("fx.topNone", { n: R.top.final }) + (tp.family_capped ? " " + t("fx.cappedTip", { cap: R.top.family_cap }) : "") + anchor };
-  }
+  const fig = {};
+  const e = d.elo, out = e.rank == null;
+  // the note: on the Elo list, the AI whose games the figure rests on (the list's pilot, named on its figure); on the Speed list,
+  // the deck's place in the Elo list, the fact a reader of that list needs ("#3 by Elo", or "not in the 64")
+  const note = out ? t("fx.eloOut", { n: R.elo.rows.length }) : active === "speed" ? t("fx.eloRank", { rank: e.rank }) : ai(P.full);
+  fig.elo = { value: elo(e.value), unit: "±" + fmtInt(e.pm), note,
+    desc: t("fx.elo", { v: elo(e.value), pm: fmtInt(e.pm), games: fmtInt(e.games), ai: P.full }) +
+      (out ? " " + t("fx.eloOutTip", { n: R.elo.rows.length }) : "") };
   const ws = d.speed;
   fig.speed = ws.rounds != null
-    ? { value: dec(ws.rounds, big("speed") ? 1 : 0), unit: t("fx.rounds"),
-      desc: t("fx.speed", { v: dec(ws.rounds, 1), pm: dec(ws.rounds_ci95, 1), wins: fmtInt(ws.wins), median: medianRounds(R) }) }
+    // one decimal, big or small: whole rounds would put 11.03 and 11.84 a round apart and 11.84 and 12.15 on one value
+    ? { value: dec(ws.rounds, 1), unit: t("fx.rounds"), desc: t("fx.speed", { v: dec(ws.rounds, 1), wins: fmtInt(ws.wins) }) }
     : { state: t("fx.fewWins"), desc: t("fx.speedFew", { wins: fmtInt(ws.wins || 0) }) };
   // a toolbar: the role that tells a screen reader the arrow keys move between its buttons
-  const row = h("div.rfig", { role: "toolbar", "aria-label": t("fx.aria"), onkeydown: rove, onfocusin: keep }, LISTS.map((k, i) => {
+  const row = h("div.rfig", { role: "toolbar", "aria-label": t("fx.aria"), onkeydown: rove, onfocusin: keep }, keys.map((k, i) => {
     const f = fig[k], name = t("rk.list." + k);
     const value = f.state ? h("span.rf-s", f.state) : [h("b.rf-v", f.value), f.unit ? h("span.rf-u", " " + f.unit) : null];
-    // the name and the value read as one ("Against the top, 67.0%"), the note after them, then the description
+    // the name and the value read as one ("Elo, 467 ±56"), the note after them, then the description
     const [b, dsc] = tipButton("button.rf" + (big(k) ? ".act" : "") + (f.state ? ".none" : ""), name,
       [h("span.rf-k", name), h("span.sr", t("ui.comma")), h("span.rf-n", value),
         h("span.rf-x", f.note ? [h("span.sr", t("ui.comma")), f.note] : null)], f.desc);
-    if (i) b.tabIndex = -1;          // one tab stop per deck; the arrow keys move between its three figures
+    // one tab stop per deck, the active list's figure (else the first); the arrow keys move between its figures
+    if (active ? k !== active : i) b.tabIndex = -1;
     return [b, dsc];
   }));
   return row;
@@ -198,7 +187,7 @@ export function deckRow(r, rankLabel, { cards = r.cards, tag = null, note = null
   const talentOf = (c) => r.talents[r.cards.indexOf(c)];
   const miss = (c) => (hits ? !hits.includes(c) : !!(dim && dim.includes(c)));
   return h("article.deck", [
-    // the list position (not a rank: the deck's rank is its final's, beside its figure)
+    // the list position (not a rank: the deck's place in the Deck tier list, when it has one, is beside its figures)
     h("div.deck-head", [h("h3.rk", [rankLabel, h("span.sr", " " + r.cards.map(cardName).join(", "))]), tag, badge]),
     h("div.deck-body", [
       h("div.deck-cards", cards.map((c) => deckSlot(c, talentOf(c), { miss: miss(c) }))),

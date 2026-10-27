@@ -2,16 +2,16 @@
 // own modules (store, i18n, data, cards), so it draws the same game cards from the same data, speaks the same two languages
 // and shares the visitor's language choice with SPAM Meta. Its strings are the "ov." keys of js/i18n.js.
 
-import { setLang, langChosen, on, getLang } from "../../js/store.js?v=f0b795cc40";
-import { t, tx, applyStatic } from "../../js/i18n.js?v=f0b795cc40";
-import { h, pct, pct1, dec, icon } from "../../js/util.js?v=f0b795cc40";
-import { DB, loadCore, loadLists, loadCardTiers } from "../../js/data.js?v=f0b795cc40";
-import { gameCard, cardName } from "../../js/cards.js?v=f0b795cc40";
-import { GAME_PATCH, DECK_RANKING_SHOWN, CARD_TIERS_SHOWN } from "../../js/patch.js?v=f0b795cc40";
-import { ambient } from "../../js/ambient.js?v=f0b795cc40";
-import { copyText, disclosure } from "../../js/ui.js?v=f0b795cc40";
-import { createStage } from "./stage.js?v=f0b795cc40";
-import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=f0b795cc40";
+import { setLang, langChosen, on, getLang } from "../../js/store.js?v=e550ac9b69";
+import { t, tx, applyStatic } from "../../js/i18n.js?v=e550ac9b69";
+import { h, pct, dec, icon, fmtInt } from "../../js/util.js?v=e550ac9b69";
+import { DB, loadCore, loadLists, loadCardTiers } from "../../js/data.js?v=e550ac9b69";
+import { gameCard, cardName } from "../../js/cards.js?v=e550ac9b69";
+import { GAME_PATCH, DECK_RANKING_SHOWN, CARD_TIERS_SHOWN } from "../../js/patch.js?v=e550ac9b69";
+import { ambient } from "../../js/ambient.js?v=e550ac9b69";
+import { copyText, disclosure } from "../../js/ui.js?v=e550ac9b69";
+import { createStage } from "./stage.js?v=e550ac9b69";
+import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=e550ac9b69";
 
 // The overlay's own display: four crops of the real renderer's output over a stand-in board with made-up figures (tools/overlay_media/:
 // shoot.js drives the overlay build's UX harness, crop.py writes these files), so every one is a composite and carries
@@ -342,11 +342,10 @@ const visible = (d) => Array.isArray(d.cards) && d.cards.length === 4 && d.cs.ev
 // `tier`, `rank`); a tier shows at most CARD_ROW cells, its first cards by rank and a "+N" cell for the rest, so a crowded tier
 // keeps the panel short
 const CARD_ROW = 4;
-/** The list the Deck tier list opens on (the lead, 2026-10-27: the players' meta first and by default). */
-const firstList = () => ranking.meta.rows;
-/** A deck's headline, as that list reads it: its win rate against the players' meta, with the AI that played it (two AIs share
- *  that list, so every row names its own). */
-const headline = (d) => ({ rate: d.meta.win_rate, ai: d.meta.pilot === "fast" ? ranking.pilots.fast : ranking.pilots.full });
+/** A signed whole number of Elo points, as the site writes it: "467", "−120". */
+const eloText = (x) => (x < 0 ? "−" : "") + fmtInt(Math.abs(x));
+/** The list the Deck tier list opens on (the owner, 2026-10-27: Elo first and by default). */
+const firstList = () => ranking.elo.rows;
 
 function drawMeta() {
   if (!DB.cards.length) return;      // the skeletons stay until the card data is in
@@ -360,16 +359,21 @@ function drawMeta() {
     const list = firstList();
     const decks = list.filter(visible).slice(0, 3);
     // ranks above the first one shown are not drawn here (a card the page cannot draw): say so, never leave "#2" unexplained
-    const hiddenAbove = decks.length ? list.filter((d) => d.meta.rank < decks[0].meta.rank).length : 0;
+    const hiddenAbove = decks.length ? list.filter((d) => d.elo.rank < decks[0].elo.rank).length : 0;
     const note = document.getElementById("mp-decks-hidden");
     note.hidden = !hiddenAbove;
     note.textContent = hiddenAbove ? t("ov.meta.hidden", { n: hiddenAbove }) : "";
+    // each deck as the list reads it: its rank (with the list's quiet "≈ #n" when its margin reaches the deck above's), its
+    // cards, its Elo with its margin and the AI whose games it rests on
     document.getElementById("mp-decks").replaceChildren(...decks.map((d) => {
-      const m = headline(d);
+      const e = d.elo;
       return h("div.mp-deck", [
-        h("span.mp-rank", t("ov.meta.rank", { n: d.meta.rank })),
+        h("span.mp-rank", [t("ov.meta.rank", { n: e.rank }), e.tied && e.rank > 1 ? h("span.mp-tie", { title: t("rk.tieTip", { rank: e.rank - 1 }) },
+          [h("span", { "aria-hidden": "true" }, `≈ #${e.rank - 1}`), h("span.sr", " " + t("rk.tieTip", { rank: e.rank - 1 }))]) : null]),
         h("div.mp-cards", d.cs.filter(Boolean).map((c) => gameCard(c, { size: "list", interactive: false }))),
-        h("div.mp-stat", [h("b", pct1(m.rate)), h("span", t("ov.meta.meta", { ai: m.ai }))]),
+        h("div.mp-stat", [h("b", [eloText(e.value), h("span.mp-pm", ` ±${fmtInt(e.pm)}`)]),
+          // the AI's name is a code token: never machine-translated
+          h("span", tx("ov.meta.elo", { ai: h("span", { translate: "no" }, ranking.pilots.full) }))]),
       ]);
     }));
   }

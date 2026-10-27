@@ -69,36 +69,29 @@
 .ct-row.ct-out .ct-ic-orb { left: -6px; top: -6px; width: 16px; height: 16px; }
 
 /* ---------------------------------------------------------------- the strip (js/deckstrip.js): a card's decks in the view, on its
-   win-rate axis (lowest on the left) over a sunken track. Top 50: one mark per Top 50 deck, a hairline at 50% (the level of the
-   top), the decks past the best five short. Race: a quiet density of its race decks, its five best as marks. The marks take the
-   card's tier colour. */
+   win-rate axis (lowest on the left) over a sunken track. Race: a quiet density of its race decks, its five best as marks. All
+   games: the likely range as a soft bar, the five best decks as marks, the figure as a tick. The marks take the card's tier
+   colour. */
 .ct-st-w { display: grid; gap: 4px; width: 100%; }
 .ct-st { position: relative; display: block; height: 24px; overflow: hidden; border-radius: 4px; background: var(--socket); }
 .ct-st::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: var(--sunken); pointer-events: none; }
-/* the 50% hairline, the level of the top: Dusk Lavender, so it reads on the socket (the anchor of every Top 50 figure) */
-.ct-st-mid { position: absolute; top: 0; bottom: 0; display: block; width: 1px; margin-left: -.5px; background: var(--muted); }
 .ct-st-h { position: absolute; bottom: 0; display: block; background: color-mix(in srgb, var(--ink-2) 38%, transparent); }
 /* All games: the likely range of the card's figure, a soft bar in its tier colour across the track's middle, under the marks, and
    the figure itself on it, a short Cream Lavender tick (the bar belongs to the number printed above) */
 .ct-st-ci { position: absolute; top: 8px; bottom: 8px; display: block; min-width: 2px; border-radius: 4px; background: color-mix(in srgb, var(--tc) 60%, transparent); }
 .ct-st-f { position: absolute; z-index: 2; top: 6px; bottom: 6px; display: block; width: 2px; margin-left: -1px; border-radius: 4px; background: var(--ink); }
 .ct-st-d { position: absolute; z-index: 1; top: 3px; bottom: 3px; display: block; width: 2px; margin-left: -1px; border-radius: 4px; background: var(--tc); }
-.ct-st-d.cp { top: 13px; }
 .ct-st-ax { position: relative; display: flex; justify-content: space-between; color: var(--muted); font: 600 14px/1.2 var(--text); }
-.ct-st-ax-mid { position: absolute; top: 0; transform: translateX(-50%); }
 /* the key: a sample of each mark before its words */
 .ct-st-key { display: flex; flex-wrap: wrap; gap: 4px 16px; color: var(--muted); font: 600 14px/1.2 var(--text); }
 .ct-st-key > span { display: inline-flex; align-items: center; gap: 8px; }
 .ct-st-k { display: block; flex: none; width: 2px; height: 14px; border-radius: 4px; background: var(--tc); }
-.ct-st-k.cp { height: 6px; transform: translateY(4px); }
-.ct-st-k.mid { width: 1px; background: var(--muted); }
 .ct-st-k.h { width: 8px; height: 10px; border-radius: 0; background: color-mix(in srgb, var(--ink-2) 38%, transparent); transform: translateY(2px); }
 .ct-st-k.ci { position: relative; width: 16px; height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--tc) 60%, transparent); }
 .ct-st-k.ci::after { content: ""; position: absolute; left: 7px; top: -2px; bottom: -2px; width: 2px; border-radius: 4px; background: var(--ink); }
 .ct-c-where .ct-st, .ct-th-ax { max-width: 280px; }
 .ct-c-where .ct-st { height: 16px; }
 .ct-c-where .ct-st-d { top: 2px; bottom: 2px; }
-.ct-c-where .ct-st-d.cp { top: 9px; }
 .ct-c-where .ct-st-ci { top: 5px; bottom: 5px; }
 .ct-c-where .ct-st-f { top: 3px; bottom: 3px; }
 .ct-th-ax { display: block; margin-top: 4px; }

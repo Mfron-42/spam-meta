@@ -4,16 +4,16 @@
 // the stage ranking's deck table (DECK_TABLE_SHOWN), else they have no tab; the Card tier list reads the same run's card tiers
 // (CARD_TIERS_SHOWN), else it draws the placeholder.
 
-import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=f0b795cc40";
-import { t, applyStatic, millions } from "./i18n.js?v=f0b795cc40";
-import { copyText } from "./ui.js?v=f0b795cc40";
-import { DB, loadCore, loadLists } from "./data.js?v=f0b795cc40";
-import { patchLine, dataDate, deckRanking, openMethod, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN } from "./patch.js?v=f0b795cc40";
-import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=f0b795cc40";
-import { versioned, withQuery } from "./version.js?v=f0b795cc40";
-import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=f0b795cc40";
-import { holdTiles } from "./cardtilt.js?v=f0b795cc40";
-import { ambient } from "./ambient.js?v=f0b795cc40";
+import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=e550ac9b69";
+import { t, applyStatic, millions } from "./i18n.js?v=e550ac9b69";
+import { copyText } from "./ui.js?v=e550ac9b69";
+import { DB, loadCore, loadLists } from "./data.js?v=e550ac9b69";
+import { patchLine, dataDate, deckRanking, openMethod, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN } from "./patch.js?v=e550ac9b69";
+import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=e550ac9b69";
+import { versioned, withQuery } from "./version.js?v=e550ac9b69";
+import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=e550ac9b69";
+import { holdTiles } from "./cardtilt.js?v=e550ac9b69";
+import { ambient } from "./ambient.js?v=e550ac9b69";
 
 // Five tabs, one view each; the Deck builder (#builder) sits next to My decks. TABS are the ones shown.
 const ALL_TABS = ["tiers", "card-tiers", "codex", "decks", "builder"];
@@ -289,7 +289,7 @@ function paintFooter() {
   const m = DB.meta, R = deckRanking();
   // the method and the games describe the rankings shown: the deck ranking's while it is the only one, nothing with none
   $("#foot-rk").textContent = CARD_RANKINGS_SHOWN ? t("foot.method", { patch: m.patch, games: millions(m.totals.patch_games) })
-    : R ? t(R.final ? "foot.methodRk" : "foot.methodRkProv", { patch: R.patch, games: R.games, ai: R.pilots.full }) : "";
+    : R ? t(R.final ? "foot.methodRk" : "foot.methodRkProv", { patch: R.patch, rated: fmtInt(R.elo.rated), ai: R.pilots.full }) : "";
   $("#foot-games").textContent = CARD_RANKINGS_SHOWN ? gamesLine(m) : "";
   $("#foot-games").hidden = !CARD_RANKINGS_SHOWN;
   $("#foot-patch").textContent = t("foot.patch", { line: patchLine(), date: fmtDate(dataDate()) });

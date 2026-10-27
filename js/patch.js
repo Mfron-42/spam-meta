@@ -3,11 +3,11 @@
 // filled when a value, an ability or a passive changed (the class "mechanical"), hollow when only talents or texts did.
 // The data carries codes and positions; every word comes from i18n.js ("pc.*").
 
-import { h, icon, fmtDate, dec, reducedMotion } from "./util.js?v=f0b795cc40";
-import { DB } from "./data.js?v=f0b795cc40";
-import { L } from "./cards.js?v=f0b795cc40";
-import { t } from "./i18n.js?v=f0b795cc40";
-import { disclosure } from "./ui.js?v=f0b795cc40";
+import { h, icon, fmtDate, fmtInt, reducedMotion } from "./util.js?v=e550ac9b69";
+import { DB } from "./data.js?v=e550ac9b69";
+import { L } from "./cards.js?v=e550ac9b69";
+import { t } from "./i18n.js?v=e550ac9b69";
+import { disclosure } from "./ui.js?v=e550ac9b69";
 
 // Three patches can differ, and each label names the one it is about (SPEC.md, "Patch labels"):
 // - the GAME patch, the client players run today (below; the lab reads it from the game files);
@@ -18,7 +18,7 @@ import { disclosure } from "./ui.js?v=f0b795cc40";
 export const GAME_PATCH = { patch: "1.26", date: "2026-10-21" };
 
 // What the site shows of the rankings (SPEC.md section 3.7). Three switches; the views stay in the code either way.
-// - DECK_RANKING_SHOWN: the Deck tier list draws the lab's three deck lists of the game patch (deck-lists.json, tiers.js),
+// - DECK_RANKING_SHOWN: the Deck tier list draws the lab's two deck lists of the game patch (deck-lists.json, tiers.js),
 //   labelled temporary while its `final` is false (owner, 2026-10-23: "mets en ligne le classement temporaire"); the footer,
 //   About and the card view's Meta section quote them. Off, the Deck tier list draws the "being computed" placeholder (pending.js).
 // - DECK_TABLE_SHOWN: My decks and the Deck builder read the current ranking's deck table (deck-table.json: every deck the run
@@ -50,16 +50,12 @@ const rankingsBehindGame = (patch) => {
  * view quote as "the deck ranking". */
 export const deckRanking = () => (DECK_RANKING_SHOWN && DB.lists) || null;
 
-/** What the deck lists' caveats and method quote (i18n "rk.limit.*", "rk.m*"): the narrowest and widest margins of the final's
- * rates, in points to one decimal, the final's size, how many decks of the players' meta the full AI played, the players' panel's
- * patch and the lists' patch. */
+/** What the deck lists' caveats and method quote (i18n "rk.limit.*", "rk.m*"): the narrowest and widest 95% margins of the Elo
+ * list, in whole Elo points, and the lists' patch. */
 export function limitParams(R) {
-  const ci = R.top.rows.filter((d) => d.top.win_rate != null).map((d) => d.top.ci95 * 100);
-  return { lo: dec(Math.min(...ci), 1), hi: dec(Math.max(...ci), 1), top: R.top.final, pp: R.meta.panel_patch, patch: R.patch };
+  const pm = R.elo.rows.map((d) => d.elo.pm);
+  return { lo: fmtInt(Math.min(...pm)), hi: fmtInt(Math.max(...pm)), patch: R.patch };
 }
-
-/** The median round of a won game of the listed decks (deck-lists.json speed.median_rounds): "13" when whole, else "13.5". */
-export const medianRounds = (R) => dec(R.speed.median_rounds, Number.isInteger(R.speed.median_rounds) ? 0 : 1);
 
 /** The patches in one line (footer, About): "Game patch 1.24, card data 1.23, rankings 1.22"; while only the deck ranking
  * is shown, "Game patch 1.26, card data 1.26, provisional deck ranking 1.26"; with no ranking shown, the game and card data

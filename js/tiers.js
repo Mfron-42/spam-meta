@@ -1,36 +1,36 @@
-// Deck tier list tab: the lab's three deck lists of the game patch (data/deck-lists.json, tools/export_deck_lists.py), one list
-// at a time, in this order (the lead, 2026-10-27): "Players' meta" (the default: each deck's win rate against the decks players
-// bring most), "Against the top" (the final round robin, then the next decks by the stage before, which have no figure there:
-// their rating is on another scale) and "Speed" (the mean round of a deck's wins). A ranked list, no tier letters and no hidden
-// deck (owner, 2026-10-21). While the ranking is not final the view says so in one line at its top (patch.js provBanner); every
-// explanation lives in the footer's Method section (owner, 2026-10-24), so the top of the view is the title, the banner, the
-// switch and the card search.
-// Every deck carries its three figures, named like the three lists and in their order, the active list's figure big
-// (decklist.js listFigures); each explains itself on hover, focus or a tap, and the players' meta figure names the AI that played
-// it. Under them, the tox the deck bought most (3, the 8 on demand) and its variants (decks of its card set or family that the
-// lists leave out). Each deck is its four game cards in board order, each with the talent it plays under it; a card opens the
+// Deck tier list tab: the lab's two deck lists of the game patch (data/deck-lists.json, tools/export_deck_lists.py), one list at
+// a time, in this order (the owner, 2026-10-27): "Elo" (the default: the 64 best decks by their Elo from our AI's games) and
+// "Speed" (the mean round of a deck's wins). A ranked list, no tier letters and no hidden deck (owner, 2026-10-21). Most Elo
+// neighbours are within each other's margin: a deck whose interval reaches the deck above's carries a quiet "≈ #n" after its
+// rank (the lab's tie flag), so the list never claims an order it does not know. While the ranking is not final the view says so
+// in one line at its top (patch.js provBanner); every explanation lives in the footer's Method section (owner, 2026-10-24), so
+// the top of the view is the title, the banner, the switch and the card search.
+// Every deck carries its two figures, named like the two lists and in their order, the active list's figure big
+// (decklist.js listFigures); each explains itself on hover, focus or a tap, and the Elo names the AI whose games it rests on.
+// Under them, the tox the deck bought most (3, the 8 on demand) and its variants (its card set with other talents, which the
+// list leaves out). Each deck is its four game cards in board order, each with the talent it plays under it; a card opens the
 // card view on that talent. A card search keeps the decks holding a card, "Ready to play" the decks the visitor owns. The list
-// lives in the address (#tiers, #tiers/top, #tiers/speed). A language change redraws the page and keeps the list, the query, the
-// filter and the open tox and variants.
+// lives in the address (#tiers, #tiers/speed). A language change redraws the page and keeps the list, the query, the filter and
+// the open tox and variants.
 
-import { h, icon, pct, dec, fmtInt, reducedMotion } from "./util.js?v=f0b795cc40";
-import { DB, loadLists, loadFacets } from "./data.js?v=f0b795cc40";
-import { on, isOwned, ownedCount, getLang } from "./store.js?v=f0b795cc40";
-import { cardName, chip, L } from "./cards.js?v=f0b795cc40";
-import { segmented, scrollToEl, cascade, band, CURVE, disclosure } from "./ui.js?v=f0b795cc40";
-import { t, tx } from "./i18n.js?v=f0b795cc40";
-import { tipButton } from "./cardtext.js?v=f0b795cc40";
-import { findRow, terms, namedCards } from "./search.js?v=f0b795cc40";
-import { introLine, limitParams, medianRounds, provBanner, isMatchupTalent, matchupMark, DECK_TABLE_SHOWN } from "./patch.js?v=f0b795cc40";
-import { paintOwned, deckSlot, listFigures, matchupLine, LISTS } from "./decklist.js?v=f0b795cc40";
+import { h, icon, pct, fmtInt, reducedMotion } from "./util.js?v=e550ac9b69";
+import { DB, loadLists, loadFacets } from "./data.js?v=e550ac9b69";
+import { on, isOwned, ownedCount, getLang } from "./store.js?v=e550ac9b69";
+import { cardName, chip, L } from "./cards.js?v=e550ac9b69";
+import { segmented, scrollToEl, cascade, band, CURVE, disclosure } from "./ui.js?v=e550ac9b69";
+import { t, tx } from "./i18n.js?v=e550ac9b69";
+import { tipButton } from "./cardtext.js?v=e550ac9b69";
+import { findRow, terms, namedCards } from "./search.js?v=e550ac9b69";
+import { introLine, limitParams, provBanner, isMatchupTalent, matchupMark, DECK_TABLE_SHOWN } from "./patch.js?v=e550ac9b69";
+import { paintOwned, deckSlot, listFigures, matchupLine, LISTS } from "./decklist.js?v=e550ac9b69";
 
-// each list's address: the first (the players' meta, the default) is the bare #tiers. The addresses of the earlier ranking still
-// land on a list: "#tiers/final" (its Final) opens Against the top, "#tiers/race" (its Tournament) the default; both are
-// rewritten to the list's own.
-const SUBS = { meta: "", top: "top", speed: "speed" };
-const OLD_SUBS = { meta: "race", top: "final" };
-let root, R, list = "meta", query = "", readyOnly = false;
-let decks = [], find, seg, readyBtn, banner, listEl, afterEl, cutEl, headEl, sayEl, emptyEl;
+// each list's address: the first (Elo, the default) is the bare #tiers. The addresses of the earlier lists land on Elo and are
+// rewritten to its own: "#tiers/top" (Against the top), "#tiers/final" and "#tiers/race" (the ranking before it); the players'
+// meta was the bare #tiers.
+const SUBS = { elo: "", speed: "speed" };
+const OLD_SUBS = ["top", "final", "race", "meta"];
+let root, R, list = "elo", query = "", readyOnly = false;
+let decks = [], find, seg, readyBtn, banner, listEl, headEl, sayEl, emptyEl;
 let toxNames = null;                         // facets.json's tox families by id: the game's tox names (FR/EN)
 const openTox = new Set(), openVar = new Set(), allVar = new Set();   // the decks (their index in deck-lists.json) whose 8 tox,
                                                                        // variants or full list of variants are open
@@ -47,9 +47,9 @@ export async function mount(el) {
   toxNames = f ? new Map([...f.values.tox.map((x) => [x.id, x]),
     ...Object.entries(R.tox_names || {}).map(([id, n]) => [id, { id, name_fr: n.fr, name_en: n.en }])]) : null;
   list = listFromHash() || sorts()[0];
-  if (!sorts().includes(list)) list = sorts()[0];
+  if (!sorts().includes(list)) { list = sorts()[0]; saveList(); }
   // an older address of a list is rewritten to the list's own (a card key after #tiers/ is left as it is)
-  if (location.hash.split("/")[0] === "#tiers" && OLD_SUBS[list] === location.hash.split("/")[1]) saveList();
+  if (location.hash.split("/")[0] === "#tiers" && OLD_SUBS.includes(location.hash.split("/")[1])) saveList();
   render();
   // the one load sequence of this tab: the first time it is shown, the decks on screen arrive in rank order
   cascade(root, () => [...root.querySelectorAll(".deck:not([hidden])")]);
@@ -71,7 +71,8 @@ export function findCard(key) {
 const listFromHash = () => {
   const [tab, sub] = location.hash.replace(/^#/, "").split("/");
   if (tab !== "tiers") return null;
-  return LISTS.find((k) => SUBS[k] === (sub || "") || OLD_SUBS[k] === sub) || null;
+  if (OLD_SUBS.includes(sub)) return "elo";
+  return LISTS.find((k) => SUBS[k] === (sub || "")) || null;
 };
 function saveList() {
   if (location.hash.split("/")[0] !== "#tiers") return;
@@ -94,14 +95,11 @@ function render() {
   // the list switch: the same segmented control as the Card tier list's (ui.js segmented, DESIGN.md "Sort switch"); each
   // segment's title says its list in one line
   seg = segmented(sorts().map((k) => [k, t("rk.list." + k)]), list, (v) => setList(v), t("rk.listAria"));
-  seg.el.querySelectorAll("button").forEach((b) => { b.title = t("rk.listTip." + b.dataset.v, { n: R.meta.panel, top: R.top.final }); });
+  seg.el.querySelectorAll("button").forEach((b) => { b.title = t("rk.listTip." + b.dataset.v, { n: R.elo.rows.length }); });
   readyBtn = h("button.chip.ready", { type: "button", "aria-pressed": "false", hidden: true, onclick: () => { readyOnly = !readyOnly; applyShown(); } }, [h("span.chip-l", t("tl.ready")), h("span.n")]);
   headEl = h("h2.sr", { id: "rk-list-h" });
   sayEl = h("p.sr", { "aria-live": "polite" });          // a change of list is announced (the list itself swaps silently)
   listEl = h("ol.rk-list", { "aria-labelledby": "rk-list-h" });
-  // Against the top: the decks after the final, under their own heading (their place comes from the stage before)
-  cutEl = h("div.rk-cut", { hidden: true }, [h("h2#rk-cut-h", t("rk.cutH")), h("p", t("rk.cutP", { cap: R.top.extended_cap }))]);
-  afterEl = h("ol.rk-list.rk-after", { "aria-labelledby": "rk-cut-h", hidden: true });
   // a filter that leaves the list empty says so, with the way back (DESIGN.md "Deck tier list")
   emptyEl = h("p.rk-empty", { hidden: true }, [h("span", t("rk.emptyReady")),
     h("button.btn.ghost", { type: "button", onclick: () => { readyOnly = false; applyShown(); readyBtn.focus(); } }, t("rk.showAll"))]);
@@ -110,62 +108,54 @@ function render() {
       h("h1", t("tl.h1")),
       // a temporary ranking says so in one line, its link to the footer's Method section (owner, 2026-10-24)
       prov ? provBanner("tiers") : null,
-      // the facts line, the method, the three lists and the caveats: the footer (owner, 2026-10-24: no prose above the list)
-      ...introLine("tiers", h("p", t("rk.lede", { games: R.games, patch: R.patch })), { method: methodLines(), patch: R.patch, link: !prov }),
+      // the facts line, the method, the two lists and the caveats: the footer (owner, 2026-10-24: no prose above the list)
+      ...introLine("tiers", h("p", t("rk.lede", { n: fmtInt(R.elo.rated), ai: R.pilots.full, patch: R.patch })), { method: methodLines(), patch: R.patch, link: !prov }),
     ]),
     // the owned callout, then the switch (it stays under the header while the decks scroll, so the big number always has its
     // name on screen; the Card tier list's band), then the card search right above the list it filters
     banner,
-    band(h("div.rk-bar", [seg.el, readyBtn])),
+    band(h("div.rk-bar", [sorts().length > 1 ? seg.el : null, readyBtn])),
     findBar(),
-    h("section.rk-sec", [headEl, sayEl, listEl, cutEl, afterEl, emptyEl]),
+    h("section.rk-sec", [headEl, sayEl, listEl, emptyEl]),
     // the way to the overlay: one quiet line after the list, no banner (it promises no download)
     h("p.ov-tease", [h("span", t("tl.ovTease")), " ", h("a.link", { href: "overlay/" }, t("tl.ovLink"))]),
   );
   paintList(false);
 }
 
-/** The footer's Method sub-section of this tab: why it is temporary, how the decks were picked, which AI played what, the three
- * lists in the switch's order, the figures, the tox, the variants, the talents and the caveats. Numbers come from
- * deck-lists.json; no version of the ranking is named (owner, 2026-10-24); the AIs are named once, in their own line. */
+/** The footer's Method sub-section of this tab: why it is temporary, what the Elo is and which AI played its games, how close
+ * decks are marked, the speed list, the figures, the tox, the variants, the talents and the caveats. Numbers come from
+ * deck-lists.json; no version of the ranking is named (owner, 2026-10-24); the AI is named in its own line. */
 function methodLines() {
-  const P = R.pilots, lp = limitParams(R);
+  const lp = limitParams(R);
   return [
     R.final ? null : h("p", [...tx("rk.mWhy")]),
-    t("rk.mHow", { entrants: R.entrants, top: R.top.final, cap: R.top.family_cap }),
-    h("p", tx("rk.mPilots", { full: P.full, fast: P.fast })),
-    tx("rk.mMeta", { n: R.meta.panel, pp: R.meta.panel_patch, full: R.meta.full, f0: R.meta.final_full, top: R.meta.top_full, ai: P.full, fast: P.fast,
-      shift: (R.meta.shift < 0 ? "−" : "+") + dec(Math.abs(R.meta.shift) * 100, 1), both: R.meta.shift_decks }),
-    tx("rk.mTop", { top: R.top.final, gpp: R.top.games_per_pair, opp: R.top.final - 1, mlo: lp.lo, mhi: lp.hi }),
-    tx("rk.mSpeed", { min: pct(R.speed.min_win_rate, 0), wins: R.speed.min_wins, median: medianRounds(R) }),
+    h("p", tx("rk.mElo", { ai: R.pilots.full, rated: fmtInt(R.elo.rated), n: R.elo.rows.length, min: R.elo.min_games, mlo: lp.lo, mhi: lp.hi })),
+    h("p", tx("rk.mTie")),
+    tx("rk.mSpeed", { min: pct(R.speed.min_win_rate, 0), wins: R.speed.min_wins }),
     t("rk.mFigs"),
     // the "+5" sentence only when the decks carry their 8 most bought tox
     tx(R.decks.some((d) => d.tox.top.length > 3) ? "rk.mTox8" : "rk.mTox"),
-    tx("rk.mVariants", { cap: R.top.family_cap }),
+    tx("rk.mVariants"),
     t("rk.mTalents"),
     R.matchup_talents ? matchupLine() : null,
     h("ul.vinfo-l", R.limits.map((l) => h("li", t("rk.limit." + l, lp)))),
   ];
 }
 
-/** The list shown: its hidden heading and its decks (Against the top: the final, then the decks after it under their own
- * heading). `swap`: the visitor changed the list (a short fade). */
+/** The list shown: its hidden heading and its decks. `swap`: the visitor changed the list (a short fade). */
 function paintList(swap) {
   const rows = R[list].rows.filter((d) => d.cs.every(Boolean));
-  const before = list === "top" ? rows.filter((d) => d.top.win_rate != null) : rows;
-  const after = list === "top" ? rows.filter((d) => d.top.win_rate == null) : [];
   listEl.dataset.list = list;
-  headEl.textContent = t("rk.h." + list, { n: before.length, more: after.length });
+  headEl.textContent = t("rk.h." + list, { n: rows.length });
   decks = [];
-  listEl.replaceChildren(...before.map((d, i) => deckEl(d, i === 0)));
-  afterEl.replaceChildren(...after.map((d) => deckEl(d, false)));
-  if (after.length) afterEl.setAttribute("start", String(rankOf(after[0])));
+  listEl.replaceChildren(...rows.map((d, i) => deckEl(d, i === 0)));
   updateBadges();
   updateBanner();
   applyShown();
   if (swap) {
     sayEl.textContent = headEl.textContent;
-    if (!reducedMotion()) for (const el of [listEl, cutEl, afterEl]) el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: CURVE });
+    if (!reducedMotion()) listEl.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: CURVE });
   }
 }
 
@@ -182,12 +172,18 @@ function deckEl(d, full) {
   const badge = h("div.obadge", { hidden: true });
   const slots = d.cs.map((c, k) => deckSlot(c, d.talents[k], { full }));
   const e = d[list];
-  // quiet facts about the rank in words, never boxes: a shared rank
-  const words = [e.tied ? h("span.deck-word", { title: t("rk.tiedTip." + list) }, t("rk.tied")) : null];
+  // quiet facts about the rank in words, never boxes: in the Elo list, a deck within the margin of the deck above ("≈ #2": their
+  // intervals overlap, so their order is not settled; a screen reader hears it inside the heading, after the rank); in the speed
+  // list, a rank shared on equal rounds
+  const tie = e.tied && list === "elo" && e.rank > 1;
+  const words = [!e.tied || (list === "elo" && !tie) ? null : tie
+    ? h("span.deck-word.rk-tie", { title: t("rk.tieTip", { rank: e.rank - 1 }), "aria-hidden": "true" }, `≈ #${e.rank - 1}`)
+    : h("span.deck-word", { title: t("rk.tiedTip.speed") }, t("rk.tied"))];
   const n = R.decks.indexOf(d);
   const el = h("li.deck" + (full ? ".spot" : ""), { id: `deck-${list}-${e.rank}-${decks.length}`, "aria-label": t("tl.rankAria", { rank: e.rank, cards: d.cs.map(cardName).join(", ") }) }, [
-    // the heading names the deck too, so a screen reader's list of headings reads the decks
-    h("div.deck-head", [h("h3.rk", [`#${e.rank}`, h("span.sr", " " + d.cs.map(cardName).join(", "))]), ...words, badge]),
+    // the heading names the deck too, so a screen reader's list of headings reads the decks (and the tie, when there is one)
+    h("div.deck-head", [h("h3.rk", [`#${e.rank}`, tie ? h("span.sr", t("rk.tieSr", { rank: e.rank - 1 })) : null,
+      h("span.sr", " " + d.cs.map(cardName).join(", "))]), ...words, badge]),
     h("div.deck-body", [
       h("div.deck-cards" + (full ? ".full" : ""), slots),
       // the figures, then (after the cards on one column) the tox and the variants
@@ -246,8 +242,8 @@ function toxLine(d, n) {
 /**
  * The deck's variants (DESIGN.md "Variants"): a small disclosure, "3 variants", opening one line per variant, each saying what
  * changes from the listed deck: the card that comes in (its chip and talent) and the one it replaces, or a card's other talent.
- * The variants are decks of the same card set or family that the lists leave out (one deck per card set; the family caps);
- * they carry no figure (their ratings are another stage's scale).
+ * The variants are the deck's card set with other talents, which the list leaves out (one deck per card set: its best-rated
+ * talents); they carry no figure.
  */
 function variantsBlock(d, n) {
   if (!d.variants.length) return null;
@@ -327,9 +323,6 @@ function applyShown() {
     if (hit && ts.length) found += x.show ? 1 : 0;
     x.slots.forEach((s, i) => s.classList.toggle("miss", ts.length > 0 && !hits.includes(x.cs[i])));
   }
-  // the decks after the final keep their heading while one of them shows
-  const afterShown = [...afterEl.children].some((li) => !li.hidden);
-  cutEl.hidden = afterEl.hidden = !afterShown;
   find.paint(ts, hits, hits.filter((c) => decks.some((x) => x.cs.includes(c))), found);
   // only the "Ready to play" filter can empty the list on its own (a search says so in its own line)
   emptyEl.hidden = !(readyOnly && !ts.length && !decks.some((x) => x.show));

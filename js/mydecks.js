@@ -2,18 +2,18 @@
 // exactly one card away, read from the current ranking's deck table (deck-table.json). Each list shows its decks of the full
 // AI's scale first, by their rating (the table's order, so the first rows that fit are the best), then, apart, the decks only
 // the fast AI looked at (decklist.js scaleGroups: the two scales are never sorted together). A deck of the Deck tier list
-// carries its three figures. The card search (search.js) keeps only the decks of both lists that hold a matching card, and
+// carries its speed beside its Elo. The card search (search.js) keeps only the decks of both lists that hold a matching card, and
 // "Without these cards" (search.js outRow; the game's ban mode) leaves out the decks holding a card the visitor names; both
 // survive a redraw (a card ticked, a language change), not a reload.
 
-import { h, icon, fmtInt } from "./util.js?v=f0b795cc40";
-import { loadDecks } from "./data.js?v=f0b795cc40";
-import { on, isOwned, ownedCount } from "./store.js?v=f0b795cc40";
-import { deckRow, missingLine, scaleGroups, tableHead } from "./decklist.js?v=f0b795cc40";
-import { findRow, terms, namedCards, outRow, bringBack, announcer } from "./search.js?v=f0b795cc40";
-import { openCollection } from "./dialogs.js?v=f0b795cc40";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=f0b795cc40";
-import { t } from "./i18n.js?v=f0b795cc40";
+import { h, icon, fmtInt } from "./util.js?v=e550ac9b69";
+import { loadDecks } from "./data.js?v=e550ac9b69";
+import { on, isOwned, ownedCount } from "./store.js?v=e550ac9b69";
+import { deckRow, missingLine, scaleGroups, tableHead } from "./decklist.js?v=e550ac9b69";
+import { findRow, terms, namedCards, outRow, bringBack, announcer } from "./search.js?v=e550ac9b69";
+import { openCollection } from "./dialogs.js?v=e550ac9b69";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=e550ac9b69";
+import { t } from "./i18n.js?v=e550ac9b69";
 
 let root, D, listeners = new Set();
 let result = { build: [], near: [] };

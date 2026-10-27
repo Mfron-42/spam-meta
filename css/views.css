@@ -161,7 +161,8 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 4px; 
 .deck:not([hidden]) ~ .deck { border-top: 1px solid var(--line); }
 .deck-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; min-height: 36px; }
 .rk { font: 400 28px/1 var(--display); color: var(--muted); }
-/* a fact about a deck in words, never a box: "tied", "#14 by win rate" */
+/* a fact about a deck in words, never a box: "≈ #1" (the Elo list: its margin reaches the deck above's), "tied" (the speed list:
+   the same rounds as another deck) */
 .deck-word { color: var(--muted); font: 600 14px/1.4 var(--text); white-space: nowrap; }
 .deck-head .obadge { margin-left: auto; align-self: center; }
 .deck-body { display: grid; grid-template-columns: minmax(0, 640px) minmax(0, 1fr); gap: 16px 48px; align-items: start; }
@@ -171,7 +172,7 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 4px; 
 /* a deck's facts on My decks and the Deck builder (decklist.js deckFacts, DESIGN.md "Deck facts"): its rating big, a word that
    explains itself (the figures' grammar: dotted underline at rest, the socket chip with the ring under the pointer, open or
    focused): "Rating" in Title 22, the value in Headline 28, the margin and the AI in Dusk Lavender 14; a fast estimate is the
-   quiet state alone. A deck of the Deck tier list adds its three figures under it (.rfig, no list active). */
+   quiet state alone. A deck of the Deck tier list adds its speed under it (.rfig, no list active). */
 .dfacts { display: grid; gap: 12px; justify-items: start; align-content: start; padding-top: 8px; }
 .fig-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: 0; }
 .dt-fig { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: -4px -8px; padding: 4px 8px; border: 0; border-radius: 8px;
@@ -182,16 +183,15 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 4px; 
 .dt-fig:hover .fig-k, .dt-fig.on .fig-k, .dt-fig:focus-visible .fig-k { text-decoration-color: transparent; }
 .dt-fig.fast .fig-k { color: var(--muted); }
 .fig-pm, .fig-ai { color: var(--muted); font: 600 14px/1 var(--text); }
-/* a listed deck's three figures (decklist.js listFigures, DESIGN.md "Deck figures"): Players' meta, Against the top, Speed in three
-   equal columns, the lists' order, so they line up on every card. Each is its name (Nunito 600 14 Dusk Lavender, the dotted
-   underline of a word that explains itself) over its value (Lilita 18 Soft Lavender; the active list's in Headline 28 Cream
-   Lavender, its unit Nunito 600 14 Dusk Lavender 4px after it), then one quiet note when the figure needs one on its face (the AI
-   of the players' meta, "core", "family cap"); the values of a card share one baseline and so do the notes (the columns are
-   subgrids of its three rows). A figure the deck lacks keeps its column with a quiet state (Nunito 600 14 Dusk Lavender, two
-   lines at most). Each is a button, a socket chip with the 2px cyan ring under the pointer, while its tooltip is open and on
+/* a listed deck's two figures (decklist.js listFigures, DESIGN.md "Deck figures"): Elo and Speed in two equal columns, the
+   lists' order, so they line up on every card. Each is its name (Nunito 600 14 Dusk Lavender, the dotted underline of a word that
+   explains itself) over its value (Lilita 18 Soft Lavender; the active list's in Headline 28 Cream Lavender, its unit or margin
+   Nunito 600 14 Dusk Lavender 4px after it), then one quiet note when the figure needs it on its face (the AI under the Elo, or
+   "not in the 64"); the values of a card share one baseline and so do the notes (the columns are subgrids of its three rows). A
+   figure the deck lacks keeps its column with a quiet state (Nunito 600 14 Dusk Lavender, two lines at most). Each is a button, a socket chip with the 2px cyan ring under the pointer, while its tooltip is open and on
    keyboard focus (the keyword chip's states, cards.css); the chip reaches 8px past its text at the sides and 4px above and
    below, outside the column, so the text stays on the grid. */
-.rfig { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: auto auto auto; gap: 4px 24px; width: min(100%, 432px); }
+.rfig { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto auto auto; gap: 4px 24px; width: min(100%, 288px); }
 .rf { grid-row: span 3; justify-self: start; display: grid; grid-template-rows: subgrid; justify-items: start; min-width: 0; max-width: calc(100% + 16px); margin: -4px -8px; padding: 4px 8px; border: 0; border-radius: 8px;
   background: none; color: var(--ink-2); font: inherit; text-align: left; cursor: pointer; transition: background var(--t-state) var(--curve), box-shadow var(--t-state) var(--curve); }
 .rf:hover, .rf.on, .rf:focus-visible { outline: none; background: var(--socket); box-shadow: var(--ring); }
@@ -234,7 +234,7 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 4px; 
 .tdisc.vr-all::after { content: ""; position: absolute; inset: -8px -2px; }      /* a 44px hit area on a 28px control */
 .vr-t { display: inline-flex; align-items: center; gap: 4px; margin: 0 4px; color: var(--ink-2); line-height: 1.4; vertical-align: middle; cursor: help; }
 .vr-t .ab-talent { width: 16px; height: 16px; }
-/* Against the top: the decks after the final, under their own heading */
+/* a group of decks after the list, under its own heading (My decks and the Deck builder: the fast estimates) */
 .rk-cut { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--line); }
 .rk-cut h2, .rk-cut h3 { margin: 0; color: var(--ink-2); font: 400 22px/1.15 var(--display); letter-spacing: .01em; }
 .rk-cut p { margin: 8px 0 0; color: var(--muted); font: 600 14px/1.4 var(--text); }
