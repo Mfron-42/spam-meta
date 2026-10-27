@@ -2,16 +2,16 @@
 // own modules (store, i18n, data, cards), so it draws the same game cards from the same data, speaks the same two languages
 // and shares the visitor's language choice with SPAM Meta. Its strings are the "ov." keys of js/i18n.js.
 
-import { setLang, langChosen, on, getLang } from "../../js/store.js?v=73584d37ed";
-import { t, tx, applyStatic } from "../../js/i18n.js?v=73584d37ed";
-import { h, pct, pct1, dec, icon } from "../../js/util.js?v=73584d37ed";
-import { DB, loadCore, loadRanking, loadCardTiers } from "../../js/data.js?v=73584d37ed";
-import { gameCard, cardName } from "../../js/cards.js?v=73584d37ed";
-import { GAME_PATCH, DECK_RANKING_SHOWN, CARD_TIERS_SHOWN } from "../../js/patch.js?v=73584d37ed";
-import { ambient } from "../../js/ambient.js?v=73584d37ed";
-import { copyText, disclosure } from "../../js/ui.js?v=73584d37ed";
-import { createStage } from "./stage.js?v=73584d37ed";
-import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=73584d37ed";
+import { setLang, langChosen, on, getLang } from "../../js/store.js?v=78a4a1c01f";
+import { t, tx, applyStatic } from "../../js/i18n.js?v=78a4a1c01f";
+import { h, pct, pct1, dec, icon } from "../../js/util.js?v=78a4a1c01f";
+import { DB, loadCore, loadLists, loadCardTiers } from "../../js/data.js?v=78a4a1c01f";
+import { gameCard, cardName } from "../../js/cards.js?v=78a4a1c01f";
+import { GAME_PATCH, DECK_RANKING_SHOWN, CARD_TIERS_SHOWN } from "../../js/patch.js?v=78a4a1c01f";
+import { ambient } from "../../js/ambient.js?v=78a4a1c01f";
+import { copyText, disclosure } from "../../js/ui.js?v=78a4a1c01f";
+import { createStage } from "./stage.js?v=78a4a1c01f";
+import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=78a4a1c01f";
 
 // The overlay's own display: four crops of the real renderer's output over a stand-in board with made-up figures (tools/overlay_media/:
 // shoot.js drives the overlay build's UX harness, crop.py writes these files), so every one is a composite and carries
@@ -333,22 +333,20 @@ function picture() {
   return svg;
 }
 
-// ---- the SPAM Meta previews: the first decks of the Deck tier list (the deck ranking of the game patch, ranking.json), the top
+// ---- the SPAM Meta previews: the first decks of the Deck tier list (its default list, deck-lists.json), the top
 // of the Card tier list (cardtiers.json), the Codex. Each preview follows the site's own switch (patch.js): a ranking the site
 // does not show is not previewed here either.
 let ranking = null, cardTiers = null;
-const visible = (d) => Array.isArray(d.cards) && d.cards.length === 4 && !d.withheld && !d.secret;
+const visible = (d) => Array.isArray(d.cards) && d.cards.length === 4 && d.cs.every(Boolean);
 // the Card tier list's one view (since 2026-10-24): each card's tier and rank by the best decks it plays in (cardtiers.json rows
 // `tier`, `rank`); a tier shows at most CARD_ROW cells, its first cards by rank and a "+N" cell for the rest, so a crowded tier
 // keeps the panel short
 const CARD_ROW = 4;
-/** The list the Deck tier list opens on (owner, 2026-10-25: the Tournament first and by default), else the Final list. */
-const firstList = () => (ranking.by_race && ranking.by_race.decks.length ? ranking.by_race : ranking.by_score);
-/** A deck's headline, as that list reads it: its Tournament win rate against the benchmark decks (`rate`), else its win rate in
- *  the Final (`vs_top`), else its Qualifier score (an export without the Final). */
-const headline = (d) => (d.rate != null ? { rate: d.rate, games: d.games, key: "ov.meta.race" }
-  : d.vs_top ? { rate: d.vs_top.win_rate, games: d.vs_top.games, key: "ov.meta.final" }
-  : { rate: d.score, games: d.games, key: "ov.meta.qual" });
+/** The list the Deck tier list opens on (the lead, 2026-10-27: the players' meta first and by default). */
+const firstList = () => ranking.meta.rows;
+/** A deck's headline, as that list reads it: its win rate against the players' meta, with the AI that played it (two AIs share
+ *  that list, so every row names its own). */
+const headline = (d) => ({ rate: d.meta.win_rate, ai: d.meta.pilot === "fast" ? ranking.pilots.fast : ranking.pilots.full });
 
 function drawMeta() {
   if (!DB.cards.length) return;      // the skeletons stay until the card data is in
@@ -359,19 +357,19 @@ function drawMeta() {
     document.getElementById("mp-decks").replaceChildren();
   } else if (ranking) {
     decksT.textContent = t(ranking.final ? "ov.meta.decksTf" : "ov.meta.decksT", { patch: ranking.patch });
-    const list = firstList().decks;
+    const list = firstList();
     const decks = list.filter(visible).slice(0, 3);
-    // ranks above the first one shown are withheld or secret on SPAM Meta: say so, never leave "#2" unexplained
-    const hiddenAbove = decks.length ? list.filter((d) => d.rank < decks[0].rank).length : 0;
+    // ranks above the first one shown are not drawn here (a card the page cannot draw): say so, never leave "#2" unexplained
+    const hiddenAbove = decks.length ? list.filter((d) => d.meta.rank < decks[0].meta.rank).length : 0;
     const note = document.getElementById("mp-decks-hidden");
     note.hidden = !hiddenAbove;
     note.textContent = hiddenAbove ? t("ov.meta.hidden", { n: hiddenAbove }) : "";
     document.getElementById("mp-decks").replaceChildren(...decks.map((d) => {
       const m = headline(d);
       return h("div.mp-deck", [
-        h("span.mp-rank", t("ov.meta.rank", { n: d.rank })),
+        h("span.mp-rank", t("ov.meta.rank", { n: d.meta.rank })),
         h("div.mp-cards", d.cs.filter(Boolean).map((c) => gameCard(c, { size: "list", interactive: false }))),
-        h("div.mp-stat", [h("b", pct1(m.rate)), h("span", t(m.key, { games: m.games }))]),
+        h("div.mp-stat", [h("b", pct1(m.rate)), h("span", t("ov.meta.meta", { ai: m.ai }))]),
       ]);
     }));
   }
@@ -446,10 +444,10 @@ loadDownload();
 (async () => {
   try {
     await loadCore();
-    // the stage draws the first two decks of the deck ranking (an illustration: any two real decks would do, these are the ones
-    // SPAM Meta leads with); the previews below read the same file
-    ranking = await loadRanking();
-    const decks = ranking.by_score.decks.filter(visible).slice(0, 2).map((d) => d.cs);
+    // the stage draws the first two decks of the Deck tier list's default list (an illustration: any two real decks would do,
+    // these are the ones SPAM Meta leads with); the previews below read the same file
+    ranking = await loadLists();
+    const decks = firstList().filter(visible).slice(0, 2).map((d) => d.cs);
     if (decks.length === 2 && decks.every((d) => d.length === 4 && d.every(Boolean))) stage.fill(decks[0], decks[1]);
     else stage.fail();
     cardTiers = CARD_TIERS_SHOWN ? await loadCardTiers().catch(() => null) : null;

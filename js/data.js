@@ -1,7 +1,7 @@
 // Loads the generated JSON once and builds the lookups every view needs. Every request carries the publish version
 // (version.js), so a new publish never mixes with data an earlier visit cached.
 
-import { versioned, withQuery } from "./version.js?v=73584d37ed";
+import { versioned, withQuery } from "./version.js?v=78a4a1c01f";
 
 const cache = new Map();
 // data paths are resolved from this module, not from the page, so a page in a sub-folder (site/overlay/) reads the same files
@@ -17,7 +17,7 @@ async function getJSON(path) {
   return cache.get(path);
 }
 
-export const DB = { cards: [], byId: new Map(), byKey: new Map(), meta: null, keywords: null, ranking: null, tier: null, decks: null, cardTiers: null, cardCounters: null, facets: null };
+export const DB = { cards: [], byId: new Map(), byKey: new Map(), meta: null, keywords: null, ranking: null, lists: null, tier: null, decks: null, cardTiers: null, cardCounters: null, facets: null };
 
 /**
  * cards.json and meta.json: needed by every view; keywords.json (the card texts' keyword chips and tooltips, cardtext.js)
@@ -38,9 +38,32 @@ export async function loadCore() {
 }
 
 /**
- * The deck ranking of the game patch (tools/export_ranking.py): the decks by score and the fastest winners, each deck with its
- * card objects (`cs`, board order) and each card's talent (`tls`, the talent object, or null). Loaded at boot with the core
- * while the Deck tier list shows it (main.js), so the footer, About and the card view can quote it.
+ * The Deck tier list's three lists of the game patch (tools/export_deck_lists.py, docs/DATA.md "deck-lists.json"): every listed
+ * deck once, with its card objects (`cs`, board order), each card's talent (`tls`), its variants' card objects, and each list
+ * (`meta`, `top`, `speed`) as its decks in order (`list.rows`). Loaded at boot with the core while the Deck tier list shows it
+ * (main.js), so the footer, About, the card view and the talents' matchup marks can quote it. The tox are named through
+ * facets.json (loadFacets), which the Deck tier list loads beside it.
+ */
+export async function loadLists() {
+  if (!DB.lists) {
+    const r = await getJSON("data/deck-lists.json");
+    const cs = (ids) => ids.map((id) => DB.byId.get(id));
+    for (const d of r.decks) {
+      d.cs = cs(d.cards);
+      d.tls = d.cs.map((c, i) => (c && c.talents[d.talents[i]]) || null);
+      for (const v of d.variants) v.cs = cs(v.cards);
+    }
+    for (const k of ["meta", "top", "speed"]) r[k].rows = r[k].decks.map((i) => r.decks[i]);
+    DB.lists = r;
+  }
+  return DB.lists;
+}
+
+/**
+ * The stage ranking run behind My decks and the Deck builder (tools/export_ranking.py): its Final round robin (`by_score`, the
+ * "Final" figure of a deck table row), its race and speed lists and its AIs (`pilots`), each deck with its card objects (`cs`,
+ * board order) and each card's talent (`tls`, the talent object, or null). Loaded with the deck table (loadDecks) and by the Card
+ * tier list, whose stage views come from the same run.
  */
 export async function loadRanking() {
   if (!DB.ranking) {

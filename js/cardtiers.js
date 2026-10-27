@@ -2,8 +2,9 @@
 // race win rate, it is simpler"; the views named after the ranking's stages since 2026-10-25; "every card judged", 2026-10-25):
 // All games (`all`, the default when cardtiers.json has it), the mean win rate of its 5 best decks against the benchmark decks,
 // read from every stored game of the patch, with its likely range (95%); Tournament (`race`), the average win rate of its best
-// Tournament decks against the benchmark decks; Final (`top`: the Final's decks, cardtiers.json `decks.top`), the average win rate
-// of its best decks of the Final against the other decks there. Classic tier rows S+ to E plus the cards with no deck in the view;
+// Tournament decks against the benchmark decks; Against the top (`top`: the finalists of the Deck tier list's final,
+// cardtiers.json `decks.top`), the average win rate of its best decks there against the other finalists. Classic tier rows S+ to E
+// plus the cards with no deck in the view;
 // switching the view slides the icons to their new rows. Hover, focus or tap previews a card: its tier, the view's figure big (with
 // its range in All games, and a quiet "rough estimate" when only the fast AI played its best decks), the other views small, the
 // strip of its decks (js/deckstrip.js); a click pins it with its average contribution (All games), its talent and a link to the
@@ -12,18 +13,18 @@
 // (tools/export_cardtiers.py); every number on this page is that file's. No counter is shown per card.
 // A language change rebuilds the page from the same state (view, tab, filters, search).
 
-import { h, $, $$, icon, fmtInt, pct, pct1, dec, reducedMotion } from "./util.js?v=73584d37ed";
-import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=73584d37ed";
-import { DB, loadCardTiers, loadRanking, loadFacets } from "./data.js?v=73584d37ed";
-import { on, getLang } from "./store.js?v=73584d37ed";
-import { cardName, otherName, chip, L, elName, raName } from "./cards.js?v=73584d37ed";
-import { disclosure, filterChip, setChip, cascade, band, segmented, chromeBottom, CURVE } from "./ui.js?v=73584d37ed";
-import { buildIndex, fromQuery, toQuery, passes as facetPasses, noFilter, filterCount } from "./facetmodel.js?v=73584d37ed";
-import { facetFilters, ownAddress, writeAddress, hashTab } from "./facets.js?v=73584d37ed";
-import { t, tx } from "./i18n.js?v=73584d37ed";
-import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, provBanner, suggestedTalent, methodSection } from "./patch.js?v=73584d37ed";
-import { textNodes, hideTip, tipButton } from "./cardtext.js?v=73584d37ed";
-import { deckStrip } from "./deckstrip.js?v=73584d37ed";
+import { h, $, $$, icon, fmtInt, pct, pct1, dec, reducedMotion } from "./util.js?v=78a4a1c01f";
+import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=78a4a1c01f";
+import { DB, loadCardTiers, loadRanking, loadFacets } from "./data.js?v=78a4a1c01f";
+import { on, getLang } from "./store.js?v=78a4a1c01f";
+import { cardName, otherName, chip, L, elName, raName } from "./cards.js?v=78a4a1c01f";
+import { disclosure, filterChip, setChip, cascade, band, segmented, chromeBottom, CURVE } from "./ui.js?v=78a4a1c01f";
+import { buildIndex, fromQuery, toQuery, passes as facetPasses, noFilter, filterCount } from "./facetmodel.js?v=78a4a1c01f";
+import { facetFilters, ownAddress, writeAddress, hashTab } from "./facets.js?v=78a4a1c01f";
+import { t, tx } from "./i18n.js?v=78a4a1c01f";
+import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, provBanner, suggestedTalent, methodSection } from "./patch.js?v=78a4a1c01f";
+import { textNodes, hideTip, tipButton } from "./cardtext.js?v=78a4a1c01f";
+import { deckStrip } from "./deckstrip.js?v=78a4a1c01f";
 
 // a tier's class on the card tier scale; "out" is the row of the cards with no deck in the view
 const TC = { "S+": "sp", S: "s", A: "a", B: "b", C: "c", D: "d", E: "e", out: "out" };
@@ -34,7 +35,8 @@ let VIEWS = ORDER;
 const VK = { all: "ct.vAll", top: "ct.vTop", race: "ct.vRace" };
 const TIPK = { all: "ct.vAllTip", top: "ct.vTopTip", race: "ct.vRaceTip" };
 // a view's word in the address (#card-tiers/<word>, #card-tiers/<word>-details); the default view has none. "race" is kept for the
-// Tournament, so the links shared since 2026-10-24 still open it; #card-tiers alone, the Final's until 2026-10-25, opens the default
+// Tournament, so the links shared since 2026-10-24 still open it, and "final" for Against the top (the final's view, shared since
+// 2026-10-24); #card-tiers alone, the Final's until 2026-10-25, opens the default
 const WORD = { all: "all", race: "race", top: "final" };
 const thumb = (c) => `assets/thumbs/s/${c.key}.webp`;
 
@@ -109,7 +111,7 @@ function tierSpan(r, key = "ct.tierSpan") {
 }
 
 /** This tab's part of the footer's Method section (patch.js methodSection, #method-card-tiers): what each view measures (in the
- * switch's order), what the ranges say, why All games is not the Final's scale, the rough estimates, the tiers, the cards with no
+ * switch's order), what the ranges say, why All games is not the final's scale, the rough estimates, the tiers, the cards with no
  * deck in the top, what a tier says, the AI's caveat. Every number comes from cardtiers.json. */
 function method() {
   const out = T.cards_total - T.placed.top, top = T.decks.top;

@@ -1,19 +1,19 @@
 // Entry point: loads the core data, wires the header, the tabs and the delegated clicks, and mounts the views. The switches of
-// patch.js decide what shows: the Deck tier list draws the deck ranking of the game patch (DECK_RANKING_SHOWN, tiers.js) and is
+// patch.js decide what shows: the Deck tier list draws the deck lists of the game patch (DECK_RANKING_SHOWN, tiers.js) and is
 // the landing view, else the "being computed" placeholder (pending.js) and the Codex lands; My decks and the Deck builder read
-// the same run's deck table (DECK_TABLE_SHOWN), else they have no tab; the Card tier list reads the same run's card tiers
+// the stage ranking's deck table (DECK_TABLE_SHOWN), else they have no tab; the Card tier list reads the same run's card tiers
 // (CARD_TIERS_SHOWN), else it draws the placeholder.
 
-import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=73584d37ed";
-import { t, applyStatic, millions } from "./i18n.js?v=73584d37ed";
-import { copyText } from "./ui.js?v=73584d37ed";
-import { DB, loadCore, loadRanking } from "./data.js?v=73584d37ed";
-import { patchLine, dataDate, deckRanking, openMethod, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN } from "./patch.js?v=73584d37ed";
-import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=73584d37ed";
-import { versioned, withQuery } from "./version.js?v=73584d37ed";
-import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=73584d37ed";
-import { holdTiles } from "./cardtilt.js?v=73584d37ed";
-import { ambient } from "./ambient.js?v=73584d37ed";
+import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=78a4a1c01f";
+import { t, applyStatic, millions } from "./i18n.js?v=78a4a1c01f";
+import { copyText } from "./ui.js?v=78a4a1c01f";
+import { DB, loadCore, loadLists } from "./data.js?v=78a4a1c01f";
+import { patchLine, dataDate, deckRanking, openMethod, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN } from "./patch.js?v=78a4a1c01f";
+import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=78a4a1c01f";
+import { versioned, withQuery } from "./version.js?v=78a4a1c01f";
+import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=78a4a1c01f";
+import { holdTiles } from "./cardtilt.js?v=78a4a1c01f";
+import { ambient } from "./ambient.js?v=78a4a1c01f";
 
 // Five tabs, one view each; the Deck builder (#builder) sits next to My decks. TABS are the ones shown.
 const ALL_TABS = ["tiers", "card-tiers", "codex", "decks", "builder"];
@@ -289,7 +289,7 @@ function paintFooter() {
   const m = DB.meta, R = deckRanking();
   // the method and the games describe the rankings shown: the deck ranking's while it is the only one, nothing with none
   $("#foot-rk").textContent = CARD_RANKINGS_SHOWN ? t("foot.method", { patch: m.patch, games: millions(m.totals.patch_games) })
-    : R ? t(R.final ? "foot.methodRk" : "foot.methodRkProv", { patch: R.patch, games: R.games, ai: R.pilot }) : "";
+    : R ? t(R.final ? "foot.methodRk" : "foot.methodRkProv", { patch: R.patch, games: R.games, ai: R.pilots.full }) : "";
   $("#foot-games").textContent = CARD_RANKINGS_SHOWN ? gamesLine(m) : "";
   $("#foot-games").hidden = !CARD_RANKINGS_SHOWN;
   $("#foot-patch").textContent = t("foot.patch", { line: patchLine(), date: fmtDate(dataDate()) });
@@ -325,8 +325,8 @@ async function boot() {
   const first = preShow();
   try {
     await loadCore();
-    // the deck ranking is quoted by the footer, About and the card view: it comes with the core (its view still retries on its own)
-    if (DECK_RANKING_SHOWN) await loadRanking().catch((err) => console.error(err));
+    // the deck lists are quoted by the footer, About and the card view: they come with the core (their view still retries on its own)
+    if (DECK_RANKING_SHOWN) await loadLists().catch((err) => console.error(err));
   } catch (err) {
     console.error(err);
     $("#view-" + first).replaceChildren(errorPanel(t("err.title"), t("err.dataText"), t("err.reload"), () => location.reload()));

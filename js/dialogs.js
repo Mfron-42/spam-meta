@@ -3,17 +3,17 @@
 // drawn as a full-screen card view (card.css); its enter and exit (the card flying from its tile) are played by
 // cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, pct1, fmtDate, fmtInt, softBreak } from "./util.js?v=73584d37ed";
-import { DB, loadTier, loadCardTiers, loadCardCounters, loadRanking } from "./data.js?v=73584d37ed";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=73584d37ed";
-import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=73584d37ed";
-import { encode, decode } from "./code.js?v=73584d37ed";
-import { copyText, disclosure } from "./ui.js?v=73584d37ed";
-import { t, tx, millions } from "./i18n.js?v=73584d37ed";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, gameSpan, medianRounds, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, GAME_PATCH, isMatchupTalent, matchupMark } from "./patch.js?v=73584d37ed";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=73584d37ed";
-import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=73584d37ed";
-import { attachTilt } from "./cardtilt.js?v=73584d37ed";
+import { h, $, icon, reducedMotion, pct, pct1, fmtDate, fmtInt, softBreak } from "./util.js?v=78a4a1c01f";
+import { DB, loadTier, loadCardTiers, loadCardCounters, loadLists } from "./data.js?v=78a4a1c01f";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=78a4a1c01f";
+import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=78a4a1c01f";
+import { encode, decode } from "./code.js?v=78a4a1c01f";
+import { copyText, disclosure } from "./ui.js?v=78a4a1c01f";
+import { t, tx, millions } from "./i18n.js?v=78a4a1c01f";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, medianRounds, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, GAME_PATCH, isMatchupTalent, matchupMark } from "./patch.js?v=78a4a1c01f";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=78a4a1c01f";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=78a4a1c01f";
+import { attachTilt } from "./cardtilt.js?v=78a4a1c01f";
 
 let openDlg = null, pushed = false;
 
@@ -499,19 +499,21 @@ function metaBand(c) {
 
 /**
  * The Meta section while the deck ranking is shown (patch.js DECK_RANKING_SHOWN): one data notice naming the ranking
- * ("Temporary ranking, patch 1.26."), then the stat cells: the card's tier on the Card tier list and its final decks, from
- * the same run (patch.js CARD_TIERS_SHOWN), and the decks of each list that play the card with the best rank; and "Decks with
- * this card": the Deck builder with the card picked while it is shown (patch.js DECK_TABLE_SHOWN), else, when a listed deck
- * plays it, the Deck tier list searched for the card. No "With and against" (its file is 1.22).
+ * ("Temporary ranking, patch 1.26."), then the stat cells: the card's tier on the Card tier list (patch.js CARD_TIERS_SHOWN),
+ * the listed decks of the Deck tier list that play it with the best place against the players' meta, and those of the speed
+ * list with their best place; and "Decks with this card": the Deck builder with the card picked while it is shown (patch.js
+ * DECK_TABLE_SHOWN), else, when a listed deck plays it, the Deck tier list searched for the card. No "With and against" (its
+ * file is 1.22).
  */
 function rankingBand(c) {
   const cell = (label, fig, cap) => h("div.stat.cd-stat", [h("span.stat-k", label), h("span.stat-v", fig), h("span.stat-s", cap)]);
   const sec = h("section.cd-meta", { "aria-labelledby": "cd-meta-h" });
   const ctCell = CARD_TIERS_SHOWN ? cardTierCell(c) : null;
   const paint = (R) => {
-    const holds = (list) => list.decks.filter((d) => d.cards.includes(c.id));
-    const score = holds(R.by_score), speed = holds(R.by_speed);
-    const best = (list, none) => (list.length ? t("card.rkBest", { rank: list[0].rank }) : t(none));
+    // the deck lists in their own order: the players' meta (the default list) and the speed list
+    const holds = (list) => list.rows.filter((d) => d.cards.includes(c.id));
+    const score = holds(R.meta), speed = holds(R.speed);
+    const best = (list, key, rank) => (list.length ? t(key, { rank: rank(list[0]) }) : t("card.tlNone"));
     sec.replaceChildren(
       h("div.cd-meta-h", [
         h("h3#cd-meta-h", t("card.metaH")),
@@ -526,16 +528,16 @@ function rankingBand(c) {
       // the card's own tier first, then where its decks rank
       h("div.cd-stats" + (ctCell ? ".three" : ""), [
         ctCell,
-        cell(t("card.rkScoreK", { n: R.by_score.decks.length }), fmtInt(score.length), best(score, "card.tlNone")),
-        cell(t("card.rkSpeedK", { n: R.by_speed.decks.length }), fmtInt(speed.length), best(speed, "card.tlNone")),
+        cell(t("card.rkListedK", { n: R.meta.rows.length }), fmtInt(score.length), best(score, "card.rkBestMeta", (d) => d.meta.rank)),
+        cell(t("card.rkSpeedK", { n: R.speed.rows.length }), fmtInt(speed.length), best(speed, "card.rkBest", (d) => d.speed.rank)),
       ]),
     );
   };
-  if (DB.ranking) paint(DB.ranking);
+  if (DB.lists) paint(DB.lists);
   else {
     sec.setAttribute("aria-busy", "true");
     sec.replaceChildren(h("div.cd-meta-h", h("h3#cd-meta-h", t("card.metaH"))), h("div.skel.cm-skel", { "aria-hidden": "true" }, [h("i"), h("i")]));
-    loadRanking().then((R) => { if (currentKey === c.key && sec.isConnected) paint(R); })
+    loadLists().then((R) => { if (currentKey === c.key && sec.isConnected) paint(R); })
       .catch(() => { if (sec.isConnected) sec.remove(); })
       .finally(() => sec.removeAttribute("aria-busy"));
   }
@@ -621,8 +623,7 @@ function buildAbout() {
     h("section", [h("h3", t("about.whatH")), h("p", t((R.final ? "about.whatRk" : "about.whatRkProv") + (CARD_TIERS_SHOWN ? "Ct" : ""), { patch: R.patch }))]),
     h("section", [
       h("h3", t("about.howH")),
-      h("p", t("about.rkHow", { ai: R.pilot, top: R.by_score.decks.length, games: R.games, pool: R.pool, kept: R.by_score.decks_measured,
-        n: R.by_score.opponents, per: gameSpan(R.by_score.games_per_opponent) })),
+      h("p", t("about.rkHow", { ai: R.pilots.full, top: R.top.final, games: R.games, entrants: R.entrants, panel: R.meta.panel, full: R.meta.full })),
       h("p", t("about.rkSpeed", { median: medianRounds(R) })),
     ]),
     h("section", [h("h3", t("about.limitsH")), h("ul", R.limits.map((l) => h("li", t("rk.limit." + l, limitParams(R)))))]),

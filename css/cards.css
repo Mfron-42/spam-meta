@@ -31,7 +31,7 @@ button.gc:focus-visible .gc-face { box-shadow: var(--shadow), 0 0 0 2px var(--ni
 .gc-ab.long, .gc-pa.long { font-size: calc(var(--u) * 4.7); }
 .gc-ab.xlong, .gc-pa.xlong { font-size: calc(var(--u) * 4); }
 .gc-hp { position: absolute; left: calc(var(--u) * 9); right: calc(var(--u) * 9); bottom: calc(var(--u) * 9.5); height: calc(var(--u) * 7.5); border-radius: calc(var(--u) * 4); background: var(--hp);
-  box-shadow: inset 0 calc(var(--u) * -.9) 0 rgba(0, 0, 0, .18), 0 0 0 calc(var(--u) * .6) rgba(13, 10, 26, .55); display: grid; place-items: center; font: 400 calc(var(--u) * 5.4) / 1 var(--display); text-shadow: var(--ol-sm); }
+  box-shadow: inset 0 calc(var(--u) * -.9) 0 rgba(0, 0, 0, .18), 0 0 0 calc(var(--u) * .6) rgba(13, 10, 26, .55); display: grid; place-items: center; font: 400 max(8.5px, calc(var(--u) * 5.4)) / 1 var(--display); text-shadow: var(--ol-sm); }
 .gc-orb { position: absolute; left: calc(var(--u) * -4); top: calc(var(--u) * -4); width: calc(var(--u) * 22); height: calc(var(--u) * 22); background-size: contain; background-repeat: no-repeat; background-position: center; }
 .gc-gold { position: absolute; right: calc(var(--u) * -2.5); top: calc(var(--u) * -2.5); width: calc(var(--u) * 16); height: calc(var(--u) * 18); display: grid; place-items: center;
   font: 400 calc(var(--u) * 7.5) / 1 var(--display); color: #4a3200; background: #2a1d00; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }

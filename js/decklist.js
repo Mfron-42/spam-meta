@@ -1,17 +1,18 @@
 // The one way to list measured decks (the ranking run's deck table, ranking-decks.json), shared by My decks and the Deck
 // builder, and the deck parts the Deck tier list reuses: a deck's card with its talent under it, the stage meter, a deck's facts
-// (My decks and the Deck builder) and a ranked deck's three figures (the Deck tier list), the owned badge; and, for the two deck
+// (My decks and the Deck builder) and a listed deck's three figures with their notes (the Deck tier list, listFigures), the owned
+// badge; and, for the two deck
 // table views, the paging and their footer Method sub-section (what each stage of the ranking means, which "How reliable?" said
 // above the list until 2026-10-24). Rows arrive sorted by the furthest stage reached, then the score there (docs/DATA.md,
 // "ranking-decks.json"), so a filter that keeps their order keeps the canonical ranking.
 
-import { h, icon, pct, pct1, pm, dec, fmtInt } from "./util.js?v=73584d37ed";
-import { DB, deckKey } from "./data.js?v=73584d37ed";
-import { getLang, isOwned, ownedCount } from "./store.js?v=73584d37ed";
-import { gameCard, chip, cardName, L } from "./cards.js?v=73584d37ed";
-import { t, tx } from "./i18n.js?v=73584d37ed";
-import { tipButton } from "./cardtext.js?v=73584d37ed";
-import { introLine, provBanner, gameSpan, medianRounds, isMatchupTalent, matchupMark } from "./patch.js?v=73584d37ed";
+import { h, icon, pct, pct1, pm, dec, fmtInt } from "./util.js?v=78a4a1c01f";
+import { DB, deckKey } from "./data.js?v=78a4a1c01f";
+import { getLang, isOwned, ownedCount } from "./store.js?v=78a4a1c01f";
+import { gameCard, chip, cardName, L } from "./cards.js?v=78a4a1c01f";
+import { t, tx } from "./i18n.js?v=78a4a1c01f";
+import { tipButton } from "./cardtext.js?v=78a4a1c01f";
+import { introLine, provBanner, gameSpan, medianRounds, isMatchupTalent, matchupMark } from "./patch.js?v=78a4a1c01f";
 
 // ---------------------------------------------------------------- stages, in plain words
 // The stages of the ranking, in order (owner, 2026-10-25: each name means one stage only): the First sort (a fast AI), the
@@ -124,55 +125,61 @@ export function deckFacts(r) {
   ]);
 }
 
-// ---------------------------------------------------------------- a ranked deck's three figures (the Deck tier list)
-// the Deck tier list's three lists, in its switch's order (owner, 2026-10-25: the Tournament first and by default); a ranked
-// deck's figures follow the same names and the same order
-export const LISTS = ["race", "score", "speed"];
+// ---------------------------------------------------------------- a listed deck's three figures (the Deck tier list)
+// the Deck tier list's three lists, in its switch's order (the lead, 2026-10-27: the players' meta first and by default); a
+// listed deck's figures follow the same names and the same order
+export const LISTS = ["meta", "top", "speed"];
 
-/** A reading the deck has: a number, not an absent block or an export's `{state}` marker (v2.4: `win_speed: {state:
- * "too_few_wins", wins}`). */
-const has = (x, k) => !!x && !x.state && typeof x[k] === "number";
+/** A signed number of points to one decimal: "+5.6", "−1.2". */
+const pts = (x) => (x < 0 ? "−" : "+") + dec(Math.abs(x) * 100, 1);
 
 /**
- * The three figures of a ranked deck (DESIGN.md "Deck figures"; owner, 2026-10-25): Tournament, Final, Win speed, named like
- * the three lists and always in their order, so they line up on every card; the active list's figure big, the others small. Each
- * is a button that explains itself with the page's tooltip (cardtext.js tipButton) on hover, keyboard focus or a tap, in one or
- * two plain sentences that are also its description for a screen reader. A figure the deck lacks keeps its slot with a quiet
- * state ("not reached", "too few wins") and its tooltip says why; nothing is left out and no other number takes its place.
- * `x`: `race` {rate, games} (the Tournament), `qual` {score, games?} (the Qualifier, against the same decks: said in the
- * Tournament's tooltip, never as a figure of its own), `final` (ranking.json `vs_top`), `speed` {rounds, rounds_ci95, wins} or a
- * `{state, wins}` marker; any of them null or absent. `active`: the list shown ("race", "score" or "speed").
+ * The three figures of a listed deck (DESIGN.md "Deck figures"): Players' meta, Against the top, Speed, named like the three lists
+ * and always in their order, so they line up on every card; the active list's figure big, the others small. Each is a button that
+ * explains itself with the page's tooltip (cardtext.js tipButton) on hover, keyboard focus or a tap, in plain sentences that are
+ * also its description for a screen reader. Under a value, one quiet note when the figure needs it on its face: the AI that played
+ * the players' meta (every row names its pilot: two AIs share that list), "core" under a finalist of the Nash core, "family cap"
+ * under a deck its family's cap kept out of the final. A figure the deck lacks keeps its slot with a quiet state ("not in the
+ * final", "too few wins") and its tooltip says why; no other number takes its place (a deck after the final is ranked by a rating
+ * on another scale, which the site never prints). `d`: a deck of deck-lists.json; `active`: the list shown.
  */
-export function rankFigures(x, active) {
-  const R = DB.ranking, n = R.by_score.opponents;
+export function listFigures(d, active) {
+  const R = DB.lists, P = R.pilots;
   const big = (k) => k === active;
-  const P = (v, k) => (big(k) ? pct1(v) : pct(v, 0));       // the active list's figure to one decimal, the others whole
+  const P1 = (v, k) => (big(k) ? pct1(v) : pct(v, 0));      // the active list's figure to one decimal, the others whole
   const fig = {};
-  if (has(x.race, "rate")) {
-    const q = has(x.qual, "score") ? " " + t(x.qual.games ? "fx.raceQual" : "fx.raceQualN", { q: pct1(x.qual.score), games: fmtInt(x.qual.games || 0), n }) : "";
-    fig.race = { value: P(x.race.rate, "race"), desc: t("fx.race", { v: pct1(x.race.rate), games: fmtInt(x.race.games), n }) + q };
-  } else fig.race = { state: t("fx.noData"), desc: t("fx.raceNone") };
-  fig.score = has(x.final, "win_rate")
-    ? { value: P(x.final.win_rate, "score"), desc: t("fx.final", { v: pct1(x.final.win_rate), games: fmtInt(x.final.games), pm: dec(x.final.ci95 * 100, 1) }) }
-    : { state: t("fx.finalNo"), desc: t("fx.finalNone") };
-  const ws = x.speed;
-  fig.speed = has(ws, "rounds")
+  const m = d.meta, fast = m.pilot === "fast";
+  const ai = (name) => h("span", { translate: "no" }, name);   // an AI's name is a code token: never machine-translated
+  fig.meta = { value: P1(m.win_rate, "meta"), note: fast ? tx("fx.metaNoteFast", { ai: ai(P.fast) }) : ai(P.full),
+    desc: t("fx.meta", { v: pct1(m.win_rate), pm: dec(m.ci95 * 100, 1), n: m.decks }) + " " +
+      (fast ? t("fx.metaFast", { fast: P.fast, ai: P.full, shift: pts(R.meta.shift), n: R.meta.shift_decks }) : t("fx.metaFull", { ai: P.full })) };
+  const tp = d.top, anchor = d.anchor ? " " + t("fx.anchor", { v: pct1(d.anchor.win_rate), games: fmtInt(d.anchor.games) }) : "";
+  if (tp.win_rate != null) {
+    const core = tp.core >= 0.5;
+    fig.top = { value: P1(tp.win_rate, "top"), note: core ? t("fx.core") : null,
+      desc: t("fx.top", { v: pct1(tp.win_rate), games: fmtInt(tp.games), opp: tp.opponents, pm: dec(tp.ci95 * 100, 1) }) +
+        (core ? " " + t("fx.coreTip", { share: pct(tp.core, 0) }) : "") + anchor };
+  } else {
+    fig.top = { state: t("fx.topNo"), note: tp.family_capped ? t("fx.capped") : null,
+      desc: t("fx.topNone", { n: R.top.final }) + (tp.family_capped ? " " + t("fx.cappedTip", { cap: R.top.family_cap }) : "") + anchor };
+  }
+  const ws = d.speed;
+  fig.speed = ws.rounds != null
     ? { value: dec(ws.rounds, big("speed") ? 1 : 0), unit: t("fx.rounds"),
       desc: t("fx.speed", { v: dec(ws.rounds, 1), pm: dec(ws.rounds_ci95, 1), wins: fmtInt(ws.wins), median: medianRounds(R) }) }
-    : ws && ws.state === "too_few_wins"
-      ? { state: t("fx.fewWins"), desc: t("fx.speedFew", { wins: fmtInt(ws.wins || 0) }) }
-      : { state: t("fx.notTimed"), desc: t("fx.speedNone", { n: R.by_speed.decks.length }) };
+    : { state: t("fx.fewWins"), desc: t("fx.speedFew", { wins: fmtInt(ws.wins || 0) }) };
   // a toolbar: the role that tells a screen reader the arrow keys move between its buttons
   const row = h("div.rfig", { role: "toolbar", "aria-label": t("fx.aria"), onkeydown: rove, onfocusin: keep }, LISTS.map((k, i) => {
     const f = fig[k], name = t("rk.list." + k);
     const value = f.state ? h("span.rf-s", f.state) : [h("b.rf-v", f.value), f.unit ? h("span.rf-u", " " + f.unit) : null];
-    // the name and the value read as one ("Final, 64.6%"), then the description
-    const [b, d] = tipButton("button.rf" + (big(k) ? ".act" : "") + (f.state ? ".none" : ""), name,
-      [h("span.rf-k", name), h("span.sr", t("ui.comma")), h("span.rf-n", value)], f.desc);
+    // the name and the value read as one ("Against the top, 67.0%"), the note after them, then the description
+    const [b, dsc] = tipButton("button.rf" + (big(k) ? ".act" : "") + (f.state ? ".none" : ""), name,
+      [h("span.rf-k", name), h("span.sr", t("ui.comma")), h("span.rf-n", value),
+        h("span.rf-x", f.note ? [h("span.sr", t("ui.comma")), f.note] : null)], f.desc);
     if (i) b.tabIndex = -1;          // one tab stop per deck; the arrow keys move between its three figures
-    return [b, d];
+    return [b, dsc];
   }));
-  return h("div.dfacts", row);
+  return row;
 }
 
 /** A figure focused by a click or a tap becomes the deck's tab stop (roving focus). */

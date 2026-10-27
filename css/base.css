@@ -311,7 +311,7 @@ main.wrap { padding-block: 32px 64px; }
 .msub .vinfo > p, .msub .vinfo-l, .msub .levels { max-width: 60ch; }      /* about 80 characters a line, French included */
 .msub .lede { font-size: inherit; color: inherit; }
 .foot-ai b { color: var(--ink); }
-.foot-ai, .foot-meta, .foot-count, .foot-legal { max-width: 78ch; }
+.foot-ai, .foot-meta, .foot-count, .foot-legal { max-width: 78ch; text-wrap: pretty; }
 .foot-legal { color: var(--ink-2); }
 .foot-games { max-width: 78ch; }
 .foot-help { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; color: var(--ink-2); }

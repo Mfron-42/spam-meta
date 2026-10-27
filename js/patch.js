@@ -3,11 +3,11 @@
 // filled when a value, an ability or a passive changed (the class "mechanical"), hollow when only talents or texts did.
 // The data carries codes and positions; every word comes from i18n.js ("pc.*").
 
-import { h, icon, fmtDate, dec, fmtInt, reducedMotion } from "./util.js?v=73584d37ed";
-import { DB } from "./data.js?v=73584d37ed";
-import { L } from "./cards.js?v=73584d37ed";
-import { t } from "./i18n.js?v=73584d37ed";
-import { disclosure } from "./ui.js?v=73584d37ed";
+import { h, icon, fmtDate, dec, fmtInt, reducedMotion } from "./util.js?v=78a4a1c01f";
+import { DB } from "./data.js?v=78a4a1c01f";
+import { L } from "./cards.js?v=78a4a1c01f";
+import { t } from "./i18n.js?v=78a4a1c01f";
+import { disclosure } from "./ui.js?v=78a4a1c01f";
 
 // Three patches can differ, and each label names the one it is about (SPEC.md, "Patch labels"):
 // - the GAME patch, the client players run today (below; the lab reads it from the game files);
@@ -18,12 +18,13 @@ import { disclosure } from "./ui.js?v=73584d37ed";
 export const GAME_PATCH = { patch: "1.26", date: "2026-10-21" };
 
 // What the site shows of the rankings (SPEC.md section 3.7). Three switches; the views stay in the code either way.
-// - DECK_RANKING_SHOWN: the Deck tier list draws the lab's deck ranking of the game patch (ranking.json, tiers.js), labelled
-//   temporary while its `final` is false (owner, 2026-10-23: "mets en ligne le classement temporaire"), and the card view's
-//   Meta section counts its decks. Off, the Deck tier list draws the "being computed" placeholder (pending.js).
-// - DECK_TABLE_SHOWN: My decks and the Deck builder read the same run's deck table (ranking-decks.json: every deck it measured,
-//   with the furthest stage it reached and its score at each; owner, 2026-10-23: "tu as perdu beaucoup de features").
-// - CARD_TIERS_SHOWN: the Card tier list and the card view's card tier read the card tiers of the deck ranking's run
+// - DECK_RANKING_SHOWN: the Deck tier list draws the lab's three deck lists of the game patch (deck-lists.json, tiers.js),
+//   labelled temporary while its `final` is false (owner, 2026-10-23: "mets en ligne le classement temporaire"); the footer,
+//   About and the card view's Meta section quote them. Off, the Deck tier list draws the "being computed" placeholder (pending.js).
+// - DECK_TABLE_SHOWN: My decks and the Deck builder read the stage ranking's deck table (ranking-decks.json, with ranking.json:
+//   every deck that run measured, with the furthest stage it reached and its score at each; owner, 2026-10-23: "tu as perdu
+//   beaucoup de features").
+// - CARD_TIERS_SHOWN: the Card tier list and the card view's card tier read the card tiers of the stage ranking's run
 //   (cardtiers.json, tools/export_cardtiers.py from ranking-decks.json; owner, 2026-10-24: "redo the card tier list too").
 //   Off, the Card tier list draws the "being computed" placeholder.
 // - CARD_RANKINGS_SHOWN: what is still on the 1.22 files, off since the lab recomputes the rankings (owner, 2026-10-21): the
@@ -46,19 +47,20 @@ const rankingsBehindGame = (patch) => {
   return p && p !== GAME_PATCH.patch ? p : null;
 };
 
-/** The deck ranking (ranking.json) while the Deck tier list shows it, else null. */
-export const deckRanking = () => (DECK_RANKING_SHOWN && DB.ranking) || null;
+/** The deck lists of the Deck tier list (deck-lists.json) while it shows them, else null: what the footer, About and the card
+ * view quote as "the deck ranking". */
+export const deckRanking = () => (DECK_RANKING_SHOWN && DB.lists) || null;
 
-/** What the deck ranking's caveats quote (i18n "rk.limit.*"): the narrowest and widest margins of the number its win-rate list
- * is ordered by (its win rate against the top, `vs_top`, when the export has it, else the score), in points to one decimal, and
- * the size of that list (the Top round). */
+/** What the deck lists' caveats and method quote (i18n "rk.limit.*", "rk.m*"): the narrowest and widest margins of the final's
+ * rates, in points to one decimal, the final's size, how many decks of the players' meta the full AI played, the players' panel's
+ * patch and the lists' patch. */
 export function limitParams(R) {
-  const ci = R.by_score.decks.map((d) => (R.by_score.vs_top && d.vs_top ? d.vs_top.ci95 : d.ci95) * 100);
-  return { lo: dec(Math.min(...ci), 1), hi: dec(Math.max(...ci), 1), top: R.by_score.decks.length };
+  const ci = R.top.rows.filter((d) => d.top.win_rate != null).map((d) => d.top.ci95 * 100);
+  return { lo: dec(Math.min(...ci), 1), hi: dec(Math.max(...ci), 1), top: R.top.final, full: R.meta.full, pp: R.meta.panel_patch, patch: R.patch };
 }
 
-/** The median round of a won race game (ranking.json by_speed.median_rounds): "18" when whole (a round count), else "18.5". */
-export const medianRounds = (R) => dec(R.by_speed.median_rounds, Number.isInteger(R.by_speed.median_rounds) ? 0 : 1);
+/** The median round of a won game of the listed decks (deck-lists.json speed.median_rounds): "13" when whole, else "13.5". */
+export const medianRounds = (R) => dec(R.speed.median_rounds, Number.isInteger(R.speed.median_rounds) ? 0 : 1);
 
 /** A game count of the ranking files, a number or its [least, most] range: "8", "48 to 64", or with `atLeast` "at least 16". */
 export function gameSpan(x, { atLeast = false } = {}) {
@@ -229,12 +231,14 @@ export function provBanner(key) {
 
 // ---------------------------------------------------------------- talents picked against the opponent
 // In ranked, every card's talent is picked in a private draft before turn 1, for that match: a talent that guards against some
-// elements only (the element shields) is chosen against the opponent (owner, 2026-10-24). The exporter flags them from the talent
-// texts (tools/matchup_talents.py, ranking.json `matchup_talents`); the site marks them where a deck shows a card's talent.
+// elements only (the element shields) is chosen against the opponent (owner, 2026-10-24). The exporters flag them from the talent
+// texts (tools/matchup_talents.py: `matchup_talents` of deck-lists.json and ranking.json); the site marks them where a deck shows a
+// card's talent.
 
 /** Whether talent `i` of card `c` is picked against the opponent. */
 export const isMatchupTalent = (c, i) => {
-  const m = DB.ranking && DB.ranking.matchup_talents;
+  // the same rule in both files (tools/matchup_talents.py): the deck lists' (loaded at boot), else the stage ranking's
+  const m = (DB.lists && DB.lists.matchup_talents) || (DB.ranking && DB.ranking.matchup_talents);
   return !!(m && c && (m[c.id] || []).includes(Number(i)));
 };
 

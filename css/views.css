@@ -186,16 +186,17 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 4px; 
 @media (max-width: 640px) { .ms { display: grid; grid-template-columns: repeat(2, max-content); gap: 4px 24px; } }      /* pairs in two columns, no orphan */
 .ms-k { color: var(--muted); font: 600 14px/1.4 var(--text); }
 .ms-n { color: var(--ink-2); font: 400 18px/1 var(--display); letter-spacing: .01em; }
-/* a ranked deck's three figures (decklist.js rankFigures, DESIGN.md "Deck figures"): Tournament, Final, Win speed in three equal
-   columns, the lists' order, so they line up on every card. Each is its name (Nunito 600 14 Dusk Lavender, the dotted underline
-   of a word that explains itself) over its value (Lilita 18 Soft Lavender; the active list's in Headline 28 Cream Lavender, its
-   unit Nunito 600 14 Dusk Lavender 4px after it); the values of a card share one baseline (the columns are subgrids of its two
-   rows). A figure the deck lacks keeps its column with a quiet state (Nunito 600 14 Dusk Lavender, two lines at most). Each is a
-   button, a socket chip with the 2px cyan ring under the pointer, while its tooltip is open and on keyboard focus (the keyword
-   chip's states, cards.css); the chip reaches 8px past its text at the sides and 4px above and below, outside the column, so
-   the text stays on the grid. */
-.rfig { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: auto auto; gap: 4px 24px; width: min(100%, 432px); }
-.rf { grid-row: span 2; justify-self: start; display: grid; grid-template-rows: subgrid; justify-items: start; min-width: 0; max-width: calc(100% + 16px); margin: -4px -8px; padding: 4px 8px; border: 0; border-radius: 8px;
+/* a listed deck's three figures (decklist.js listFigures, DESIGN.md "Deck figures"): Players' meta, Against the top, Speed in three
+   equal columns, the lists' order, so they line up on every card. Each is its name (Nunito 600 14 Dusk Lavender, the dotted
+   underline of a word that explains itself) over its value (Lilita 18 Soft Lavender; the active list's in Headline 28 Cream
+   Lavender, its unit Nunito 600 14 Dusk Lavender 4px after it), then one quiet note when the figure needs one on its face (the AI
+   of the players' meta, "core", "family cap"); the values of a card share one baseline and so do the notes (the columns are
+   subgrids of its three rows). A figure the deck lacks keeps its column with a quiet state (Nunito 600 14 Dusk Lavender, two
+   lines at most). Each is a button, a socket chip with the 2px cyan ring under the pointer, while its tooltip is open and on
+   keyboard focus (the keyword chip's states, cards.css); the chip reaches 8px past its text at the sides and 4px above and
+   below, outside the column, so the text stays on the grid. */
+.rfig { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: auto auto auto; gap: 4px 24px; width: min(100%, 432px); }
+.rf { grid-row: span 3; justify-self: start; display: grid; grid-template-rows: subgrid; justify-items: start; min-width: 0; max-width: calc(100% + 16px); margin: -4px -8px; padding: 4px 8px; border: 0; border-radius: 8px;
   background: none; color: var(--ink-2); font: inherit; text-align: left; cursor: pointer; transition: background var(--t-state) var(--curve), box-shadow var(--t-state) var(--curve); }
 .rf:hover, .rf.on, .rf:focus-visible { outline: none; background: var(--socket); box-shadow: var(--ring); }
 .rf-k { max-width: 100%; color: var(--muted); font: 600 14px/1.4 var(--text); white-space: nowrap; text-decoration: underline dotted var(--edge) 1.5px; text-underline-offset: 4px;
@@ -207,8 +208,44 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 4px; 
 .rf.act .rf-v { font-size: 28px; }
 .rf-u { color: var(--muted); font: 600 14px/1 var(--text); }
 .rf-s { display: block; color: var(--muted); font: 600 14px/1.15 var(--text); white-space: normal; text-wrap: balance; }
+.rf-x { max-width: 100%; color: var(--muted); font: 600 14px/1.15 var(--text); text-wrap: balance; }
+/* under the figures: the tox the deck bought most and its variants (DESIGN.md "Tox line", "Variants"); on one column they follow
+   the cards (the figures come first, so the numbers are read before the fold) */
+.dmore { display: grid; gap: 4px; justify-items: start; align-content: start; min-width: 0; }
+.tox { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; column-gap: 12px; min-width: 0; max-width: 432px; }
+.tx-k { margin: 0 -8px; padding: 4px 8px; border: 0; border-radius: 8px; background: none; color: var(--muted); font: 600 14px/1.4 var(--text); cursor: pointer;
+  text-decoration: underline dotted var(--edge) 1.5px; text-underline-offset: 4px; transition: background var(--t-state) var(--curve), box-shadow var(--t-state) var(--curve), text-decoration-color var(--t-state) var(--curve); }
+.tx-k:hover, .tx-k.on, .tx-k:focus-visible { outline: none; background: var(--socket); box-shadow: var(--ring); text-decoration-color: transparent; }
+.tx-l { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 0; padding: 0; list-style: none; }
+.tx { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; white-space: nowrap; cursor: help; font: 600 14px/1.15 var(--text); }
+.tx-gem { flex: none; width: 16px; height: 16px; background-size: contain; background-repeat: no-repeat; background-position: center; }
+.tx-n { color: var(--ink-2); }
+.tx-r { color: var(--muted); }      /* the rarity word, in its rarity text colour: two tox of one family differ by it */
+.tx-r.ra-common { color: var(--r-common); } .tx-r.ra-rare { color: var(--r-rare); } .tx-r.ra-epic { color: var(--r-epic); }
+.tx-r.ra-legendary { color: var(--r-legendary); } .tx-r.ra-divine { color: var(--r-divine); }
+.tx-s { color: var(--muted); font-variant-numeric: tabular-nums; }
+.tdisc.tx-more { position: relative; height: 28px; padding: 0 8px; }
+.tdisc.tx-more::after { content: ""; position: absolute; inset: -8px -2px; }      /* a 44px hit area on a 28px control */
+.vr { display: grid; justify-items: start; min-width: 0; width: 100%; }
+.vr-b { margin-left: -12px; }      /* its label lines up with the tox label */
+.vr-l { display: grid; gap: 8px; margin: 0; padding: 4px 0 8px; list-style: none; }
+/* one variant per line, read as a sentence that wraps like text; a hairline between two variants */
+.vr-l li { color: var(--muted); font: 600 14px/32px var(--text); }
+.vr-l li + li { padding-top: 8px; border-top: 1px solid var(--line); }
+.vr-l .cc { margin: 0; }
+.vr-sep { margin: 0 8px; }
+.tdisc.vr-all { position: relative; height: 28px; margin: 0 0 8px -8px; padding: 0 8px; }
+.tdisc.vr-all::after { content: ""; position: absolute; inset: -8px -2px; }      /* a 44px hit area on a 28px control */
+.vr-t { display: inline-flex; align-items: center; gap: 4px; margin: 0 4px; color: var(--ink-2); line-height: 1.4; vertical-align: middle; cursor: help; }
+.vr-t .ab-talent { width: 16px; height: 16px; }
+/* Against the top: the decks after the final, under their own heading */
+.rk-cut { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--line); }
+.rk-cut h2 { margin: 0; color: var(--ink-2); font: 400 22px/1.15 var(--display); letter-spacing: .01em; }
+.rk-cut p { margin: 8px 0 0; color: var(--muted); font: 600 14px/1.4 var(--text); }
 .deck.spot .deck-body { grid-template-columns: minmax(0, 1fr); }
-.deck.spot .deck-facts { order: -1; }      /* the first deck's number above its four big cards, so it is read before the fold */
+/* the first deck's figures above its four big cards, so they are read before the fold; its tox and variants after the cards */
+.deck.spot .deck-facts { display: contents; }
+.deck.spot .dfacts { order: -1; }
 .deck.spot .deck-cards { gap: 24px; padding: 12px 12px 16px; }
 /* the way to the overlay: one line after the list, on the ground, no box; its hairline runs across the column like the decks' */
 .ov-tease { max-width: none; margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--line); color: var(--muted); }
