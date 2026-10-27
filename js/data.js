@@ -1,7 +1,7 @@
 // Loads the generated JSON once and builds the lookups every view needs. Every request carries the publish version
 // (version.js), so a new publish never mixes with data an earlier visit cached.
 
-import { versioned, withQuery } from "./version.js?v=c953b2bc64";
+import { versioned, withQuery } from "./version.js?v=57c092aad8";
 
 const cache = new Map();
 // data paths are resolved from this module, not from the page, so a page in a sub-folder (site/overlay/) reads the same files
@@ -60,10 +60,10 @@ export async function loadLists() {
 }
 
 /**
- * The stage ranking run behind My decks and the Deck builder (tools/export_ranking.py): its Final round robin (`by_score`, the
- * "Final" figure of a deck table row), its race and speed lists and its AIs (`pilots`), each deck with its card objects (`cs`,
- * board order) and each card's talent (`tls`, the talent object, or null). Loaded with the deck table (loadDecks) and by the Card
- * tier list, whose stage views come from the same run.
+ * The stage ranking run (tools/export_ranking.py; My decks' and the Deck builder's until 2026-10-27, deck-table.json since):
+ * its Final round robin (`by_score`), its race and speed lists and its AIs (`pilots`), each deck with its card objects (`cs`,
+ * board order) and each card's talent (`tls`, the talent object, or null). Loaded by the Card tier list, whose Tournament view
+ * comes from that run (its matchup talents are the fallback of patch.js isMatchupTalent).
  */
 export async function loadRanking() {
   if (!DB.ranking) {
@@ -133,31 +133,24 @@ export function loadCardCounters() {
 }
 
 /**
- * The deck table of the ranking run (ranking-decks.json, tools/export_ranking.py): every deck it measured, best first (the
- * furthest stage reached, then the score there), each row with its card objects (board order) and their talents, its stage
- * (`level`: 3 final, 2 race, 1 screen), its score and games at that stage (`rate`, `games`), and every stage it played
- * (`stages`: screen {rate, games, kept}, race {rate, games, kept}, final {rank, score, ci95, games}, round robin place). My
- * decks and the Deck builder read it.
+ * The deck table of the current ranking (deck-table.json, tools/export_deck_lists.py; docs/DATA.md "deck-table.json"): every deck
+ * the run rated, on two scales that are never mixed: the full AI's (`scale` "full", best first by its rating, `elo` and `elo95`
+ * in Elo points, 0 = the benchmark decks' average), then the fast AI's first-sort picks (`scale` "fast", in their own order, no
+ * number). Each row has its card objects (board order), their talents, its place in its scale (`place`, 1-based) and, for a
+ * deck of the Deck tier list, that deck (`listed`, from deck-lists.json, loaded with it). My decks and the Deck builder read it.
  */
 export async function loadDecks() {
   if (!DB.decks) {
-    const [d] = await Promise.all([getJSON("data/ranking-decks.json"), loadRanking().catch(() => null)]);    // the AI's name for the intro
+    const [d, L] = await Promise.all([getJSON("data/deck-table.json"), loadLists()]);
     const cards = d.cards.map((id) => DB.byId.get(id));
-    const st = (v, f) => (v ? f(v) : null);
+    const place = { full: 0, fast: 0 };
     DB.decks = {
       raw: d,
-      stages: d.stages,
-      rows: d.rows.map((r, i) => {
-        const cs = r[0].map((x) => cards[x]);
-        const stages = {
-          screen: st(r[3], ([rate, games, kept]) => ({ rate, games, kept: !!kept })),
-          race: st(r[4], ([rate, games, kept]) => ({ rate, games, kept: !!kept })),
-          final: st(r[5], ([rank, score, ci95, games]) => ({ rank, score, ci95, games })),
-          rt: r[6] || null,
-        };
-        const at = r[2] === 3 ? { rate: stages.final.score, games: stages.final.games } : r[2] === 2 ? stages.race : stages.screen;
-        return { i, cards: cs, talents: r[1], tls: cs.map((c, k) => (c && c.talents[r[1][k]]) || null), level: r[2], rate: at.rate,
-          games: at.games, stages };
+      rows: d.rows.map(([cs0, talents, scale, elo, elo95, list], i) => {
+        const cs = cs0.map((x) => cards[x]);
+        const sc = scale ? "full" : "fast";
+        return { i, cards: cs, talents, tls: cs.map((c, k) => (c && c.talents[talents[k]]) || null), scale: sc,
+          place: ++place[sc], elo, elo95, listed: list >= 0 ? L.decks[list] : null };
       }).filter((r) => r.cards.every(Boolean)),
     };
   }

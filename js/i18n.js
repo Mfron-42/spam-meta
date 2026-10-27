@@ -11,8 +11,8 @@
 // {one, other} chosen by Intl.PluralRules on the parameter `count`, else `n` (French: 0 to 1.99 are "one"). `**bold**` is honoured by tx()
 // only. French copy uses plain spaces before : ; ? ! - they become no-break spaces when the table loads.
 
-import { h, fmtInt, dec } from "./util.js?v=c953b2bc64";
-import { getLang } from "./store.js?v=c953b2bc64";
+import { h, fmtInt, dec } from "./util.js?v=57c092aad8";
+import { getLang } from "./store.js?v=57c092aad8";
 
 const EN = {
   // ---- document and header
@@ -213,7 +213,6 @@ const EN = {
   "tl.missing": "missing",
   "rk.mWhy": "**Why temporary:** our next AI will play the last stages again, so places can still move.",
   "rk.lede": "{games} games simulated by our AIs, patch {patch}.",
-  "md.topDesc": "The Qualifier’s {decks} best decks against each other, {gpp} games per pair; 50% = the level of the Final.",
   // the Deck tier list's three lists (tiers.js, deck-lists.json) and their footer Method lines
   "rk.list.meta": "Players’ meta",
   "rk.list.top": "Against the top",
@@ -284,16 +283,11 @@ const EN = {
   "rk.limit.meta_patch": "The players’ meta comes from patch {pp} games: what players bring on {patch} can differ.",
   "rk.limit.plan_decks": "Our AI plays some decks that need a precise plan less well than a good player.",
   "rk.limit.screen_gaps": "A strong deck may still be missing: the fast AI of the first sorts misjudges some decks.",
-  "rk.range": "{lo} to {hi}",
-  "rk.atLeast": "at least {n}",
   "rk.tied": "tied",
   "rk.emptyReady": "None of these decks is ready to play with your cards.",
   "rk.showAll": "Show all",
   "rk.talentSr": "Talent: ",
   // a deck's Final reading on My decks and the Deck builder (the stage ranking): its win rate against the other decks of the Final
-  "vt.tip": "{v} against the {opp} other decks of the Final, {games} games ({gpp} per pair), margin {pm} (95%). 50% = the level of the Final.",
-  "rk.mAIs": "**AIs:** First sort, a fast AI; Tournament and Qualifier, {race}; Final, {top_ai} for both players.",
-  "rk.aiLater": "{a} ({b} for the decks the wider search added)",
 
   // ---- card search (Deck tier list and Card tier list)
   "find.decksPh": "Search by card…",
@@ -518,14 +512,20 @@ const EN = {
 
   // ---- my decks
   "md.h1": "My decks",
-  "md.prev": "These decks still come from our previous ranking; they move to the current one today.",
+  "dt.rating": "Rating",
+  "dt.ratingTip": "Its rating by our AI {ai}: {v}, give or take {pm} (Elo points; 0 = the benchmark decks’ average). #{place} of the {n} decks it rated on this one scale.",
+  "dt.fast": "Fast estimate",
+  "dt.fastTip": "Only our fast AI {ai} looked at this deck, in the first sort, on its own scale: it is not ranked with the rated decks. The first sort kept at most {per} decks of each family of the {of} it judged.",
+  "dt.fastH": "Fast estimates",
+  "dt.fastP": "Only our fast AI {ai} looked at these decks, on its own scale: they are not ranked with the decks above.",
+  "dt.mTable": "Every deck of the current ranking, on two scales never mixed: {full} decks our AI {ai} rated on one scale, best first, then {fast} decks only our fast AI {fai} looked at, listed apart.",
+  "dt.mRating": "**Rating:** Elo points from every game our AI {ai} played in the ranking; 0 = the benchmark decks’ average, ± its 95% margin. A deck of the Deck tier list also shows its three figures.",
+  "dt.mFast": "**Fast estimate:** of {of} decks our fast AI {ai} judged in the first sort, at most {per} of each family that our AI did not rate; a deck it rated is not repeated there. Their scale is not the rating’s, so they keep their own order.",
   "md.lede": "The best decks you can build from your cards.",
   "md.canBuild": { one: " deck you can build", other: " decks you can build" },
   "md.near": { one: "{n} deck is one card away.", other: "{n} decks are one card away." },
   "md.edit": "Mark my cards",
   "md.export": "Export or import",
-  "md.legendP": "Sorted by the furthest stage each deck reached before the Final, then by its result there. Do not compare results across stages: the First sort used a fast AI, the Tournament played fewer games than the Qualifier, and the Final had other opponents.",
-  "md.levelDecks": {"one": "{n} of this list ends here", "other": "{n} of this list end here"},
   "md.buildH": "Decks you can build",
   "md.buildNone": "No full deck yet: the decks below are one card away.",
   "md.markMore": "Mark more cards",
@@ -538,27 +538,11 @@ const EN = {
   "md.emptyP": "Mark your cards in the Codex to find the decks you can build among {n}.",
   "md.openCodex": "Open the Codex",
   "md.import": "Import a collection code",
-  "ev.2.descAll": "{decks} decks. Our AI at full strength, {min} to {max} games against the {n} benchmark decks; the best {keep} go to the Qualifier.",
-  "jy.direct": "seeded into the Tournament",
-  "jy.toQual": "to the Qualifier",
-  "jy.stopped": "stopped",
-  "jy.check": "stopped, re-tested in the Tournament as a check",
-  "jy.kept": "kept",
-  "jy.games": "{games} games",
   "ui.dot": " · ",
   "ui.comma": ", ",
   "md.mNotListed": "{n} decks from our private test lists are not shown.",
-  "md.mTable": "Every deck of the temporary ranking: {n}. Each one shows the furthest stage it reached and its score at every stage it played.",
-  "md.mCut": "Each stage keeps its best decks after a correction for decks with few games, so a deck can score a little above a kept one and still stop.",
-  "jy.final": "#{rank} of {n}",
-  "jy.aria": "Its path through the ranking",
   // the stages of the ranking, in order (owner, 2026-10-25: each name means one stage only)
-  "st.screen": "First sort",
-  "st.race": "Tournament",
-  "st.qual": "Qualifier",
-  "st.final": "Final",
   "md.orFind": "No collection? Pick the cards you want in the",
-  "md.meter": "Stage {l} of {n}: {stage}",
   "md.missing": "Missing:",
 
   // ---- deck builder (#builder, its own tab next to My decks)
@@ -583,12 +567,6 @@ const EN = {
   "fd.without": "Without:",
   "fd.mineOff": "You do not own all 4 cards of any of these decks yet",
   "fd.mineNone": "No deck here is fully in your collection.",
-  "ev.3": "Reliable",
-  "ev.2": "Fairly reliable",
-  "ev.1": "Indicative",
-  "ev.3.desc": "Our AI at full strength, {per} games against each of the {n} benchmark decks.",
-  "ev.2.desc": "{decks} decks: the {screen} best of the First sort, {direct} seeded into it directly and {checks} re-tested as a check. Our AI at full strength, {min} to {max} games against the {n} benchmark decks; the best {keep} go to the Qualifier.",
-  "ev.1.desc": "{decks} decks. A fast AI, {min} to {max} games each; the best {keep} go to the Tournament. A lead, not a verdict.",
 
   // ---- about
   "about.h": "About SPAM Meta",
@@ -1027,7 +1005,6 @@ const FR = {
   "tl.missing": "il manque",
   "rk.mWhy": "**Pourquoi temporaire :** notre prochaine IA rejouera les dernières étapes : les places peuvent encore bouger.",
   "rk.lede": "{games} parties simulées par nos IA, patch {patch}.",
-  "md.topDesc": "Les {decks} meilleurs decks de la Qualification les uns contre les autres, {gpp} parties par paire ; 50 % = le niveau de la Finale.",
   "rk.list.meta": "Méta joueurs",
   "rk.list.top": "Contre le top",
   "rk.list.speed": "Vitesse",
@@ -1093,15 +1070,10 @@ const FR = {
   "rk.limit.meta_patch": "Le méta joueurs vient des parties du patch {pp} : ce que les joueurs jouent en {patch} peut différer.",
   "rk.limit.plan_decks": "Notre IA joue moins bien qu’un bon joueur certains decks qui demandent un plan précis.",
   "rk.limit.screen_gaps": "Un bon deck peut encore manquer : l’IA rapide des premiers tris juge mal certains decks.",
-  "rk.range": "{lo} à {hi}",
-  "rk.atLeast": "au moins {n}",
   "rk.tied": "ex æquo",
   "rk.emptyReady": "Aucun de ces decks n’est prêt à jouer avec tes cartes.",
   "rk.showAll": "Tout afficher",
   "rk.talentSr": "Talent : ",
-  "vt.tip": "{v} contre les {opp} autres decks de la Finale, {games} parties ({gpp} par paire), marge {pm} (95 %). 50 % = le niveau de la Finale.",
-  "rk.mAIs": "**IA :** Premier tri, une IA rapide ; Tournoi et Qualification, {race} ; Finale, {top_ai} pour les deux joueurs.",
-  "rk.aiLater": "{a} ({b} pour les decks ajoutés par la recherche élargie)",
 
   // ---- recherche de carte (Tier list decks et Tier list cartes)
   "find.decksPh": "Chercher par carte…",
@@ -1321,14 +1293,20 @@ const FR = {
   "fg.without": "Sans {group} : {cards}", "fg.withOr": "{group} avec « ou » : {cards}", "fg.withoutQ": "Sans les mots cherchés : {cards}",
 
   "md.h1": "Mes decks",
-  "md.prev": "Ces decks viennent encore de notre classement précédent ; ils passent au classement actuel aujourd’hui.",
+  "dt.rating": "Cote",
+  "dt.ratingTip": "Sa cote selon notre IA {ai} : {v}, à {pm} près (points Elo ; 0 = la moyenne des decks de mesure). #{place} des {n} decks qu’elle a cotés sur cette même échelle.",
+  "dt.fast": "Estimation rapide",
+  "dt.fastTip": "Seule notre IA rapide {ai} a vu ce deck, au premier tri, sur sa propre échelle : il n’est pas classé avec les decks cotés. Le premier tri a gardé au plus {per} decks de chaque famille parmi les {of} qu’il a jugés.",
+  "dt.fastH": "Estimations rapides",
+  "dt.fastP": "Seule notre IA rapide {ai} a vu ces decks, sur sa propre échelle : ils ne sont pas classés avec les decks ci-dessus.",
+  "dt.mTable": "Tous les decks du classement actuel, sur deux échelles jamais mélangées : {full} decks que notre IA {ai} a cotés sur une même échelle, du meilleur au moins bon, puis {fast} decks que seule notre IA rapide {fai} a vus, à part.",
+  "dt.mRating": "**Cote :** des points Elo tirés de toutes les parties jouées par notre IA {ai} dans le classement ; 0 = la moyenne des decks de mesure, ± sa marge à 95 %. Un deck de la tier list des decks montre aussi ses trois chiffres.",
+  "dt.mFast": "**Estimation rapide :** sur {of} decks jugés par notre IA rapide {ai} au premier tri, au plus {per} par famille que notre IA n’a pas cotés ; un deck coté n’y est pas répété. Leur échelle n’est pas celle de la cote : ils gardent leur propre ordre.",
   "md.lede": "Les meilleurs decks que tu peux monter avec tes cartes.",
   "md.canBuild": { one: " deck à ta portée", other: " decks à ta portée" },
   "md.near": { one: "{n} deck à une carte près.", other: "{n} decks à une carte près." },
   "md.edit": "Cocher mes cartes",
   "md.export": "Exporter ou importer",
-  "md.legendP": "Triés par la dernière étape atteinte avant la Finale, puis par le résultat à cette étape. Ne compare pas les résultats d’une étape à l’autre : le Premier tri a utilisé une IA rapide, le Tournoi a joué moins de parties que la Qualification, et la Finale avait d’autres adversaires.",
-  "md.levelDecks": {"one": "{n} de cette liste s’arrête ici", "other": "{n} de cette liste s’arrêtent ici"},
   "md.buildH": "Decks à ta portée",
   "md.buildNone": "Aucun deck complet pour l’instant : ceux plus bas sont à une carte près.",
   "md.markMore": "Cocher d’autres cartes",
@@ -1341,26 +1319,10 @@ const FR = {
   "md.emptyP": "Coche tes cartes dans le Codex pour trouver les decks que tu peux monter parmi {n}.",
   "md.openCodex": "Ouvrir le Codex",
   "md.import": "Importer un code de collection",
-  "ev.2.descAll": "{decks} decks. Notre IA à pleine force, {min} à {max} parties contre les {n} decks de mesure ; les {keep} meilleurs vont en Qualification.",
-  "jy.direct": "qualifié d’office pour le Tournoi",
-  "jy.toQual": "en Qualification",
-  "jy.stopped": "écarté",
-  "jy.check": "écarté, rejoué au Tournoi pour contrôle",
-  "jy.kept": "retenu",
-  "jy.games": "{games} parties",
   "ui.dot": " · ",
   "ui.comma": ", ",
   "md.mNotListed": "{n} decks de nos listes de test privées ne sont pas affichés.",
-  "md.mTable": "Tous les decks du classement temporaire : {n}. Chacun montre la dernière étape atteinte et son score à chaque étape jouée.",
-  "md.mCut": "Chaque étape garde ses meilleurs decks après une correction pour les decks à peu de parties : un deck peut donc dépasser un peu un deck retenu et s’arrêter quand même.",
-  "jy.final": "#{rank} sur {n}",
-  "jy.aria": "Son parcours dans le classement",
-  "st.final": "Finale",
-  "st.race": "Tournoi",
-  "st.qual": "Qualification",
-  "st.screen": "Premier tri",
   "md.orFind": "Pas de collection ? Choisis les cartes que tu veux dans le",
-  "md.meter": "Étape {l} sur {n} : {stage}",
   "md.missing": "Il manque :",
 
   // ---- deck builder
@@ -1385,12 +1347,6 @@ const FR = {
   "fd.without": "Sans :",
   "fd.mineOff": "Tu n’as encore les 4 cartes d’aucun de ces decks",
   "fd.mineNone": "Aucun de ces decks n’est complet dans ta collection.",
-  "ev.3": "Fiable",
-  "ev.2": "Assez fiable",
-  "ev.1": "Indicatif",
-  "ev.3.desc": "Notre IA à pleine force, {per} parties contre chacun des {n} decks de mesure.",
-  "ev.2.desc": "{decks} decks : les {screen} meilleurs du Premier tri, {direct} qualifiés d’office et {checks} rejoués pour contrôle. Notre IA à pleine force, {min} à {max} parties contre les {n} decks de mesure ; les {keep} meilleurs vont en Qualification.",
-  "ev.1.desc": "{decks} decks. Une IA rapide, {min} à {max} parties chacun ; les {keep} meilleurs vont au Tournoi. Une piste, pas un verdict.",
 
   "about.h": "À propos de SPAM Meta",
   "about.lead": "**Ce site est généré par IA**, données et analyse comprises.",

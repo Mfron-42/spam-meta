@@ -131,9 +131,6 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 4px; 
 .guide-wrap { display: grid; gap: 8px; margin: 24px 0 8px; justify-items: start; }
 .guide { display: grid; gap: 12px; padding: 16px 20px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); color: var(--ink-2); }
 .guide ul { display: grid; gap: 8px; padding-left: 20px; list-style: disc; color: var(--muted); }
-.guide .levels { list-style: none; padding: 0; gap: 12px; color: var(--ink-2); max-width: 80ch; }
-.levels li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: start; }
-.levels .meter { margin-top: 5px; }
 /* card search row (search.js): the Codex field, then one live line beside it (below it on a phone). It sits right under the
    page heading of the Deck tier list and My decks, above the callout or the collection bar. */
 .find { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 8px 16px; align-items: center; margin-top: 24px; }
@@ -171,21 +168,20 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 4px; 
 .deck-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; padding: 8px 8px 12px; }
 .slot { position: relative; min-width: 0; }
 .deck-facts { display: grid; gap: 16px; align-content: start; }
-/* a deck's facts on My decks and the Deck builder (decklist.js deckFacts, DESIGN.md "Deck facts"): the last completed stage big
-   (the stage meter, its name in Title 22, the value in Headline 28, the margin); then the other stages small, each its one-word
-   name (Dusk Lavender 14) and its value (Lilita 18 Soft Lavender); every value's basis is its title, so the cursor says there is
-   more. The Deck tier list's rows wear the three figures below in the same .dfacts box. */
-.dfacts { display: grid; gap: 8px; justify-items: start; align-content: start; padding-top: 8px; }
-.dr-fig { cursor: help; }
+/* a deck's facts on My decks and the Deck builder (decklist.js deckFacts, DESIGN.md "Deck facts"): its rating big, a word that
+   explains itself (the figures' grammar: dotted underline at rest, the socket chip with the ring under the pointer, open or
+   focused): "Rating" in Title 22, the value in Headline 28, the margin and the AI in Dusk Lavender 14; a fast estimate is the
+   quiet state alone. A deck of the Deck tier list adds its three figures under it (.rfig, no list active). */
+.dfacts { display: grid; gap: 12px; justify-items: start; align-content: start; padding-top: 8px; }
 .fig-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: 0; }
-.fig-line .meter { align-self: center; margin-right: 4px; }
+.dt-fig { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: -4px -8px; padding: 4px 8px; border: 0; border-radius: 8px;
+  background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer; transition: background var(--t-state) var(--curve), box-shadow var(--t-state) var(--curve); }
+.dt-fig:hover, .dt-fig.on, .dt-fig:focus-visible { outline: none; background: var(--socket); box-shadow: var(--ring); }
 .fig-k { color: var(--ink-2); font: 400 22px/1 var(--display); letter-spacing: .01em; }
-.fig-pm { color: var(--muted); font: 600 14px/1 var(--text); }
-.ms { display: flex; flex-wrap: wrap; gap: 4px 24px; margin: 0; padding: 0; list-style: none; }
-.ms li { display: inline-flex; align-items: baseline; gap: 8px; margin: 0; white-space: nowrap; cursor: help; }
-@media (max-width: 640px) { .ms { display: grid; grid-template-columns: repeat(2, max-content); gap: 4px 24px; } }      /* pairs in two columns, no orphan */
-.ms-k { color: var(--muted); font: 600 14px/1.4 var(--text); }
-.ms-n { color: var(--ink-2); font: 400 18px/1 var(--display); letter-spacing: .01em; }
+.dt-fig .fig-k { text-decoration: underline dotted var(--edge) 1.5px; text-underline-offset: 4px; transition: text-decoration-color var(--t-state) var(--curve); }
+.dt-fig:hover .fig-k, .dt-fig.on .fig-k, .dt-fig:focus-visible .fig-k { text-decoration-color: transparent; }
+.dt-fig.fast .fig-k { color: var(--muted); }
+.fig-pm, .fig-ai { color: var(--muted); font: 600 14px/1 var(--text); }
 /* a listed deck's three figures (decklist.js listFigures, DESIGN.md "Deck figures"): Players' meta, Against the top, Speed in three
    equal columns, the lists' order, so they line up on every card. Each is its name (Nunito 600 14 Dusk Lavender, the dotted
    underline of a word that explains itself) over its value (Lilita 18 Soft Lavender; the active list's in Headline 28 Cream
@@ -240,7 +236,7 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 4px; 
 .vr-t .ab-talent { width: 16px; height: 16px; }
 /* Against the top: the decks after the final, under their own heading */
 .rk-cut { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--line); }
-.rk-cut h2 { margin: 0; color: var(--ink-2); font: 400 22px/1.15 var(--display); letter-spacing: .01em; }
+.rk-cut h2, .rk-cut h3 { margin: 0; color: var(--ink-2); font: 400 22px/1.15 var(--display); letter-spacing: .01em; }
 .rk-cut p { margin: 8px 0 0; color: var(--muted); font: 600 14px/1.4 var(--text); }
 .deck.spot .deck-body { grid-template-columns: minmax(0, 1fr); }
 /* the first deck's figures above its four big cards, so they are read before the fold; its tox and variants after the cards */
@@ -262,17 +258,9 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 4px; 
 .mdsec { display: grid; gap: 16px; margin-top: 48px; }
 .mdsec .sub { margin-top: -8px; }
 .cbar + .guide-wrap { margin-top: 16px; }
-.dr-fig .stat-v { font-size: 28px; }
 .dr-miss { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
 /* every deck row (the Deck tier list, My decks, the Deck builder): its facts, then a "Missing:" line, 12px apart */
 .rk-list .deck-facts { gap: 12px; }
-.levels .meter-gap { width: 24px; }      /* the Top 50's line: no stage meter, its text in the column of the others */
-.msub .levels { display: grid; gap: 12px; padding: 0; list-style: none; }
-.meter { display: inline-flex; gap: 3px; align-items: flex-end; }
-/* an empty bar is hollow (a 1px Dusk Lavender edge, 7:1 on the ground), a filled one solid Soft Lavender: the patch mark's
-   filled / hollow grammar, so "2 of 3" reads as two of three, never as a shorter meter */
-.meter i { width: 6px; height: 14px; border-radius: 0; background: transparent; box-shadow: inset 0 0 0 1px var(--muted); }
-.meter i.on { background: var(--ink-2); box-shadow: none; }
 .more { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 16px; }
 
 /* ---------------------------------------------------------------- Deck builder */

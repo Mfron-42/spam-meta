@@ -1,17 +1,18 @@
 // My decks tab: the best decks the visitor can build from the cards they marked as owned, plus the best decks that are
-// exactly one card away, read from the ranking run's deck table (ranking-decks.json). Order is the one docs/DATA.md defines:
-// the furthest stage reached first, then the score there (the rows are already sorted that way, so the first rows that fit
-// are the best). A deck of the Final (the round robin of the Qualifier's best) carries its win rate there. The card search (search.js) keeps only the decks of
-// both lists that hold a matching card; the query survives a redraw (a card ticked, a language change).
+// exactly one card away, read from the current ranking's deck table (deck-table.json). Each list shows its decks of the full
+// AI's scale first, by their rating (the table's order, so the first rows that fit are the best), then, apart, the decks only
+// the fast AI looked at (decklist.js scaleGroups: the two scales are never sorted together). A deck of the Deck tier list
+// carries its three figures. The card search (search.js) keeps only the decks of both lists that hold a matching card; the
+// query survives a redraw (a card ticked, a language change).
 
-import { h, icon, fmtInt } from "./util.js?v=c953b2bc64";
-import { loadDecks } from "./data.js?v=c953b2bc64";
-import { on, isOwned, ownedCount } from "./store.js?v=c953b2bc64";
-import { deckRow, missingLine, paged, tableHead } from "./decklist.js?v=c953b2bc64";
-import { findRow, terms, namedCards } from "./search.js?v=c953b2bc64";
-import { openCollection } from "./dialogs.js?v=c953b2bc64";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=c953b2bc64";
-import { t } from "./i18n.js?v=c953b2bc64";
+import { h, icon, fmtInt } from "./util.js?v=57c092aad8";
+import { loadDecks } from "./data.js?v=57c092aad8";
+import { on, isOwned, ownedCount } from "./store.js?v=57c092aad8";
+import { deckRow, missingLine, scaleGroups, tableHead } from "./decklist.js?v=57c092aad8";
+import { findRow, terms, namedCards } from "./search.js?v=57c092aad8";
+import { openCollection } from "./dialogs.js?v=57c092aad8";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=57c092aad8";
+import { t } from "./i18n.js?v=57c092aad8";
 
 let root, D, listeners = new Set();
 let result = { build: [], near: [] };
@@ -90,9 +91,9 @@ function paintLists() {
   if (!hits || build.length) {
     parts.push(h("section.mdsec", { "aria-labelledby": "md-build" }, [
       h("h2#md-build", t("md.buildH")),
-      build.length
-        ? paged(build, (r, i) => deckRow(r, String(i + 1), opt))
-        : h("div.panel.soft", [h("p", t("md.buildNone")), h("a.btn", { href: "#codex", "data-goto": "codex" }, t("md.markMore"))]),
+      ...(build.length
+        ? scaleGroups(build, (r) => r, (r, i) => deckRow(r, String(i + 1), opt))
+        : [h("div.panel.soft", [h("p", t("md.buildNone")), h("a.btn", { href: "#codex", "data-goto": "codex" }, t("md.markMore"))])]),
     ]));
   }
   if (!hits || near.length) {
@@ -100,7 +101,7 @@ function paintLists() {
       h("h2#md-near", t("md.nearH")),
       near.length
         ? [h("p.muted.sub", t("md.nearSub")),
-          paged(near, (x, i) => deckRow(x.row, String(i + 1), { ...opt, dim: [x.miss], note: missingLine(x.miss) }))]
+          ...scaleGroups(near, (x) => x.row, (x, i) => deckRow(x.row, String(i + 1), { ...opt, dim: [x.miss], note: missingLine(x.miss) }))]
         : h("div.panel.soft", h("p", t("md.nearNone"))),
     ]));
   }

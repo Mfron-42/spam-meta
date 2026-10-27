@@ -3,11 +3,11 @@
 // filled when a value, an ability or a passive changed (the class "mechanical"), hollow when only talents or texts did.
 // The data carries codes and positions; every word comes from i18n.js ("pc.*").
 
-import { h, icon, fmtDate, dec, fmtInt, reducedMotion } from "./util.js?v=c953b2bc64";
-import { DB } from "./data.js?v=c953b2bc64";
-import { L } from "./cards.js?v=c953b2bc64";
-import { t } from "./i18n.js?v=c953b2bc64";
-import { disclosure } from "./ui.js?v=c953b2bc64";
+import { h, icon, fmtDate, dec, reducedMotion } from "./util.js?v=57c092aad8";
+import { DB } from "./data.js?v=57c092aad8";
+import { L } from "./cards.js?v=57c092aad8";
+import { t } from "./i18n.js?v=57c092aad8";
+import { disclosure } from "./ui.js?v=57c092aad8";
 
 // Three patches can differ, and each label names the one it is about (SPEC.md, "Patch labels"):
 // - the GAME patch, the client players run today (below; the lab reads it from the game files);
@@ -21,9 +21,8 @@ export const GAME_PATCH = { patch: "1.26", date: "2026-10-21" };
 // - DECK_RANKING_SHOWN: the Deck tier list draws the lab's three deck lists of the game patch (deck-lists.json, tiers.js),
 //   labelled temporary while its `final` is false (owner, 2026-10-23: "mets en ligne le classement temporaire"); the footer,
 //   About and the card view's Meta section quote them. Off, the Deck tier list draws the "being computed" placeholder (pending.js).
-// - DECK_TABLE_SHOWN: My decks and the Deck builder read the stage ranking's deck table (ranking-decks.json, with ranking.json:
-//   every deck that run measured, with the furthest stage it reached and its score at each; owner, 2026-10-23: "tu as perdu
-//   beaucoup de features").
+// - DECK_TABLE_SHOWN: My decks and the Deck builder read the current ranking's deck table (deck-table.json: every deck the run
+//   rated, the full AI's scale then the fast AI's picks, never mixed; owner, 2026-10-23: "tu as perdu beaucoup de features").
 // - CARD_TIERS_SHOWN: the Card tier list and the card view's card tier read the card tiers of the stage ranking's run
 //   (cardtiers.json, tools/export_cardtiers.py from ranking-decks.json; owner, 2026-10-24: "redo the card tier list too").
 //   Off, the Card tier list draws the "being computed" placeholder.
@@ -32,10 +31,6 @@ export const GAME_PATCH = { patch: "1.26", date: "2026-10-21" };
 //   footer and About lines built from meta.json.
 export const DECK_RANKING_SHOWN = true;
 export const DECK_TABLE_SHOWN = true;
-// true while My decks and the Deck builder read the stage ranking's deck table that the Deck tier list's lists replaced
-// (2026-10-27, a player: "My decks look nothing like the top decks"): their head says so in one data notice, until the lab's
-// deck table of the current ranking is wired in. The site names no version (owner, 2026-10-24), so the notice says "previous".
-export const DECK_TABLE_PREVIOUS = true;
 export const CARD_TIERS_SHOWN = true;
 export const CARD_RANKINGS_SHOWN = false;
 
@@ -65,13 +60,6 @@ export function limitParams(R) {
 
 /** The median round of a won game of the listed decks (deck-lists.json speed.median_rounds): "13" when whole, else "13.5". */
 export const medianRounds = (R) => dec(R.speed.median_rounds, Number.isInteger(R.speed.median_rounds) ? 0 : 1);
-
-/** A game count of the ranking files, a number or its [least, most] range: "8", "48 to 64", or with `atLeast` "at least 16". */
-export function gameSpan(x, { atLeast = false } = {}) {
-  const [lo, hi] = Array.isArray(x) ? x : [x, x];
-  if (lo === hi) return fmtInt(lo);
-  return atLeast ? t("rk.atLeast", { n: fmtInt(lo) }) : t("rk.range", { lo: fmtInt(lo), hi: fmtInt(hi) });
-}
 
 /** The patches in one line (footer, About): "Game patch 1.24, card data 1.23, rankings 1.22"; while only the deck ranking
  * is shown, "Game patch 1.26, card data 1.26, provisional deck ranking 1.26"; with no ranking shown, the game and card data

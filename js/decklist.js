@@ -1,38 +1,17 @@
-// The one way to list measured decks (the ranking run's deck table, ranking-decks.json), shared by My decks and the Deck
-// builder, and the deck parts the Deck tier list reuses: a deck's card with its talent under it, the stage meter, a deck's facts
-// (My decks and the Deck builder) and a listed deck's three figures with their notes (the Deck tier list, listFigures), the owned
-// badge; and, for the two deck
-// table views, the paging and their footer Method sub-section (what each stage of the ranking means, which "How reliable?" said
-// above the list until 2026-10-24). Rows arrive sorted by the furthest stage reached, then the score there (docs/DATA.md,
-// "ranking-decks.json"), so a filter that keeps their order keeps the canonical ranking.
+// The one way to list measured decks (the current ranking's deck table, deck-table.json), shared by My decks and the Deck
+// builder, and the deck parts the Deck tier list reuses: a deck's card with its talent under it, a deck's facts (My decks and the
+// Deck builder: its rating on the full AI's scale, or the fast estimate's state, and a listed deck's three figures), a listed
+// deck's three figures with their notes (the Deck tier list, listFigures), the owned badge; and, for the two deck table views,
+// the two scales as two groups (scaleGroups: never sorted together), the paging and their footer Method sub-section. Rows arrive
+// in the table's order (the full AI's scale by its rating, then the fast AI's picks), so a filter that keeps it keeps the ranking.
 
-import { h, icon, pct, pct1, pm, dec, fmtInt } from "./util.js?v=c953b2bc64";
-import { DB, deckKey } from "./data.js?v=c953b2bc64";
-import { getLang, isOwned, ownedCount } from "./store.js?v=c953b2bc64";
-import { gameCard, chip, cardName, L } from "./cards.js?v=c953b2bc64";
-import { t, tx } from "./i18n.js?v=c953b2bc64";
-import { tipButton } from "./cardtext.js?v=c953b2bc64";
-import { introLine, provBanner, gameSpan, medianRounds, isMatchupTalent, matchupMark, DECK_TABLE_PREVIOUS } from "./patch.js?v=c953b2bc64";
-
-// ---------------------------------------------------------------- stages, in plain words
-// The stages of the ranking, in order (owner, 2026-10-25: each name means one stage only): the First sort (a fast AI), the
-// Tournament and the Qualifier (our AI against the 12 benchmark decks; the Qualifier with more games), then the Final (the
-// Qualifier's best decks against each other, ranking.json `vs_top`). The deck table names the first three by its own keys
-// (`stages.screen`, `.race`, `.final`); level -> that key: 3 the Qualifier, 2 the Tournament, 1 the First sort.
-export const STAGE = { 3: "final", 2: "race", 1: "screen" };
-const STAGE_NAME = { final: "st.qual", race: "st.race", screen: "st.screen" };
-/** A deck table stage's name ("Qualifier", "Tournament", "First sort"). */
-export const stageName = (st) => t(STAGE_NAME[st]);
-const LEVELS = 3;
-
-/** The stage meter: three small bars, filled to the furthest stage a deck reached, the empty ones hollow (DESIGN.md "Stage
- * meter"); its name, also its title, says which stage ("Stage 2 of 3: Tournament"). */
-export function meter(level) {
-  const name = t("md.meter", { l: level, n: LEVELS, stage: stageName(STAGE[level]) });
-  return h("span.meter", { role: "img", "aria-label": name, title: name },
-    Array.from({ length: LEVELS }, (_, i) => h("i", { class: i < level ? "on" : "" })));
-}
-
+import { h, icon, pct, pct1, pm, dec, fmtInt } from "./util.js?v=57c092aad8";
+import { DB } from "./data.js?v=57c092aad8";
+import { getLang, isOwned, ownedCount } from "./store.js?v=57c092aad8";
+import { gameCard, chip, cardName, L } from "./cards.js?v=57c092aad8";
+import { t, tx } from "./i18n.js?v=57c092aad8";
+import { tipButton } from "./cardtext.js?v=57c092aad8";
+import { introLine, provBanner, medianRounds, isMatchupTalent, matchupMark } from "./patch.js?v=57c092aad8";
 
 // ---------------------------------------------------------------- a deck's card
 /**
@@ -52,77 +31,29 @@ export function deckSlot(c, talent, { full = false, miss = false } = {}) {
   ]);
 }
 
-// ---------------------------------------------------------------- a deck's results
-// the deck table's stages a deck can have played, in order (owner, 2026-10-24: every figure is named by the stage it comes from,
-// never by a version): the First sort, the Tournament, the Qualifier; then the Final (`vs_top`) and how fast it wins
-const PHASES = ["screen", "race", "final"];
-const cap = (x) => x.charAt(0).toUpperCase() + x.slice(1);
-let topByKey = null;
-
-/** The number of decks of the Final list (ranking.json `by_score`: the Qualifier's best decks that played each other), 0 without
- * the ranking. */
-export const topSize = () => (DB.ranking && DB.ranking.by_score ? DB.ranking.by_score.decks.length : 0);
-
-/** A deck's Final reading (ranking.json `vs_top`: its win rate against the other decks of the Final), or null. */
-export function topReading(cards) {
-  const R = DB.ranking;
-  if (!R || !R.by_score.vs_top) return null;
-  if (!topByKey) topByKey = new Map(R.by_score.decks.filter((x) => x.vs_top).map((x) => [deckKey(x.cards), x.vs_top]));
-  return topByKey.get(deckKey(cards.map((c) => (c.id ? c.id : c)))) || null;
-}
-
-/** Which AI played which round (ranking.json `pilots`, in the order the run used them), one line for a footer Method sub-section
- * (the lead, 2026-10-24: "say plainly which AI played which stage"); nothing for an export without them. A round two AIs played
- * names the second as the wider search's. */
-export function aiLine() {
-  const R = DB.ranking, P = R && R.pilots;
-  if (!P) return null;
-  const names = (xs) => (xs.length > 1 ? t("rk.aiLater", { a: xs[0], b: xs[1] }) : xs[0]);
-  return h("p", tx("rk.mAIs", { race: names(P.race), top_ai: names(P.top) }));
-}
-
-/** The title of a Final reading on My decks and the Deck builder: its games, the field, the margin; 50% is the Final's level. */
-export function topTip(v) {
-  const R = DB.ranking, gpp = R && R.by_score.vs_top ? gameSpan(R.by_score.vs_top.games_per_pair) : "";
-  return t("vt.tip", { v: pct1(v.win_rate), games: fmtInt(v.games), opp: v.opponents, gpp, pm: pm(v.ci95) });
-}
+// ---------------------------------------------------------------- a deck's facts (My decks and the Deck builder)
+/** A signed whole number of Elo points: "492", "−120". */
+const elo = (x) => (x < 0 ? "−" : "") + fmtInt(Math.abs(x));
 
 /**
- * A deck's facts on My decks and the Deck builder (DESIGN.md "Deck facts"): the furthest stage of the deck table it completed,
- * big, with the stage meter, its name ("Qualifier", "Tournament", "First sort") and its win rate (the Qualifier's margin), then
- * its other stages small, and its Final win rate when it played the Final. The row carries no sentence: each value's basis is its
- * title and its screen-reader text. `r` is a deck table row.
+ * A deck's facts on My decks and the Deck builder (DESIGN.md "Deck facts"). A deck of the full AI's scale: its rating, big, in
+ * Elo points (0 = the benchmark decks' average) with its 95% margin and the AI that rated it, a word that explains itself (its
+ * place among the decks of that scale in the tooltip); a deck of the Deck tier list adds its three figures there, small (the
+ * Deck tier list's own component, no list active). A deck only the fast AI looked at: the quiet state "Fast estimate" with
+ * that AI, no number (its scale is not the rating's). `r` is a deck table row.
  */
 export function deckFacts(r) {
-  const s = r.stages, n = DB.decks ? DB.decks.stages : null, last = STAGE[r.level];
-  const rate = (st) => (st === "final" ? s.final.score : s[st].rate);
-  const games = (x) => (x && x.games ? t("ui.comma") + t("jy.games", { games: x.games }) : "");
-  const basis = (st) => {
-    const x = s[st];
-    if (st === "final") return (n ? t("jy.final", { rank: x.rank, n: n.final.decks }) : "#" + x.rank) + games(x);
-    if (st === "race") {
-      return cap(t("jy.games", { games: x.games })) + t("ui.comma") + t(x.kept ? "jy.toQual" : "jy.stopped") +
-        (!s.screen && n && n.screen ? t("ui.comma") + t("jy.direct") : "");
-    }
-    return cap(t("jy.games", { games: x.games })) + t("ui.comma") + t(x.kept ? "jy.kept" : s.race ? "jy.check" : "jy.stopped");
-  };
-  const small = (label, value, title) => h("li", { title }, [
-    h("span.ms-k", label), h("b.ms-n", value), h("span.sr", t("ui.sep") + title)]);
-  const top = topReading(r.cards);
-  const figTitle = basis(last) + t("ui.dot") + t("ev." + r.level);
-  const items = PHASES.filter((st) => st !== last && s[st]).map((st) => small(stageName(st), pct1(rate(st)), basis(st)));
-  if (top) items.push(small(t("st.final"), pct1(top.win_rate), topTip(top)));
-  return h("div.dfacts", [
-    h("div.dr-fig", { title: figTitle }, h("p.fig-line", [
-      meter(r.level),
-      h("span.fig-k", stageName(last)),
-      h("b.stat-v", pct1(rate(last))),
-      last === "final" && s.final.ci95 != null ? h("span.fig-pm", pm(s.final.ci95)) : null,
-      h("span.sr", t("ui.sep") + figTitle),
-    ])),
-    // role="list": a list drawn without markers loses its list role in WebKit
-    items.length ? h("ol.ms", { role: "list", "aria-label": t("jy.aria") }, items) : null,
-  ]);
+  const D = DB.decks.raw, P = D.pilots;
+  if (r.scale === "fast") {
+    const F = D.scales.fast;
+    const [b, d] = tipButton("button.dt-fig.fast", t("dt.fast"), [h("span.fig-k", t("dt.fast")), h("span.fig-ai", { translate: "no" }, P.fast)],
+      t("dt.fastTip", { ai: P.fast, of: fmtInt(F.of), per: F.per_family }));
+    return h("div.dfacts", h("div.fig-line", [b, d]));
+  }
+  const [b, d] = tipButton("button.dt-fig", t("dt.rating"), [h("span.fig-k", t("dt.rating")), h("b.stat-v", elo(r.elo)),
+    h("span.fig-pm", "±" + fmtInt(r.elo95)), h("span.fig-ai", { translate: "no" }, P.full)],
+  t("dt.ratingTip", { ai: P.full, v: elo(r.elo), pm: fmtInt(r.elo95), place: fmtInt(r.place), n: fmtInt(D.scales.full.rows) }));
+  return h("div.dfacts", [h("div.fig-line", [b, d]), r.listed ? listFigures(r.listed, null) : null]);
 }
 
 // ---------------------------------------------------------------- a listed deck's three figures (the Deck tier list)
@@ -200,26 +131,38 @@ function rove(e) {
 
 /**
  * The head of a view that lists the deck table (My decks, the Deck builder): the title and, while the run is not final, the
- * one-line temporary banner. Everything that explains (what the table holds, the decks it does not list, what each stage of the
- * ranking means, its games) goes to the view's footer Method sub-section (patch.js introLine; owner, 2026-10-24).
+ * one-line temporary banner. Everything that explains (what the table holds, the two scales, the rating, the fast estimate)
+ * goes to the view's footer Method sub-section (patch.js introLine; owner, 2026-10-24).
  */
 export function tableHead(key, h1, lede) {
-  const D = DB.decks.raw;
+  const D = DB.decks.raw, P = D.pilots, F = D.scales.fast;
   const method = [
     D.final ? null : h("p", [...tx("rk.mWhy")]),
-    t("md.mTable", { n: DB.decks.rows.length }),
+    t("dt.mTable", { full: fmtInt(D.scales.full.rows), ai: P.full, fast: fmtInt(F.rows), fai: P.fast }),
+    h("p", tx("dt.mRating", { ai: P.full })),
+    h("p", tx("dt.mFast", { ai: P.fast, of: fmtInt(F.of), per: F.per_family })),
     D.not_listed ? t("md.mNotListed", { n: D.not_listed }) : null,
-    aiLine(),
-    DB.ranking && DB.ranking.matchup_talents ? matchupLine() : null,
-    ...legendNodes(),
+    DB.lists && DB.lists.matchup_talents ? matchupLine() : null,
   ];
   return h("div.vhead", [
     h("h1", h1),
     D.final ? null : provBanner(key),
-    // the deck table is still the previous ranking's (patch.js DECK_TABLE_PREVIOUS): said once, where the decks are read
-    DECK_TABLE_PREVIOUS ? h("p.dnote.md-prev", [icon("info"), h("span", t("md.prev"))]) : null,
     ...introLine(key, h("p", lede), { method, patch: D.patch, link: D.final }),
   ]);
+}
+
+/**
+ * A list of deck table rows as its two scales (the lab lead, 2026-10-27: "never sort mixed scales together"): the decks of the
+ * full AI's scale, then, under their own heading and line, the decks only the fast AI looked at, each group paged, its places
+ * counted from 1. `rowOf(item)` gives an item's row; `mk(item, i)` draws it. Items keep their order inside a group.
+ */
+export function scaleGroups(items, rowOf, mk, page) {
+  const full = items.filter((x) => rowOf(x).scale === "full"), fast = items.filter((x) => rowOf(x).scale === "fast");
+  return [
+    full.length ? paged(full, mk, page) : null,
+    fast.length ? h("div.rk-cut.dt-cut", [h("h3", t("dt.fastH")), h("p", t("dt.fastP", { ai: DB.decks.raw.pilots.fast }))]) : null,
+    fast.length ? paged(fast, mk, page) : null,
+  ].filter(Boolean);
 }
 
 // ---------------------------------------------------------------- owned badge
@@ -292,30 +235,4 @@ export function paged(items, mk, page = 8) {
  * builder's Method). */
 export function matchupLine() {
   return h("p.mu-line", [matchupMark({ label: "tl.matchupTag" }), " ", t("rk.mMatchup")]);
-}
-
-// ---------------------------------------------------------------- what each stage means (footer)
-/** What each stage of the ranking means, for the footer Method sub-sections of My decks and the Deck builder (until 2026-10-24
- * the "How reliable?" disclosure above their lists), from the furthest: the Final, then the deck table's stages, each with its
- * stage meter, its decks and games. */
-export function legendNodes() {
-  const st = DB.decks.stages, race = st.race;
-  const count = (l) => DB.decks.rows.filter((r) => r.level === l).length;
-  const desc = {
-    3: t("ev.3.desc", { n: st.final.opponents, per: gameSpan(st.final.games_per_opponent) }),
-    2: t(race.from_screen != null ? "ev.2.desc" : "ev.2.descAll", { n: race.opponents, min: race.games_min, max: race.games_max, decks: race.decks,
-      screen: race.from_screen, direct: race.direct, checks: race.checks, keep: race.kept }),
-    1: st.screen ? t("ev.1.desc", { min: st.screen.games_min, max: st.screen.games_max, decks: st.screen.decks, keep: st.screen.kept }) : "",
-  };
-  const R = DB.ranking, vt = R && R.by_score.vs_top;
-  return [
-    t("md.legendP"),
-    h("ul.levels", [
-      vt ? h("li", [h("span.meter-gap", { "aria-hidden": "true" }), h("div", [h("b", t("st.final")), h("span.muted", " · "),
-        t("md.topDesc", { decks: R.by_score.decks.length, gpp: gameSpan(vt.games_per_pair) })])]) : null,
-      ...[3, 2, 1].filter((l) => count(l)).map((l) => h("li", [meter(l), h("div", [h("b", stageName(STAGE[l])),
-        h("span.muted", ` · ${t("md.levelDecks", { n: count(l) })} · `), desc[l]])])),
-    ]),
-    t("md.mCut"),
-  ];
 }

@@ -308,7 +308,7 @@ main.wrap { padding-block: 32px 64px; }
 .msub .tdisc:hover { color: var(--ink); }
 .msub .vinfo-wrap { width: 100%; }
 .msub .vinfo { font-size: 16px; line-height: 1.5; padding: 4px 0 16px; }
-.msub .vinfo > p, .msub .vinfo-l, .msub .levels { max-width: 60ch; }      /* about 80 characters a line, French included */
+.msub .vinfo > p, .msub .vinfo-l { max-width: 60ch; }      /* about 80 characters a line, French included */
 .msub .lede { font-size: inherit; color: inherit; }
 .foot-ai b { color: var(--ink); }
 .foot-ai, .foot-meta, .foot-count, .foot-legal { max-width: 78ch; text-wrap: pretty; }

@@ -1,18 +1,19 @@
 // Deck builder (#builder, its own tab next to My decks): the visitor picks 1 to 4 cards they want to play and the
-// page lists the measured decks (the ranking run's deck table, ranking-decks.json) that hold all of them, best first by the
-// canonical order (rows are already sorted by it). When no measured deck holds every pick, one line says so and the decks
-// holding the most of them follow, labelled "3 of your 4 cards". Only the table's rows are read: the decks the privacy rules
+// page lists the measured decks (the current ranking's deck table, deck-table.json) that hold all of them: the decks of the full
+// AI's scale first, by their rating, then, apart, the decks only the fast AI looked at (decklist.js scaleGroups: the two scales
+// are never sorted together). When no measured deck holds every pick, one line says so and the decks holding the most of them
+// follow, most first inside each scale, each with a "Without:" line. Only the table's rows are read: the decks the privacy rules
 // keep off the site have none, so they can never be proposed, and a pick that matches nothing gets the same generic line.
 // The picks live in memory only (the address holds a tab and, while a card dialog is open, a card key; SPEC.md); the card
 // dialog's "Decks with this card" sets them through pick().
 
-import { h, icon, fmtInt } from "./util.js?v=c953b2bc64";
-import { DB, loadDecks } from "./data.js?v=c953b2bc64";
-import { on, isOwned, ownedCount } from "./store.js?v=c953b2bc64";
-import { cardName, chip } from "./cards.js?v=c953b2bc64";
-import { t } from "./i18n.js?v=c953b2bc64";
-import { searchField, announcer, terms, namedCards } from "./search.js?v=c953b2bc64";
-import { deckRow, paged, paintOwned, tableHead } from "./decklist.js?v=c953b2bc64";
+import { h, icon, fmtInt } from "./util.js?v=57c092aad8";
+import { DB, loadDecks } from "./data.js?v=57c092aad8";
+import { on, isOwned, ownedCount } from "./store.js?v=57c092aad8";
+import { cardName, chip } from "./cards.js?v=57c092aad8";
+import { t } from "./i18n.js?v=57c092aad8";
+import { searchField, announcer, terms, namedCards } from "./search.js?v=57c092aad8";
+import { deckRow, scaleGroups, paintOwned, tableHead } from "./decklist.js?v=57c092aad8";
 
 const MAX = 4;           // four picks are a whole deck
 const PAGE = 10;         // results shown, then ten more on request
@@ -40,10 +41,10 @@ export function pick(keys) {
 }
 
 // ---------------------------------------------------------------- which cards to offer
-/** The cards the finalists of the deck table play most (then by their best rank). */
+/** The cards the decks of the Deck tier list play most (then by their best rating). */
 function popularCards() {
   const count = new Map();
-  D.rows.filter((r) => r.level === 3).forEach((r) => r.cards.forEach((c) => count.set(c, (count.get(c) || 0) + 1)));
+  D.rows.filter((r) => r.listed).forEach((r) => r.cards.forEach((c) => count.set(c, (count.get(c) || 0) + 1)));
   return [...count.entries()].sort((a, b) => b[1] - a[1]).map(([c]) => c);   // stable: ties keep their first (best) rank
 }
 
@@ -65,7 +66,7 @@ function match() {
     const k = picks.filter((p) => r.cards.includes(p)).length;
     if (k) near.push({ r, k });
   }
-  near.sort((a, b) => b.k - a.k);          // stable: inside one count the rank order stays
+  near.sort((a, b) => b.k - a.k);          // stable: inside one count the table's order stays (scaleGroups then splits the scales)
   return { full, near };
 }
 
@@ -197,7 +198,7 @@ function paintResults() {
   }
   if (head) {
     parts.push(h("div.fd-head", [h("h2#fd-res-h", { tabindex: "-1" }, head), mineBtn]));
-    parts.push(items.length ? paged(items, mk, PAGE) : h("p.fd-none", t("fd.mineNone")));
+    parts.push(...(items.length ? scaleGroups(items, m.full.length ? (r) => r : (x) => x.r, mk, PAGE) : [h("p.fd-none", t("fd.mineNone"))]));
   }
   resEl.replaceChildren(...parts);
   voice.say(m.full.length ? head : t("fd.none", { n: picks.length }));
