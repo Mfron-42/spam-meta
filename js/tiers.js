@@ -13,16 +13,16 @@
 // lives in the address (#tiers, #tiers/top, #tiers/speed). A language change redraws the page and keeps the list, the query, the
 // filter and the open tox and variants.
 
-import { h, icon, pct, dec, fmtInt, reducedMotion } from "./util.js?v=e6624c9207";
-import { DB, loadLists, loadFacets } from "./data.js?v=e6624c9207";
-import { on, isOwned, ownedCount, getLang } from "./store.js?v=e6624c9207";
-import { cardName, chip, L } from "./cards.js?v=e6624c9207";
-import { segmented, scrollToEl, cascade, band, CURVE, disclosure } from "./ui.js?v=e6624c9207";
-import { t, tx } from "./i18n.js?v=e6624c9207";
-import { tipButton } from "./cardtext.js?v=e6624c9207";
-import { findRow, terms, namedCards } from "./search.js?v=e6624c9207";
-import { introLine, limitParams, medianRounds, provBanner, isMatchupTalent, matchupMark, DECK_TABLE_SHOWN } from "./patch.js?v=e6624c9207";
-import { paintOwned, deckSlot, listFigures, matchupLine, LISTS } from "./decklist.js?v=e6624c9207";
+import { h, icon, pct, dec, fmtInt, reducedMotion } from "./util.js?v=f0b795cc40";
+import { DB, loadLists, loadFacets } from "./data.js?v=f0b795cc40";
+import { on, isOwned, ownedCount, getLang } from "./store.js?v=f0b795cc40";
+import { cardName, chip, L } from "./cards.js?v=f0b795cc40";
+import { segmented, scrollToEl, cascade, band, CURVE, disclosure } from "./ui.js?v=f0b795cc40";
+import { t, tx } from "./i18n.js?v=f0b795cc40";
+import { tipButton } from "./cardtext.js?v=f0b795cc40";
+import { findRow, terms, namedCards } from "./search.js?v=f0b795cc40";
+import { introLine, limitParams, medianRounds, provBanner, isMatchupTalent, matchupMark, DECK_TABLE_SHOWN } from "./patch.js?v=f0b795cc40";
+import { paintOwned, deckSlot, listFigures, matchupLine, LISTS } from "./decklist.js?v=f0b795cc40";
 
 // each list's address: the first (the players' meta, the default) is the bare #tiers. The addresses of the earlier ranking still
 // land on a list: "#tiers/final" (its Final) opens Against the top, "#tiers/race" (its Tournament) the default; both are

@@ -5,13 +5,13 @@
 // the two scales as two groups (scaleGroups: never sorted together), the paging and their footer Method sub-section. Rows arrive
 // in the table's order (the full AI's scale by its rating, then the fast AI's picks), so a filter that keeps it keeps the ranking.
 
-import { h, icon, pct, pct1, pm, dec, fmtInt } from "./util.js?v=e6624c9207";
-import { DB } from "./data.js?v=e6624c9207";
-import { getLang, isOwned, ownedCount } from "./store.js?v=e6624c9207";
-import { gameCard, chip, cardName, L } from "./cards.js?v=e6624c9207";
-import { t, tx } from "./i18n.js?v=e6624c9207";
-import { tipButton } from "./cardtext.js?v=e6624c9207";
-import { introLine, provBanner, medianRounds, isMatchupTalent, matchupMark } from "./patch.js?v=e6624c9207";
+import { h, icon, pct, pct1, pm, dec, fmtInt } from "./util.js?v=f0b795cc40";
+import { DB } from "./data.js?v=f0b795cc40";
+import { getLang, isOwned, ownedCount } from "./store.js?v=f0b795cc40";
+import { gameCard, chip, cardName, L } from "./cards.js?v=f0b795cc40";
+import { t, tx } from "./i18n.js?v=f0b795cc40";
+import { tipButton } from "./cardtext.js?v=f0b795cc40";
+import { introLine, provBanner, medianRounds, isMatchupTalent, matchupMark } from "./patch.js?v=f0b795cc40";
 
 // ---------------------------------------------------------------- a deck's card
 /**
