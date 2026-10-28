@@ -2,7 +2,9 @@
 
 A fan-made guide to the card game SPAM: the strongest decks of the current patch, every card, and the best decks you can build from your own collection.
 
-Live site: https://mfron-42.github.io/spam-meta/
+Live site: https://spam-meta.com/
+
+This repository now holds only the redirect from its old address to the site, and the overlay's update record (data/overlay-release.json) that installed overlays read here.
 
 **This site is AI-generated.**
 

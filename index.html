@@ -3,162 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SPAM Meta: best decks and card codex</title>
-<meta name="description" content="Fan-made guide to the card game SPAM: the strongest decks ranked from simulated matches, every card, and the best decks you can build from your own collection.">
-<meta name="color-scheme" content="dark">
-<meta name="theme-color" content="#15122c">
-<link rel="canonical" href="https://mfron-42.github.io/spam-meta/">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="SPAM Meta">
-<meta property="og:title" content="SPAM Meta: best decks and card codex">
-<meta property="og:description" content="The strongest SPAM decks, ranked from simulated matches, plus every card and the best decks you can build from your own collection. Unofficial fan site.">
-<meta property="og:url" content="https://mfron-42.github.io/spam-meta/">
-<meta property="og:image" content="https://mfron-42.github.io/spam-meta/assets/og.jpg?v=813db21b65">
-<meta property="og:image:type" content="image/jpeg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="SPAM Meta, patch 1.26: the four cards of the first deck of the Elo list, Princess Meridia, Imaginary Panther, Spirit of the Fauna and Blade of the Forest">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="SPAM Meta: best decks and card codex">
-<meta name="twitter:description" content="The strongest SPAM decks, every card, and the best decks you can build from your own collection. Unofficial fan site.">
-<meta name="twitter:image" content="https://mfron-42.github.io/spam-meta/assets/og.jpg?v=813db21b65">
-<meta name="twitter:image:alt" content="SPAM Meta, patch 1.26: the four cards of the first deck of the Elo list, Princess Meridia, Imaginary Panther, Spirit of the Fauna and Blade of the Forest">
-
-<link rel="preload" href="fonts/lilita-one-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/nunito-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="data/cards.json?v=813db21b65" as="fetch" crossorigin>
-<link rel="stylesheet" href="css/base.css?v=813db21b65">
-<link rel="stylesheet" href="css/ambient.css?v=813db21b65">
-<link rel="stylesheet" href="css/cards.css?v=813db21b65">
-<link rel="stylesheet" href="css/views.css?v=813db21b65">
-<link rel="stylesheet" href="css/filters.css?v=813db21b65">
-<link rel="stylesheet" href="css/cardtiers.css?v=813db21b65">
-<link rel="stylesheet" href="css/card.css?v=813db21b65">
-<link rel="stylesheet" href="css/draft.css?v=813db21b65">
-<link rel="modulepreload" href="js/main.js?v=813db21b65">
+<title>SPAM Meta has moved</title>
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://spam-meta.com/">
+<script>
+  (function () {
+    var p = location.pathname.replace(new RegExp("^/spam-meta(/|$)"), "");
+    location.replace("https://spam-meta.com/" + p + location.search + location.hash);
+  })();
+</script>
+<noscript><meta http-equiv="refresh" content="0; url=https://spam-meta.com/"></noscript>
+<style>
+  body { margin: 0; padding: 48px 16px; background: #15112b; color: #ece9ff; font: 16px/1.5 system-ui, sans-serif; }
+  a { color: #4fd4f5; }
+</style>
 </head>
 <body>
-<a class="skip" href="#main" data-i18n="head.skip">Skip to the content</a>
-
-<header class="chrome" id="chrome">
-  <div class="wrap chrome-in">
-    <div class="chrome-top">
-      <a class="brand" href="#codex" aria-label="SPAM Meta, home" data-i18n-aria="head.home">
-        <img class="brand-mark" src="favicon.svg" alt="" width="32" height="32">
-        <span class="brand-name" translate="no">SPAM Meta</span>
-      </a>
-      <div class="tools" id="tools">
-        <div class="seg names" id="names-seg" role="group" aria-label="Language" data-i18n-aria="head.lang">
-          <button type="button" data-v="fr" aria-pressed="false" lang="fr" title="Français">FR</button>
-          <button type="button" data-v="en" aria-pressed="false" lang="en" title="English">EN</button>
-        </div>
-        <button class="own-pill" id="own-pill" type="button" data-goto="codex" title="Your cards. Edit them in the Codex" data-i18n-title="head.ownTitle">
-          <svg class="ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M3.5 8.5l3 3 6-7"/></svg>
-          <span id="own-pill-n">0</span><span class="own-pill-t"> / 127</span>
-        </button>
-        <a class="btn ghost ovlink" href="overlay/" title="SPAM Overlay: the odds of every move, in the game" data-i18n-title="head.overlayTitle"><span data-i18n="head.overlay" translate="no">Overlay</span></a>
-        <button class="icon-btn" id="about-btn" type="button" title="About this site" aria-label="About this site" data-i18n-title="head.about" data-i18n-aria="head.about">
-          <svg class="ico" viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="M8 7.2v4.3M8 4.6v.1M8 14.5a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13z"/></svg>
-        </button>
-      </div>
-    </div>
-    <nav class="tabs" role="tablist" aria-label="Sections" data-i18n-aria="head.sections">
-      <a class="tab" role="tab" id="tab-tiers" href="#tiers" aria-selected="false" aria-controls="view-tiers" data-tab="tiers" tabindex="-1"><span class="tab-long" data-i18n="tab.tiers">Deck tier list</span><span class="tab-short" data-i18n="tab.tiersShort">Deck tiers</span></a>
-      <a class="tab" role="tab" id="tab-card-tiers" href="#card-tiers" aria-selected="false" aria-controls="view-card-tiers" data-tab="card-tiers" tabindex="-1"><span class="tab-long" data-i18n="tab.cardTiers">Card tier list</span><span class="tab-short" data-i18n="tab.cardTiersShort">Card tiers</span></a>
-      <a class="tab" role="tab" id="tab-codex" href="#codex" aria-selected="true" aria-controls="view-codex" data-tab="codex"><span data-i18n="tab.codex">Codex</span></a>
-      <a class="tab" role="tab" id="tab-decks" hidden href="#decks" aria-selected="false" aria-controls="view-decks" data-tab="decks" tabindex="-1"><span data-i18n="tab.decks">My decks</span><span class="tab-n off" id="tab-decks-n"></span></a>
-      <a class="tab" role="tab" id="tab-builder" hidden href="#builder" aria-selected="false" aria-controls="view-builder" data-tab="builder" tabindex="-1" title="Deck builder" aria-label="Deck builder" data-i18n-title="tab.builderName" data-i18n-aria="tab.builderName"><svg class="ico tab-ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M5 1.5h6A1.5 1.5 0 0 1 12.5 3v10a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 13V3A1.5 1.5 0 0 1 5 1.5zM8 5.5v5M5.5 8h5"/></svg><span data-i18n="tab.builder">Builder</span></a>
-      <a class="tab" role="tab" id="tab-draft" hidden href="#draft" aria-selected="false" aria-controls="view-draft" data-tab="draft" tabindex="-1" title="Tournament draft" data-i18n-title="dr.title"><span class="tab-long" data-i18n="tab.draft">Draft</span><span class="tab-short" data-i18n="tab.draftShort">Draft</span></a>
-    </nav>
-  </div>
-</header>
-
-<main id="main" class="wrap" tabindex="-1">
-  <!-- before the scripts run: the landing view's skeleton (the Codex while the rankings are not shown, js/patch.js) -->
-  <section class="view" id="view-tiers" role="tabpanel" aria-labelledby="tab-tiers" tabindex="-1" hidden></section>
-  <section class="view" id="view-card-tiers" role="tabpanel" aria-labelledby="tab-card-tiers" tabindex="-1" hidden></section>
-  <section class="view" id="view-codex" role="tabpanel" aria-labelledby="tab-codex" tabindex="-1">
-    <div class="vhead"><h1 data-i18n="cx.h1">Codex</h1><p class="lede" data-i18n="app.loading">Loading…</p></div>
-    <div class="panel skel" aria-hidden="true"><i></i><i></i><i></i></div>
-  </section>
-  <section class="view" id="view-decks" role="tabpanel" aria-labelledby="tab-decks" tabindex="-1" hidden></section>
-  <section class="view" id="view-builder" role="tabpanel" aria-labelledby="tab-builder" tabindex="-1" hidden></section>
-  <section class="view" id="view-draft" role="tabpanel" aria-labelledby="tab-draft" tabindex="-1" hidden></section>
-</main>
-
-<footer class="foot" id="foot">
-  <div class="wrap foot-in">
-    <section class="foot-method" id="method" aria-labelledby="method-h" hidden>
-      <h2 id="method-h" data-i18n="mt.h">Method</h2>
-      <div class="msubs"></div>
-    </section>
-    <p class="foot-ai"><b data-i18n="foot.ai">This site is AI-generated.</b> <span id="foot-rk"></span></p>
-    <p class="foot-games" id="foot-games"></p>
-    <p class="foot-meta"><span id="foot-patch"></span> <button class="link" id="foot-about" type="button" data-i18n="foot.how">How it is computed</button></p>
-    <p class="foot-overlay"><span data-i18n="foot.overlay">SPAM Overlay: the odds of every move, in the game.</span> <a class="link" href="overlay/" data-i18n="foot.overlayLink">See the overlay</a></p>
-    <p class="foot-help"><span data-i18n="foot.help">Bug or question? Discord:</span> <span class="handle" id="foot-handle" translate="no">noob9795</span>
-      <button class="copy" id="foot-copy" type="button" aria-label="Copy the Discord name" data-i18n-aria="foot.copyAria"><span class="copy-ico" aria-hidden="true"></span><span class="copy-l">Copy</span></button>
-      <span class="copy-note" id="foot-copy-note" role="status" aria-live="polite"></span></p>
-    <p class="foot-count" data-i18n="foot.count">Anonymous visit counter (GoatCounter): page views only, no cookies, your cards are never sent.</p>
-    <p class="foot-legal" data-i18n="foot.legal">Unofficial fan site, not affiliated with Ticroco Entreprise. Card names, texts and art © Ticroco Entreprise.</p>
-  </div>
-</footer>
-
-<dialog class="sheet card-dlg" id="dlg-card" aria-labelledby="dlg-name">
-  <button class="close" type="button" data-close aria-label="Close the card" title="Close" data-i18n-aria="card.close" data-i18n-title="ui.close">
-    <svg class="ico" viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="M4 4l8 8M12 4l-8 8"/></svg>
-  </button>
-  <div class="dlg-scroll" tabindex="-1" autofocus></div>
-</dialog>
-
-<dialog class="sheet about-dlg" id="dlg-about" aria-labelledby="about-title">
-  <button class="close" type="button" data-close aria-label="Close" title="Close" data-i18n-aria="ui.close" data-i18n-title="ui.close">
-    <svg class="ico" viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="M4 4l8 8M12 4l-8 8"/></svg>
-  </button>
-  <div class="dlg-scroll" id="about-body" tabindex="-1" autofocus></div>
-</dialog>
-
-<dialog class="sheet code-dlg" id="dlg-code" aria-labelledby="code-title">
-  <button class="close" type="button" data-close aria-label="Close" title="Close" data-i18n-aria="ui.close" data-i18n-title="ui.close">
-    <svg class="ico" viewBox="0 0 16 16" width="20" height="20" aria-hidden="true" focusable="false"><path d="M4 4l8 8M12 4l-8 8"/></svg>
-  </button>
-  <div class="dlg-scroll">
-    <div class="codebox">
-      <h2 id="code-title" data-i18n="code.h">Export or import your collection</h2>
-      <p id="code-p" data-i18n="code.p">Your cards are saved in this browser only. Copy this code to move or share them.</p>
-      <p id="code-store" hidden data-i18n="code.noStore">This browser will not keep your cards once you leave. Copy this code to get them back.</p>
-      <section>
-        <h3 data-i18n="code.yours">Your code</h3>
-        <div class="code-row">
-          <textarea id="code-out" class="code" name="collection-code" readonly rows="1" spellcheck="false" autocomplete="off" aria-label="Your collection code" data-i18n-aria="code.yoursAria"></textarea>
-          <button class="btn primary" id="code-copy" type="button" data-i18n="ui.copy">Copy</button>
-        </div>
-        <p class="note" id="code-count"></p>
-      </section>
-      <section>
-        <h3 data-i18n="code.importH">Import a code</h3>
-        <textarea id="code-in" class="code" rows="1" spellcheck="false" autocomplete="off" name="code" placeholder="Paste a code, for example SPAM1-0100-007G…" aria-label="Paste a collection code" data-i18n-ph="code.ph" data-i18n-aria="code.inAria" aria-describedby="code-msg"></textarea>
-        <p class="msg" id="code-msg" role="status"></p>
-        <div class="code-act">
-          <button class="btn" id="code-replace" type="button" disabled data-i18n="code.replace">Replace my collection</button>
-          <button class="btn primary" id="code-add" type="button" disabled data-i18n="code.add">Add to my collection</button>
-        </div>
-      </section>
-    </div>
-  </div>
-</dialog>
-
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-<noscript><div class="wrap noscript"><p lang="fr">SPAM Meta a besoin de JavaScript pour afficher les cartes et les classements.</p><p>SPAM Meta needs JavaScript to draw the cards and the rankings.</p></div></noscript>
-
-<script type="module" src="js/main.js?v=813db21b65"></script>
-<!-- the counter gets the page path without its query: the card search keeps its filters in the query (SPEC.md section 6) -->
-<script>window.goatcounter = { path: function (p) { return p.split("?")[0] || "/"; } };</script>
-<script data-goatcounter="https://mfron2.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<p>SPAM Meta has moved to <a href="https://spam-meta.com/">spam-meta.com</a>.</p>
+<p lang="fr">SPAM Meta a déménagé sur <a href="https://spam-meta.com/">spam-meta.com</a>.</p>
 </body>
 </html>
