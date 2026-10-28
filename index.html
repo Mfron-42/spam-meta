@@ -17,7 +17,7 @@
 <meta property="og:title" content="SPAM Meta: best decks and card codex">
 <meta property="og:description" content="The strongest SPAM decks, ranked from simulated matches, plus every card and the best decks you can build from your own collection. Unofficial fan site.">
 <meta property="og:url" content="https://mfron-42.github.io/spam-meta/">
-<meta property="og:image" content="https://mfron-42.github.io/spam-meta/assets/og.jpg?v=d299a81e8e">
+<meta property="og:image" content="https://mfron-42.github.io/spam-meta/assets/og.jpg?v=aa3c01bc6a">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -25,20 +25,21 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="SPAM Meta: best decks and card codex">
 <meta name="twitter:description" content="The strongest SPAM decks, every card, and the best decks you can build from your own collection. Unofficial fan site.">
-<meta name="twitter:image" content="https://mfron-42.github.io/spam-meta/assets/og.jpg?v=d299a81e8e">
+<meta name="twitter:image" content="https://mfron-42.github.io/spam-meta/assets/og.jpg?v=aa3c01bc6a">
 <meta name="twitter:image:alt" content="SPAM Meta, patch 1.26: the four cards of the first deck of the Elo list, Princess Meridia, Imaginary Panther, Spirit of the Fauna and Blade of the Forest">
 
 <link rel="preload" href="fonts/lilita-one-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/nunito-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="data/cards.json?v=d299a81e8e" as="fetch" crossorigin>
-<link rel="stylesheet" href="css/base.css?v=d299a81e8e">
-<link rel="stylesheet" href="css/ambient.css?v=d299a81e8e">
-<link rel="stylesheet" href="css/cards.css?v=d299a81e8e">
-<link rel="stylesheet" href="css/views.css?v=d299a81e8e">
-<link rel="stylesheet" href="css/filters.css?v=d299a81e8e">
-<link rel="stylesheet" href="css/cardtiers.css?v=d299a81e8e">
-<link rel="stylesheet" href="css/card.css?v=d299a81e8e">
-<link rel="modulepreload" href="js/main.js?v=d299a81e8e">
+<link rel="preload" href="data/cards.json?v=aa3c01bc6a" as="fetch" crossorigin>
+<link rel="stylesheet" href="css/base.css?v=aa3c01bc6a">
+<link rel="stylesheet" href="css/ambient.css?v=aa3c01bc6a">
+<link rel="stylesheet" href="css/cards.css?v=aa3c01bc6a">
+<link rel="stylesheet" href="css/views.css?v=aa3c01bc6a">
+<link rel="stylesheet" href="css/filters.css?v=aa3c01bc6a">
+<link rel="stylesheet" href="css/cardtiers.css?v=aa3c01bc6a">
+<link rel="stylesheet" href="css/card.css?v=aa3c01bc6a">
+<link rel="stylesheet" href="css/draft.css?v=aa3c01bc6a">
+<link rel="modulepreload" href="js/main.js?v=aa3c01bc6a">
 </head>
 <body>
 <a class="skip" href="#main" data-i18n="head.skip">Skip to the content</a>
@@ -71,6 +72,7 @@
       <a class="tab" role="tab" id="tab-codex" href="#codex" aria-selected="true" aria-controls="view-codex" data-tab="codex"><span data-i18n="tab.codex">Codex</span></a>
       <a class="tab" role="tab" id="tab-decks" hidden href="#decks" aria-selected="false" aria-controls="view-decks" data-tab="decks" tabindex="-1"><span data-i18n="tab.decks">My decks</span><span class="tab-n off" id="tab-decks-n"></span></a>
       <a class="tab" role="tab" id="tab-builder" hidden href="#builder" aria-selected="false" aria-controls="view-builder" data-tab="builder" tabindex="-1" title="Deck builder" aria-label="Deck builder" data-i18n-title="tab.builderName" data-i18n-aria="tab.builderName"><svg class="ico tab-ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M5 1.5h6A1.5 1.5 0 0 1 12.5 3v10a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 13V3A1.5 1.5 0 0 1 5 1.5zM8 5.5v5M5.5 8h5"/></svg><span data-i18n="tab.builder">Builder</span></a>
+      <a class="tab" role="tab" id="tab-draft" hidden href="#draft" aria-selected="false" aria-controls="view-draft" data-tab="draft" tabindex="-1" title="Tournament draft" data-i18n-title="dr.title"><span class="tab-long" data-i18n="tab.draft">Draft</span><span class="tab-short" data-i18n="tab.draftShort">Draft</span></a>
     </nav>
   </div>
 </header>
@@ -85,6 +87,7 @@
   </section>
   <section class="view" id="view-decks" role="tabpanel" aria-labelledby="tab-decks" tabindex="-1" hidden></section>
   <section class="view" id="view-builder" role="tabpanel" aria-labelledby="tab-builder" tabindex="-1" hidden></section>
+  <section class="view" id="view-draft" role="tabpanel" aria-labelledby="tab-draft" tabindex="-1" hidden></section>
 </main>
 
 <footer class="foot" id="foot">
@@ -153,7 +156,7 @@
 
 <noscript><div class="wrap noscript"><p lang="fr">SPAM Meta a besoin de JavaScript pour afficher les cartes et les classements.</p><p>SPAM Meta needs JavaScript to draw the cards and the rankings.</p></div></noscript>
 
-<script type="module" src="js/main.js?v=d299a81e8e"></script>
+<script type="module" src="js/main.js?v=aa3c01bc6a"></script>
 <!-- the counter gets the page path without its query: the card search keeps its filters in the query (SPEC.md section 6) -->
 <script>window.goatcounter = { path: function (p) { return p.split("?")[0] || "/"; } };</script>
 <script data-goatcounter="https://mfron2.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>

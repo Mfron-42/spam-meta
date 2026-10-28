@@ -1,7 +1,7 @@
 // Loads the generated JSON once and builds the lookups every view needs. Every request carries the publish version
 // (version.js), so a new publish never mixes with data an earlier visit cached.
 
-import { versioned, withQuery } from "./version.js?v=d299a81e8e";
+import { versioned, withQuery } from "./version.js?v=aa3c01bc6a";
 
 const cache = new Map();
 // data paths are resolved from this module, not from the page, so a page in a sub-folder (site/overlay/) reads the same files
@@ -83,6 +83,14 @@ export function loadFacets() {
       .catch((e) => { console.error(e); fcLoad = null; return null; });
   }
   return fcLoad;
+}
+
+/**
+ * The Draft tab's matchup model (tools/export_matchup.py, docs/DATA.md "matchup"): the lab's weights and the likely opponents,
+ * fetched when the tab is first shown and handed to its Web Worker. A failed request rejects; the next call starts afresh.
+ */
+export function loadMatchup() {
+  return Promise.all([getJSON("data/matchup/weights.json"), getJSON("data/matchup/field.json")]);
 }
 
 /** The card tier list (tools/export_cardtiers.py): each record gets its card object; an unknown id is dropped. */

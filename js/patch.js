@@ -3,11 +3,11 @@
 // filled when a value, an ability or a passive changed (the class "mechanical"), hollow when only talents or texts did.
 // The data carries codes and positions; every word comes from i18n.js ("pc.*").
 
-import { h, icon, fmtDate, fmtInt, reducedMotion } from "./util.js?v=d299a81e8e";
-import { DB } from "./data.js?v=d299a81e8e";
-import { L } from "./cards.js?v=d299a81e8e";
-import { t } from "./i18n.js?v=d299a81e8e";
-import { disclosure, settleRows } from "./ui.js?v=d299a81e8e";
+import { h, icon, fmtDate, fmtInt, reducedMotion } from "./util.js?v=aa3c01bc6a";
+import { DB } from "./data.js?v=aa3c01bc6a";
+import { L } from "./cards.js?v=aa3c01bc6a";
+import { t } from "./i18n.js?v=aa3c01bc6a";
+import { disclosure, settleRows } from "./ui.js?v=aa3c01bc6a";
 
 // Three patches can differ, and each label names the one it is about (SPEC.md, "Patch labels"):
 // - the GAME patch, the client players run today (below; the lab reads it from the game files);
@@ -32,6 +32,8 @@ export const DECK_RANKING_SHOWN = true;
 export const DECK_TABLE_SHOWN = true;
 export const CARD_TIERS_SHOWN = true;
 export const CARD_RANKINGS_SHOWN = false;
+// the Draft tab (draftview.js): the lab's matchup model, its own files (data/matchup/); shown with the deck table's tabs
+export const DRAFT_SHOWN = true;
 
 export const changeOf = (c) => (c && c.patch_change) || null;
 /** A value, an ability or a passive changed: the rankings' numbers for this card are from before the change. */
@@ -125,8 +127,8 @@ export function patchNotice({ patch = null } = {}) {
 // caveat and legend of a ranking view goes to the footer's Method section (#method), one sub-section per tab (#method-<tab>), a
 // text disclosure each; the top of a view keeps its title, the one-line banner, its search and its switch. A pointer is a small
 // link to the sub-section ("How it is measured"), never prose.
-const METHOD_TABS = ["tiers", "card-tiers", "decks", "builder"];
-const METHOD_TITLES = { tiers: "tab.tiers", "card-tiers": "tab.cardTiers", decks: "tab.decks", builder: "fd.title" };
+const METHOD_TABS = ["tiers", "card-tiers", "decks", "builder", "draft"];
+const METHOD_TITLES = { tiers: "tab.tiers", "card-tiers": "tab.cardTiers", decks: "tab.decks", builder: "fd.title", draft: "dr.title" };
 const methodOpen = new Set();               // the sub-sections open: kept across a redraw (a language change)
 let methodWanted = null;                    // a sub-section asked for before its view filled it (a #method-<tab> address)
 

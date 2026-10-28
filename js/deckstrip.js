@@ -4,8 +4,8 @@
 // card: the figure is the win chance against the same deck holding one), so a strip reads without its axis. Decorative: the
 // figures printed beside it say the same in words.
 
-import { h, pct } from "./util.js?v=d299a81e8e";
-import { t } from "./i18n.js?v=d299a81e8e";
+import { h, pct } from "./util.js?v=aa3c01bc6a";
+import { t } from "./i18n.js?v=aa3c01bc6a";
 
 // a tier's class on the card tier scale (DESIGN.md "Card tier scale"); "few" is the row of the cards with not enough data
 export const TC = { S: "s", A: "a", B: "b", C: "c", D: "d", E: "e", F: "f", few: "few" };

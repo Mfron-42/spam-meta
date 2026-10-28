@@ -80,6 +80,8 @@ main.wrap { padding-block: 32px 64px; }
 .brand { grid-column: 1; grid-row: 1; flex: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: var(--ink); border-radius: 8px; font: 400 22px/1 var(--display); letter-spacing: .01em; }
 .brand-mark { display: block; width: 32px; height: 32px; border-radius: 8px; }
 .tabs { grid-column: 2; grid-row: 1; display: flex; gap: 8px; }
+/* six tabs on the one-row header: 12px inside, 4px apart, so the French row ("Tier list decks" ... "Draft") keeps clear of the tools */
+@media (min-width: 1200px) { .tabs { gap: 4px; } }
 .tools { grid-column: 3; grid-row: 1; display: flex; align-items: center; gap: 8px; min-width: 0; }
 
 .tab { position: relative; flex: none; text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 20px;
@@ -88,6 +90,8 @@ main.wrap { padding-block: 32px 64px; }
 .tab:hover { background: var(--panel-hi); }
 .tab:active { background: var(--socket); }
 .tab[aria-selected="true"] { background: var(--accent); border-color: transparent; color: var(--accent-ink); box-shadow: var(--raised); }
+/* the one-row header's six tabs: 12px inside (16px on the two-row header, where they have room) */
+@media (min-width: 1200px) { .tab { padding: 0 12px; } }
 .tab[aria-selected="true"]:hover { background: var(--accent); filter: brightness(1.06); }
 .tab-n { display: inline-grid; place-items: center; min-width: 24px; height: 22px; padding: 0 6px; border-radius: 20px; background: var(--socket); box-shadow: var(--sunken);
   color: var(--ink-2); font: 600 14px/1 var(--text); }
@@ -133,7 +137,7 @@ main.wrap { padding-block: 32px 64px; }
 .icon-btn:hover { background: rgba(255, 255, 255, .1); color: var(--ink); }
 .icon-btn:active { background: rgba(0, 0, 0, .35); }
 
-/* Five tabs. One row from 1200px (brand, tabs, tools); below, two rows: the brand row (52px) scrolls away and the tab row
+/* Six tabs. One row from 1200px (brand, tabs, tools); below, two rows: the brand row (52px) scrolls away and the tab row
    (56px: 8px above the pills for the count on My decks, 4px below for the focus ring) stays stuck under the top edge. Under
    760px the tabs use their short labels; under 600px they share the row at 16px (the Builder glyph goes), under 420px at
    14px. Every tab keeps its word at every width ("Builder" is never a bare glyph). If they still do not fit (a large text

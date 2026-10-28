@@ -1,0 +1,255 @@
+/* SPAM Meta: the Draft tab (js/draftview.js; DESIGN.md "Draft tab"). One column: the formats, what the visitor knows, then the
+   answer, a panel whose head is the call (an imperative) with its win chance big; the decks as game cards (mine to play) or
+   compact lines (theirs, predictions, alternatives); the evidence as quiet marks. Every class is prefixed dr-. */
+
+/* ---------------------------------------------------------------- formats: one tablist, two captioned groups */
+.dr-fmts { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 32px; margin-bottom: 32px; }
+.dr-grp { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.dr-grp-l { color: var(--muted); font: 600 14px/1.4 var(--text); }
+/* the active format: the one choice of the track, raised in cyan (the .seg grammar, here a tab) */
+.dr-seg button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); box-shadow: var(--raised); }
+.dr-seg button[aria-selected="true"]:hover { background: var(--accent); filter: brightness(1.06); }
+.dr-seg button:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--night), 0 0 0 4px var(--accent); }
+
+.dr-panel { display: grid; grid-template-columns: minmax(0, 1fr); gap: 32px; }
+/* 44px to the touch (the segments, the text disclosures, Clear, the words that explain themselves): the look stays, the hit area
+   grows into the air around them */
+.dr-fmts .seg button::after, .dr-panel .seg button::after { inset: -6px -2px; }
+.dr-tdisc, .dr-mxd .tdisc, .dr-clear { position: relative; }
+.dr-tdisc::after, .dr-mxd .tdisc::after, .dr-clear::after { content: ""; position: absolute; inset: -4px 0; }
+.dr-mxc::after, .dr-vsb::after { content: ""; position: absolute; inset: -9px -4px; }
+.dr-toss::after { content: ""; position: absolute; inset: -6px -4px; }
+.dr-panel:focus { outline: none; }
+
+/* ---------------------------------------------------------------- what the visitor knows */
+.dr-in { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.dr-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.dr-l { color: var(--ink-2); font: 600 16px/1.4 var(--text); }
+/* a disabled segment: .5, no hover; the selected one keeps its fill (the choice stays readable while it cannot change) */
+.dr-panel .seg button:disabled { opacity: .5; cursor: default; }
+.dr-panel .seg button:disabled:not([aria-pressed="true"]) { background: transparent; color: var(--ink-2); }
+.dr-panel .seg button:disabled[aria-pressed="true"] { background: var(--panel-hi); color: var(--ink); box-shadow: none; }
+.dr-n { margin-left: 8px; color: inherit; font: 600 14px/1 var(--text); font-variant-numeric: tabular-nums; opacity: .75; }
+.dr-n:empty { display: none; }
+.dr-field { max-width: 420px; }
+.dr-sug { min-height: 36px; }
+
+/* the talents the visitor lacks: a text disclosure, quiet until needed */
+.dr-tlw { display: grid; justify-items: start; }
+.dr-tdisc { margin-left: -12px; color: var(--ink-2); font-size: 16px; }
+.dr-tdisc .dr-n { margin-left: 4px; }
+.dr-tlw .collapse { width: 100%; }
+.dr-tlb { display: grid; gap: 8px; min-width: 0; padding: 8px 0 4px; }
+.dr-tl-rows { display: grid; gap: 8px; }
+.dr-tl-rows[hidden] { display: none; }
+.dr-tl-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; min-height: 44px; }
+.dr-tl-tg { display: flex; flex-wrap: wrap; gap: 8px; }
+/* a talent: pressed = you have it (the check), released = you don't (struck, dimmed); never cyan: having a talent is not a pick */
+.chip.dr-tg { gap: 4px; padding: 0 12px 0 8px; }
+.chip.dr-tg[aria-pressed="true"] { background: var(--panel-hi); border-color: var(--edge); color: var(--ink); box-shadow: none; }
+.chip.dr-tg[aria-pressed="true"]:not(:disabled):not([aria-disabled="true"]):hover { background: var(--panel-hi); filter: brightness(1.08); }
+.chip.dr-tg[aria-pressed="true"]:not(:disabled):not([aria-disabled="true"]):active { background: var(--socket); filter: none; }
+.chip.dr-tg[aria-pressed="false"] { color: var(--muted); }
+.chip.dr-tg[aria-pressed="false"] .chip-l { text-decoration: line-through; text-decoration-color: var(--muted); }
+.chip.dr-tg[aria-pressed="false"] .ico { opacity: 0; }
+.chip.dr-tg[aria-disabled="true"] { cursor: default; }
+
+/* ---------------------------------------------------------------- the answer */
+.dr-ans { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); padding: 24px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel);
+  scroll-margin-top: calc(var(--chrome-h) + 16px); }
+/* waiting for an input: one line, no panel (the panel is for an answer) */
+.dr-ans[data-state="wait"] { padding: 0; border-color: transparent; background: none; }
+.dr-ans:focus { outline: none; }
+.dr-ans:focus-visible { box-shadow: var(--ring); }
+.dr-ans[hidden] { display: none; }
+.dr-ans-in { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; transition: opacity var(--t-fade) var(--curve); }
+/* a call running: the last answer stays, at the opacity floor, so nothing collapses */
+.dr-ans[data-state="busy"] .dr-ans-in { opacity: .45; }
+/* a state that is not an answer: the glyph and one line (loading, waiting for an input, an error with Try again) */
+.dr-note { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; color: var(--ink-2); }
+.dr-note > .ico { flex: none; width: 24px; height: 24px; color: var(--muted); }
+.dr-note > p { flex: 1 1 240px; margin: 0; font: 400 18px/1.4 var(--display); letter-spacing: .01em; color: var(--ink); }
+.dr-ans[data-state="wait"] .dr-note > p { font: 600 16px/1.5 var(--text); letter-spacing: 0; color: var(--ink-2); }
+.dr-ans[data-state="error"] .dr-note > p { font: 600 16px/1.5 var(--text); letter-spacing: 0; }
+/* a browser without module workers: said under the heading at once (the data notice's place, the 24px glyph) */
+.dr-off { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; color: var(--ink); font: 600 16px/1.5 var(--text); text-wrap: pretty; }
+.dr-off > .ico { flex: none; color: var(--muted); }
+
+/* the head: the call, then its win chance big with its basis beside it */
+.dr-vh { display: grid; gap: 8px; }
+.dr-call { font-size: 28px; }
+.dr-lean { color: var(--ink-2); font: 400 18px/1.3 var(--display); letter-spacing: .01em; }
+.dr-fig { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
+.dr-p { color: var(--ink); font: 400 40px/1 var(--display); letter-spacing: .01em; font-variant-numeric: tabular-nums; }
+.dr-basis { max-width: 46ch; color: var(--muted); font: 600 14px/1.4 var(--text); text-wrap: pretty; }
+.dr-stepl { color: var(--muted); font: 600 14px/1.4 var(--text); margin-bottom: -8px; }
+.dr-sub { color: var(--ink-2); font: 400 18px/1.15 var(--display); letter-spacing: .01em; }
+
+/* a word that explains itself (Toss-up, the evidence, a matrix cell, a matchup): the Deck figures' states */
+.dr-toss, .dr-ev, .dr-mxc, .dr-vsb, .dr-gm { position: relative; margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: help;
+  transition: background var(--t-state) var(--curve), box-shadow var(--t-state) var(--curve); }
+.dr-toss, .dr-ev, .dr-mxc, .dr-vsb { border-radius: 8px; }
+.dr-toss { margin: -4px -8px; padding: 4px 8px; text-decoration: underline dotted var(--edge) 2px; text-underline-offset: 6px; }
+/* beside a figure that is not a call (your best deck, the draft done): the word one step down, the figure keeps the head */
+.dr-tossw { display: inline-flex; }
+.dr-toss.dr-toss-s { color: var(--ink-2); font: 400 18px/1 var(--display); letter-spacing: .01em; text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
+.dr-toss:hover, .dr-toss.on, .dr-toss:focus-visible, .dr-ev:hover, .dr-ev.on, .dr-ev:focus-visible, .dr-mxc:hover, .dr-mxc.on, .dr-mxc:focus-visible,
+.dr-vsb:hover, .dr-vsb.on, .dr-vsb:focus-visible { outline: none; background: var(--socket); box-shadow: var(--ring); text-decoration-color: transparent; }
+
+/* evidence: a glyph whose shape is the state, and its word; never a colour of its own */
+.dr-evl { margin-top: -4px; }
+.dr-ev { display: inline-flex; align-items: center; gap: 8px; min-height: 28px; margin-left: -8px; padding: 0 8px; color: var(--muted); font: 600 14px/1.3 var(--text); }
+.dr-ev > span { text-decoration: underline dotted var(--edge) 1.5px; text-underline-offset: 4px; }
+.dr-ev:hover > span, .dr-ev.on > span, .dr-ev:focus-visible > span { text-decoration-color: transparent; }
+.dr-ev::after, .dr-gm::after { content: ""; position: absolute; inset: -8px -4px; }
+.ev-g { display: inline-block; flex: none; width: 10px; height: 10px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ink-2); }
+.ev-measured .ev-g { background: var(--ink-2); }
+.ev-composed .ev-g { background: linear-gradient(90deg, var(--ink-2) 50%, transparent 50%); }
+.ev-estimate .ev-g { box-shadow: inset 0 0 0 1.5px var(--muted); }
+/* a guessed talent: the dashed ring after its name */
+.dr-gm { display: inline-grid; place-items: center; flex: none; width: 16px; height: 16px; margin-top: 1px; border-radius: 4px; }
+.dr-gm:hover, .dr-gm.on, .dr-gm:focus-visible { outline: none; background: var(--socket); box-shadow: var(--ring); }
+.dr-gm .ev-g, .ev-g.gm { box-shadow: none; border: 1.5px dashed var(--ink-2); width: 11px; height: 11px; }
+.slot-tl > .dr-gm { overflow: visible; display: inline-grid; }
+
+/* ---------------------------------------------------------------- decks */
+.dr-cards { padding: 8px 0 0; }
+.dr-cards .slot { display: grid; gap: 12px; align-content: start; }
+.dr-line { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px 12px; min-width: 0; }
+.dr-cell { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.dr-cc { display: flex; align-items: center; gap: 8px; min-width: 0; margin: -5px -4px; padding: 5px 4px; border: 0; border-radius: 8px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
+  transition: background var(--t-state) var(--curve); }
+.dr-cc:hover { background: rgba(255, 255, 255, .08); }
+.dr-cc:active { background: rgba(0, 0, 0, .35); }
+.dr-cc:focus-visible { outline: none; box-shadow: var(--ring); }
+.dr-art { flex: none; width: 24px; height: 34px; border-radius: 4px; object-fit: cover; object-position: top; background: var(--card-edge); }
+.dr-art.broken { visibility: hidden; }
+.dr-cn { display: grid; min-width: 0; }
+.dr-name { display: -webkit-box; overflow: hidden; color: var(--ink); font: 400 16px/1.15 var(--display); letter-spacing: .01em; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow-wrap: anywhere; }
+.dr-tl { overflow: hidden; color: var(--muted); font: 600 14px/1.3 var(--text); text-overflow: ellipsis; white-space: nowrap; }
+.dr-gmw { display: inline-flex; }
+
+.dr-alts { display: grid; gap: 8px; }
+.dr-alt-list { display: grid; }
+.dr-alt { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px 16px; padding: 12px 0; border-top: 1px solid var(--line); }
+.dr-alt .dr-evw { grid-column: 1 / -1; }
+.dr-alt-p { color: var(--ink); font: 400 18px/1 var(--display); letter-spacing: .01em; font-variant-numeric: tabular-nums; }
+
+/* ---------------------------------------------------------------- Conquest: a numbered sequence */
+.dr-step { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.dr-step-h { display: flex; align-items: center; gap: 12px; font-size: 22px; }
+.dr-step-n { flex: none; color: var(--muted); font: 400 22px/1 var(--display); font-variant-numeric: tabular-nums; }
+.dr-step-act { display: flex; flex-wrap: wrap; gap: 8px; }
+.dr-set { display: grid; gap: 8px; }
+.dr-set-f { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.dr-set-f .dr-field { flex: 1 1 280px; }
+.dr-clear { height: 36px; padding: 0 16px; font-size: 16px; }
+.dr-decks { display: grid; gap: 8px; }
+.dr-deck { display: grid; grid-template-columns: 72px minmax(0, 1fr); align-items: center; gap: 4px 12px; }
+.dr-deck-n { color: var(--muted); font: 600 14px/1.4 var(--text); }
+.dr-slots { margin: 0; }
+.dr-deck-ev { grid-column: 2; }
+.dr-deck-ev:empty { display: none; }
+.dr-prep { display: grid; }
+.dr-prep > li { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; align-items: center; gap: 8px 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+.dr-prep > li > .dr-evw { grid-column: 2 / -1; }
+.dr-opts { display: grid; gap: 4px; }
+.dr-opt { display: grid; grid-template-columns: 136px minmax(0, 1fr) auto; align-items: center; gap: 8px 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+.dr-opt:first-child { border-top: 0; }
+/* the recommended ban: by type (its label and figure in Cream Lavender, the others quieter), no fill: a fill reads as hover */
+.dr-opt-l { color: var(--muted); font: 600 14px/1.4 var(--text); }
+.dr-opt .dr-alt-p { color: var(--ink-2); }
+.dr-opt.best .dr-opt-l, .dr-opt.best .dr-alt-p { color: var(--ink); }
+.dr-note-s { color: var(--muted); font: 600 14px/1.4 var(--text); text-wrap: pretty; }
+.dr-mxd { display: grid; justify-items: start; }
+.dr-mxd .tdisc { margin-left: -12px; color: var(--ink-2); }
+.dr-mxd .collapse { width: 100%; }
+.dr-mxw { overflow-x: auto; padding: 4px 0; }
+.dr-mx { border-collapse: collapse; }
+.dr-mx-c { padding-bottom: 8px; color: var(--muted); font: 600 14px/1.4 var(--text); text-align: left; caption-side: top; }
+.dr-mx th, .dr-mx td { padding: 8px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; font-weight: 400; }
+.dr-mx tbody tr:last-child > * { border-bottom: 0; }
+.dr-mx-h { display: block; margin-bottom: 4px; color: var(--muted); font: 600 14px/1.3 var(--text); white-space: nowrap; }
+.dr-mx-t { display: flex; gap: 4px; }
+.dr-mx-t .dr-art { width: 18px; height: 24px; }
+.dr-mxc { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; margin: -4px -8px; color: var(--ink); font: 400 18px/1 var(--display); letter-spacing: .01em;
+  font-variant-numeric: tabular-nums; text-decoration: underline dotted var(--edge) 1.5px; text-underline-offset: 4px; }
+.dr-mxc.dr-even { color: var(--ink-2); }
+.dr-bans { display: grid; gap: 12px; }
+.dr-bans[hidden] { display: none; }
+.dr-vs { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+.dr-vsb { display: inline-flex; align-items: baseline; gap: 8px; padding: 4px 8px; margin: -4px -8px; }
+.dr-vsb > span { color: var(--muted); font: 600 14px/1.3 var(--text); text-decoration: underline dotted var(--edge) 1.5px; text-underline-offset: 4px; }
+.dr-vsb > b { color: var(--ink); font: 400 18px/1 var(--display); letter-spacing: .01em; }
+.dr-log { display: grid; gap: 16px; }
+.dr-games { display: grid; gap: 4px; color: var(--ink-2); font: 400 16px/1.5 var(--text); }
+.dr-games[hidden] { display: none; }
+.dr-rec { display: grid; gap: 12px; }
+.dr-v { color: var(--ink); font: 400 16px/1 var(--display); letter-spacing: .01em; }
+.dr-rec:empty { display: none; }
+.dr-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ---------------------------------------------------------------- Fearless draft */
+/* the ten steps on two lanes, yours above and theirs below, each step in its column of the draft's order (A-B-A-B, the bans,
+   B-A-B-A reads at a glance); bans dashed, done steps filled, the step to act on ringed in cyan (what you act on) */
+.dr-lanes { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 12px; }
+.dr-lane-l { display: grid; grid-template-rows: 28px 28px; gap: 4px; align-items: center; color: var(--muted); font: 600 14px/1 var(--text); }
+.dr-lane-l > :first-child { color: var(--ink-2); }
+.dr-track { display: grid; grid-template-columns: repeat(10, minmax(0, 28px)); grid-template-rows: 28px 28px; gap: 4px; }
+.dr-tk { grid-column: var(--col); grid-row: 2; display: inline-grid; place-items: center; width: 100%; height: 28px; border-radius: 4px; background: var(--socket); box-shadow: var(--sunken);
+  font: 400 14px/1 var(--display); }
+.dr-tk.me { grid-row: 1; }
+.dr-tk.me { color: var(--ink); }
+.dr-tk.opp { color: var(--muted); }
+.dr-tk.ban { box-shadow: var(--sunken); outline: 1px dashed var(--edge); outline-offset: -3px; }
+.dr-tk.done { background: var(--panel-hi); box-shadow: none; }
+.dr-tk.now { box-shadow: inset 0 0 0 2px var(--accent); }
+.dr-altl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.dr-chips { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.dr-chips > li { display: inline-flex; align-items: center; gap: 8px; }
+.dr-exp { display: grid; gap: 8px; padding-top: 16px; border-top: 1px solid var(--line); }
+.dr-exp-r { display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: center; gap: 4px 12px; }
+.dr-exp-r > .dr-evw { grid-column: 2; }
+.dr-act { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; padding-top: 8px; }
+.dr-act > .btn { justify-self: start; max-width: 100%; }
+.dr-act:empty { display: none; }
+.dr-take { justify-self: start; max-width: 100%; }
+.dr-other { display: grid; gap: 8px; }
+.dr-board { display: grid; gap: 12px; }
+.dr-sub3 { font-size: 22px; }
+.dr-bside { display: grid; gap: 8px; }
+.dr-bslots { grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, .8fr); margin: 0; }
+.fd-slot.dr-ban { outline: 1px dashed var(--edge); outline-offset: -1px; }
+.fd-slot.dr-ban.idle { justify-content: center; opacity: 1; outline-color: var(--line); }
+.dr-ban-l { color: var(--muted); font: 600 14px/1 var(--text); }
+.fd-slot.dr-ban .fd-card { color: var(--muted); }
+.fd-slot.dr-ban .fd-card > .ico { flex: none; width: 16px; height: 16px; }
+.fd-slot.dr-ban .fd-name { color: var(--muted); }
+
+/* ---------------------------------------------------------------- phone */
+@media (max-width: 640px) {
+  .dr-fmts { gap: 12px 24px; margin-bottom: 24px; }
+  .dr-panel { gap: 24px; }
+  .dr-ans { padding: 16px; }
+  .dr-call { font-size: 22px; }
+  .dr-p { font-size: 28px; }
+  .dr-line { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dr-deck, .dr-prep > li { grid-template-columns: minmax(0, 1fr); }
+  .dr-deck-ev, .dr-prep > li > .dr-evw { grid-column: 1; }
+  .dr-prep > li { grid-template-columns: minmax(0, 1fr) auto; }
+  .dr-prep > li > .dr-deck-n { grid-column: 1 / -1; }
+  .dr-prep > li > .dr-line { grid-column: 1; }
+  .dr-opt { grid-template-columns: minmax(0, 1fr) auto; }
+  .dr-opt > .dr-line { grid-column: 1 / -1; grid-row: 2; }
+  .dr-exp-r { grid-template-columns: minmax(0, 1fr); }
+  .dr-exp-r > .dr-evw { grid-column: 1; }
+  .dr-bslots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dr-bslots > .dr-ban { grid-column: 1 / -1; }
+  .dr-mx th, .dr-mx td { padding: 8px 4px; }
+  /* the offers: one row of two under the line's label or hint (draftview.js SEARCH), so the room kept is one row */
+  .fd-sug.dr-sug { grid-template-rows: auto 36px; }
+  .fd-sug.dr-sug.full { grid-template-rows: auto; }
+  .dr-mx-h { white-space: normal; }
+  .dr-mx thead .dr-mx-t { display: grid; grid-template-columns: repeat(2, 18px); gap: 4px; }
+}
+

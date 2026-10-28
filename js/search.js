@@ -4,11 +4,11 @@
 // Matching is accent- and case-insensitive and every word must match ("chouette", "leviathan", "lames en"); a phrase in
 // double quotes must match as written. The field clears with its clear button or Escape.
 
-import { h, icon, norm, debounce } from "./util.js?v=d299a81e8e";
-import { DB } from "./data.js?v=d299a81e8e";
-import { chip, cardName } from "./cards.js?v=d299a81e8e";
-import { t, tx } from "./i18n.js?v=d299a81e8e";
-import { DECK_TABLE_SHOWN } from "./patch.js?v=d299a81e8e";
+import { h, icon, norm, debounce } from "./util.js?v=aa3c01bc6a";
+import { DB } from "./data.js?v=aa3c01bc6a";
+import { chip, cardName } from "./cards.js?v=aa3c01bc6a";
+import { t, tx } from "./i18n.js?v=aa3c01bc6a";
+import { DECK_TABLE_SHOWN } from "./patch.js?v=aa3c01bc6a";
 
 /** The words of a query, normalised: `polychrome "en peine"` -> ["polychrome", "en peine"]. */
 export function terms(q) {
@@ -108,20 +108,23 @@ const thumb = (c) => h("img", { class: "cc-art", loading: "lazy", decoding: "asy
  * cards left out as removable chips, in the builder's order (field, offers, what was taken). The view filters its decks and keeps
  * the state, so it survives a redraw: `out` (card objects) and `value` (the query) start the row; onOut(list, change) runs on every
  * change of the list ({ left } or { back }: the card), onQuery(value) on every change of the query; `note(c)`, when given, is a
- * word on what leaving `c` out also does (the builder: it is one of your cards). Returns { el, field, set(list) } (set() does not
- * call onOut).
+ * word on what leaving `c` out also does (the builder: it is one of your cards). `words` names the i18n keys of another list of
+ * cards in the same dress (the Draft tab's played cards: label, ph, hint, list, offer, add, already, del; "out.*" by default).
+ * Returns { el, field, set(list) } (set() does not call onOut).
  */
-export function outRow({ id, out = [], value = "", onOut, onQuery = () => {}, note = () => null }) {
+const OUT_WORDS = { label: "out.label", ph: "out.ph", hint: "out.hint", list: "out.list", offer: "out.offer", add: "out.add", already: "out.already", del: "out.del" };
+export function outRow({ id, out = [], value = "", onOut, onQuery = () => {}, note = () => null, words = {} }) {
+  const W = { ...OUT_WORDS, ...words };
   let list = out.slice(), q = value;
   const hintId = id + "-hint";
-  const field = searchField({ id, name: "out-card", placeholder: t("out.ph"), label: t("out.label"), clearLabel: t("cx.clearSearch"), value,
+  const field = searchField({ id, name: "out-card", placeholder: t(W.ph), label: t(W.label), clearLabel: t("cx.clearSearch"), value,
     onChange: (v) => { q = v; onQuery(v); paintLine(); },
     onEnter: () => { const first = line.querySelector(".out-add:not(:disabled)"); if (first && q.trim()) first.click(); } });
   field.input.setAttribute("aria-describedby", hintId);
   const voice = announcer();
-  const label = h("label.out-l", { for: id }, t("out.label"));
-  const chips = h("ul.out-list", { "aria-label": t("out.list") });
-  const hint = h("span.out-hint", { id: hintId }, t("out.hint"));
+  const label = h("label.out-l", { for: id }, t(W.label));
+  const chips = h("ul.out-list", { "aria-label": t(W.list) });
+  const hint = h("span.out-hint", { id: hintId }, t(W.hint));
   const matches = h("span.out-m");
   const line = h("p.out-sug", [hint, matches]);
 
@@ -145,8 +148,8 @@ export function outRow({ id, out = [], value = "", onOut, onQuery = () => {}, no
   /** The cards left out, each a chip that brings it back (ban mode leaves out one or two: no "Clear all"). Focus stays in the
    * row after a removal: on the chip now in its place, else the one before, else the field. */
   function paintChips(focusAt) {
-    chips.replaceChildren(...list.map((c, i) => h("li", h("button.qchip.out-chip", { type: "button", title: t("out.del", { name: cardName(c) }),
-      "aria-label": t("out.del", { name: cardName(c) }), onclick: () => commit(list.filter((x) => x !== c), { back: c }, i) },
+    chips.replaceChildren(...list.map((c, i) => h("li", h("button.qchip.out-chip", { type: "button", title: t(W.del, { name: cardName(c) }),
+      "aria-label": t(W.del, { name: cardName(c) }), onclick: () => commit(list.filter((x) => x !== c), { back: c }, i) },
     [thumb(c), h("span", { translate: "no" }, cardName(c)), icon("close", 14)]))));
     chips.hidden = !list.length;
     if (focusAt == null) return;
@@ -172,13 +175,13 @@ export function outRow({ id, out = [], value = "", onOut, onQuery = () => {}, no
       return;
     }
     const shown = found.slice(0, outSuggest());
-    matches.replaceChildren(h("span.fd-sug-l", t("out.offer")), ...shown.map((c) => {
+    matches.replaceChildren(h("span.fd-sug-l", t(W.offer)), ...shown.map((c) => {
       const name = cardName(c), done = list.includes(c), more = done ? null : note(c);
-      const say = done ? t("out.already", { name }) : t("out.add", { name }) + (more ? " " + more : "");
+      const say = done ? t(W.already, { name }) : t(W.add, { name }) + (more ? " " + more : "");
       return h("button.chip.out-add", { type: "button", disabled: done, title: say, "aria-label": say, onclick: () => leave(c) },
         [thumb(c), h("span.chip-l", { translate: "no" }, name), icon("minus")]);
     }));
-    voice.say(t("out.offer").replace(/\s*:\s*$/, "") + ": " + shown.map((c) => (list.includes(c) ? t("out.already", { name: cardName(c) }) : cardName(c))).join(", "));
+    voice.say(t(W.offer).replace(/\s*:\s*$/, "") + ": " + shown.map((c) => (list.includes(c) ? t(W.already, { name: cardName(c) }) : cardName(c))).join(", "));
   }
 
   paintChips(null);

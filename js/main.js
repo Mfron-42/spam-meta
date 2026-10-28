@@ -4,22 +4,23 @@
 // the stage ranking's deck table (DECK_TABLE_SHOWN), else they have no tab; the Card tier list reads the same run's card tiers
 // (CARD_TIERS_SHOWN), else it draws the placeholder.
 
-import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=d299a81e8e";
-import { t, applyStatic, millions } from "./i18n.js?v=d299a81e8e";
-import { copyText } from "./ui.js?v=d299a81e8e";
-import { DB, loadCore, loadLists } from "./data.js?v=d299a81e8e";
-import { patchLine, dataDate, deckRanking, openMethod, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN } from "./patch.js?v=d299a81e8e";
-import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=d299a81e8e";
-import { versioned, withQuery } from "./version.js?v=d299a81e8e";
-import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=d299a81e8e";
-import { holdTiles } from "./cardtilt.js?v=d299a81e8e";
-import { ambient } from "./ambient.js?v=d299a81e8e";
+import { h, $, $$, icon, fmtInt, fmtDate } from "./util.js?v=aa3c01bc6a";
+import { t, applyStatic, millions } from "./i18n.js?v=aa3c01bc6a";
+import { copyText } from "./ui.js?v=aa3c01bc6a";
+import { DB, loadCore, loadLists } from "./data.js?v=aa3c01bc6a";
+import { patchLine, dataDate, deckRanking, openMethod, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, DRAFT_SHOWN } from "./patch.js?v=aa3c01bc6a";
+import { on, ownedCount, setKnown, getLang, setLang } from "./store.js?v=aa3c01bc6a";
+import { versioned, withQuery } from "./version.js?v=aa3c01bc6a";
+import { initDialogs, openCard, openAbout, refreshDialogs, syncDialogOwned, leaveCard } from "./dialogs.js?v=aa3c01bc6a";
+import { holdTiles } from "./cardtilt.js?v=aa3c01bc6a";
+import { ambient } from "./ambient.js?v=aa3c01bc6a";
 
-// Five tabs, one view each; the Deck builder (#builder) sits next to My decks. TABS are the ones shown.
-const ALL_TABS = ["tiers", "card-tiers", "codex", "decks", "builder"];
-const TABS = CARD_RANKINGS_SHOWN || DECK_TABLE_SHOWN ? ALL_TABS : ["tiers", "card-tiers", "codex"];
+// Six tabs, one view each; the Deck builder (#builder) sits next to My decks, the Draft tab (#draft, the tournament helper) last.
+// TABS are the ones shown.
+const ALL_TABS = ["tiers", "card-tiers", "codex", "decks", "builder", "draft"];
+const TABS = CARD_RANKINGS_SHOWN || DECK_TABLE_SHOWN ? ALL_TABS.filter((v) => v !== "draft" || DRAFT_SHOWN) : ["tiers", "card-tiers", "codex"];
 const HOME = CARD_RANKINGS_SHOWN || DECK_RANKING_SHOWN ? "tiers" : "codex";    // the landing view (no hash, an unknown one, or a tab not shown)
-const TITLE_KEYS = { tiers: "tab.tiers", "card-tiers": "tab.cardTiers", codex: "tab.codex", decks: "tab.decks", builder: "fd.title" };
+const TITLE_KEYS = { tiers: "tab.tiers", "card-tiers": "tab.cardTiers", codex: "tab.codex", decks: "tab.decks", builder: "fd.title", draft: "dr.title" };
 const tabName = (tab) => t(TITLE_KEYS[tab]);
 let firstTab = true;         // the landing page keeps the site title until the visitor moves
 const mounted = {};
@@ -32,6 +33,7 @@ const MODULES = {
   codex: "./codex.js",
   decks: "./mydecks.js",
   builder: "./finder.js",
+  draft: "./draftview.js",
 };
 const RETRY_MS = 1200;       // a view module that fails to load gets one more try after this pause
 let current = null;
@@ -82,7 +84,8 @@ function findCard(key) {
 }
 
 // ---- tabs
-// #tiers, #card-tiers, #codex, #decks, #builder (the Deck builder), or #<view>/<card key> which also opens that card. A natural
+// #tiers, #card-tiers, #codex, #decks, #builder (the Deck builder), #draft (#draft/<format>: the format shown), or #<view>/<card
+// key> which also opens that card. A natural
 // spelling of My decks (#my-decks, #mes-decks, #mydecks) or of the Deck builder (#finder, #deck-finder, #trouver, #deck-builder) opens it too
 // and is replaced in place by the canonical hash. A tab that is not shown opens the landing view, its hash replaced in place.
 const ALIASES = { "my-decks": "decks", "mes-decks": "decks", mydecks: "decks", finder: "builder", "deck-finder": "builder", trouver: "builder", "deck-builder": "builder" };
