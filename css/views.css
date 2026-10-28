@@ -42,6 +42,17 @@
 .rk-sec .rk-list :is(button, a) { scroll-margin-top: 64px; }      /* so does a card or a figure reached by Tab (the page's scroll padding clears the header) */
 /* the ranked list (an ordered list, one deck per item) and its empty state when "Ready to play" leaves no deck */
 .rk-list { display: grid; margin-top: 8px; }
+/* the Deck tier list's decks under the first are laid out and painted only near the screen (64 decks are about 19,000
+   elements; a list swap lays out a third as much). Each keeps its height once drawn; before that, the height below stands
+   in: a row's usual content height at each layout (its 24 + 16px padding and hairline come on top), 1 row of 4 cards with
+   the facts beside it, the facts above, 2 by 2 on a phone. A jump past the list lays every deck out for one frame first
+   (ui.js settleRows), so it lands where it aims. Nothing in a deck reaches outside it (paint is clipped to the deck): the
+   tooltip and the card view live in the body and the top layer */
+.cv-rows > .deck:not(.spot) { content-visibility: auto; contain-intrinsic-block-size: auto 308px; }
+.cv-rows.settle > .deck { content-visibility: visible; }
+@media (max-width: 1040px) { .cv-rows > .deck:not(.spot) { contain-intrinsic-block-size: auto 580px; } }
+@media (max-width: 760px) { .cv-rows > .deck:not(.spot) { contain-intrinsic-block-size: auto 510px; } }
+@media (max-width: 640px) { .cv-rows > .deck:not(.spot) { contain-intrinsic-block-size: auto 790px; } }
 .rk-empty { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 24px; max-width: none; color: var(--ink-2); }
 .rk-empty .btn { height: 36px; padding: 0 16px; font-size: 16px; }
 /* the footer's Method sub-sections: the caveats as a short list in the region's own type */
@@ -161,8 +172,8 @@ mark { background: rgba(70, 211, 255, .28); color: inherit; border-radius: 4px; 
 .deck:not([hidden]) ~ .deck { border-top: 1px solid var(--line); }
 .deck-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; min-height: 36px; }
 .rk { font: 400 28px/1 var(--display); color: var(--muted); }
-/* a fact about a deck in words, never a box: "≈ #1" (the Elo list: its margin reaches the deck above's), "tied" (the speed list:
-   the same rounds as another deck) */
+/* a fact about a deck in words, never a box: "likely #1–9" (its likely place in the list), "tied" (the speed list: the same
+   rounds as another deck) */
 .deck-word { color: var(--muted); font: 600 14px/1.4 var(--text); white-space: nowrap; }
 .deck-head .obadge { margin-left: auto; align-self: center; }
 .deck-body { display: grid; grid-template-columns: minmax(0, 640px) minmax(0, 1fr); gap: 16px 48px; align-items: start; }

@@ -3,17 +3,18 @@
 // drawn as a full-screen card view (card.css); its enter and exit (the card flying from its tile) are played by
 // cardmotion.js.
 
-import { h, $, icon, reducedMotion, pct, pct1, fmtDate, fmtInt, softBreak } from "./util.js?v=e550ac9b69";
-import { DB, loadTier, loadCardTiers, loadCardCounters, loadLists } from "./data.js?v=e550ac9b69";
-import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=e550ac9b69";
-import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=e550ac9b69";
-import { encode, decode } from "./code.js?v=e550ac9b69";
-import { copyText, disclosure } from "./ui.js?v=e550ac9b69";
-import { t, tx, millions } from "./i18n.js?v=e550ac9b69";
-import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, GAME_PATCH, isMatchupTalent, matchupMark } from "./patch.js?v=e550ac9b69";
-import { textNodes, elementNode, hideTip } from "./cardtext.js?v=e550ac9b69";
-import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=e550ac9b69";
-import { attachTilt } from "./cardtilt.js?v=e550ac9b69";
+import { h, $, icon, reducedMotion, pct, fmtDate, fmtInt, softBreak } from "./util.js?v=d299a81e8e";
+import { DB, loadTier, loadCardTiers, loadCardCounters, loadLists } from "./data.js?v=d299a81e8e";
+import { getLang, isOwned, setOwned, ownedKeys, replaceOwned, ownedCount, canPersist } from "./store.js?v=d299a81e8e";
+import { cardTile, chip, L, cardName, ELEMENTS, elName, unsize, passiveWing } from "./cards.js?v=d299a81e8e";
+import { encode, decode } from "./code.js?v=d299a81e8e";
+import { copyText, disclosure } from "./ui.js?v=d299a81e8e";
+import { t, tx, millions } from "./i18n.js?v=d299a81e8e";
+import { patchTag, patchDetail, entryChanged, entryTag, oldNumbersNote, suggestedTalent, glyph, patchLine, dataDate, deckRanking, limitParams, CARD_RANKINGS_SHOWN, CARD_TIERS_SHOWN, DECK_RANKING_SHOWN, DECK_TABLE_SHOWN, GAME_PATCH, isMatchupTalent, matchupMark } from "./patch.js?v=d299a81e8e";
+import { textNodes, elementNode, hideTip } from "./cardtext.js?v=d299a81e8e";
+import { takeOff, openMotion, closeMotion, settle, forget } from "./cardmotion.js?v=d299a81e8e";
+import { attachTilt } from "./cardtilt.js?v=d299a81e8e";
+import { TC } from "./deckstrip.js?v=d299a81e8e";
 
 let openDlg = null, pushed = false;
 
@@ -422,51 +423,31 @@ function counterSection(c) {
   return sec;
 }
 
-const TC = { "S+": "sp", S: "s", A: "a", B: "b", C: "c", D: "d", E: "e" };
-
-/**
- * The card's tier in every view of the Card tier list (data/cardtiers.json, one line each, in the list's switch order: All games,
- * the list's default, then Tournament): the tier chip, the view's one-word name, its figure (the average win rate of the card's
- * best decks in that view; All games in whole points, its likely range in the line's title and for a reader) and its deck count;
- * a card with no deck in a view has the dash chip and "Not in the Tournament". The place among the view's cards is the line's
- * title.
- */
-const CT_VIEWS = ["all", "race"];
-const CT_NAME = { all: "ct.vAll", race: "ct.vRace" };
-function cardTierRows(c, T) {
-  const r = T.cards.find((x) => x.id === c.id);
-  if (!r) return [];
-  return CT_VIEWS.filter((v) => T.views.includes(v) && r[v]).map((v) => {
-    const x = r[v], name = t(CT_NAME[v]);
-    if (!x.tier) {
-      return h("li.cd-ct", [h("span.ct-tchip.tc-out", { "aria-hidden": "true" }, "–"), h("span.cd-ct-v", name),
-        h("span", t("ct.outRace"))]);
-    }
-    const tip = t("ct.rankOf", { r: x.rank, m: T.placed[v] });
-    // All games: whole points and its likely range in place of the deck count (its figure never stands without it, as in the
-    // Card tier list's previews); the rough-estimate caveat as the line after it, its glyph in the chip's column
-    const all = v === "all" && x.ci95;
-    const lo = all ? Math.round(x.ci95[0] * 100) : 0, hi = all ? Math.round(x.ci95[1] * 100) : 0;
-    const line = h("li.cd-ct", { title: tip }, [
-      h("span.ct-tchip.tc-" + TC[x.tier], x.tier),
-      h("span.cd-ct-v", name),
-      // the view's name is the line's second column, so its deck count does not repeat it
-      h("span", [h("b", all ? pct(x.score, 0) : pct1(x.score)), " ",
-        all ? [h("span.cd-ct-ci", { "aria-hidden": "true" }, t("ct.rangeShort", { lo, hi })), h("span.sr", t("ct.rangeSr", { lo, hi }))] : t("ct.decksN", { n: x.decks }),
-        h("span.sr", t("ui.sep") + tip)]),
-    ]);
-    return all && x.evidence === "screen"
-      ? [line, h("li.cd-ct.cd-ct-rough", [h("span.cd-ct-g", icon("info")), h("span.cd-ct-r", t("ct.rough"))])] : line;
-  }).flat();
+/** The card tier cell's figure and caption (data/cardtiers.json), as its neighbours' (the stat pattern): the tier chip and the
+ * strength big in whole points, its range (the figure never stands without it, as in the Card tier list's previews) and its place
+ * among the placed cards under them; a card with not enough data: a dash chip and the words, its games and the tier's need under
+ * them. */
+function cardTierFill(r, T, fig, cap) {
+  if (!r.tier) {
+    fig.replaceChildren(h("span.ct-tchip.tc-few", { "aria-hidden": "true" }, "–"), h("span.cd-ct-few", t("ct.few")));
+    cap.textContent = t("ct.fewBasis", { games: fmtInt(r.games), min: fmtInt(T.min_games) });
+    return;
+  }
+  const lo = Math.round(r.range[0] * 100), hi = Math.round(r.range[1] * 100);
+  fig.replaceChildren(h("span.ct-tchip.tc-" + TC[r.tier], r.tier), h("span.sr", " "), pct(r.score, 0));
+  cap.replaceChildren(h("span", { "aria-hidden": "true" }, t("ct.range", { lo, hi })), h("span.sr", t("ct.rangeSr", { lo, hi })),
+    t("ui.comma") + t("ct.rankOf", { r: r.rank, m: T.placed }));
 }
 
-/** The card tier cell of the Meta section: filled once cardtiers.json is loaded, gone when it fails. */
+/** The card tier cell of the Meta section: filled once cardtiers.json is loaded, gone when it fails or holds no such card. */
 function cardTierCell(c) {
-  // one empty line per view while the file loads (two with All games), so the cell does not grow when it fills
-  const list = h("ul.cd-cts", [h("li.cd-ct"), h("li.cd-ct")]);
-  const cell = h("div.stat.cd-stat", { "aria-busy": "true" }, [h("span.stat-k", t("card.ctK")), list]);
+  // a dash and an empty caption while the file loads, as the deck tier cell: the cell does not grow when it fills
+  const fig = h("span.stat-v.cd-ct-v", "—"), cap = h("span.stat-s", " ");
+  const cell = h("div.stat.cd-stat", { "aria-busy": "true" }, [h("span.stat-k", t("card.ctK")), fig, cap]);
   loadCardTiers().then((T) => {
-    if (currentKey === c.key) list.replaceChildren(...cardTierRows(c, T));
+    if (currentKey !== c.key) return;
+    const r = T.cards.find((x) => x.id === c.id);
+    if (r) cardTierFill(r, T, fig, cap); else cell.remove();
   }).catch(() => { cell.remove(); }).finally(() => cell.removeAttribute("aria-busy"));
   return cell;
 }

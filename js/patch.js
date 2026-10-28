@@ -3,11 +3,11 @@
 // filled when a value, an ability or a passive changed (the class "mechanical"), hollow when only talents or texts did.
 // The data carries codes and positions; every word comes from i18n.js ("pc.*").
 
-import { h, icon, fmtDate, fmtInt, reducedMotion } from "./util.js?v=e550ac9b69";
-import { DB } from "./data.js?v=e550ac9b69";
-import { L } from "./cards.js?v=e550ac9b69";
-import { t } from "./i18n.js?v=e550ac9b69";
-import { disclosure } from "./ui.js?v=e550ac9b69";
+import { h, icon, fmtDate, fmtInt, reducedMotion } from "./util.js?v=d299a81e8e";
+import { DB } from "./data.js?v=d299a81e8e";
+import { L } from "./cards.js?v=d299a81e8e";
+import { t } from "./i18n.js?v=d299a81e8e";
+import { disclosure, settleRows } from "./ui.js?v=d299a81e8e";
 
 // Three patches can differ, and each label names the one it is about (SPEC.md, "Patch labels"):
 // - the GAME patch, the client players run today (below; the lab reads it from the game files);
@@ -23,9 +23,8 @@ export const GAME_PATCH = { patch: "1.26", date: "2026-10-21" };
 //   About and the card view's Meta section quote them. Off, the Deck tier list draws the "being computed" placeholder (pending.js).
 // - DECK_TABLE_SHOWN: My decks and the Deck builder read the current ranking's deck table (deck-table.json: every deck the run
 //   rated, the full AI's scale then the fast AI's picks, never mixed; owner, 2026-10-23: "tu as perdu beaucoup de features").
-// - CARD_TIERS_SHOWN: the Card tier list and the card view's card tier read the card tiers of the stage ranking's run
-//   (cardtiers.json, tools/export_cardtiers.py from ranking-decks.json; owner, 2026-10-24: "redo the card tier list too").
-//   Off, the Card tier list draws the "being computed" placeholder.
+// - CARD_TIERS_SHOWN: the Card tier list and the card view's card tier read the lab's card tiers fitted on the Elo list's games
+//   (cardtiers.json, tools/export_cardtiers.py; since 2026-10-28). Off, the Card tier list draws the "being computed" placeholder.
 // - CARD_RANKINGS_SHOWN: what is still on the 1.22 files, off since the lab recomputes the rankings (owner, 2026-10-21): the
 //   card view's "With and against" (cardcounters.json: the lab has no 1.26 card pairs yet), the 1.22 Meta section and the
 //   footer and About lines built from meta.json.
@@ -165,8 +164,9 @@ export function openMethod(key) {
   if (!sub || !sub.querySelector(".msub-body").childElementCount) { methodWanted = key; return; }
   sub._disc.set(true);
   const b = sub.querySelector(".msub-b");
-  b.scrollIntoView({ block: "start", behavior: reducedMotion() ? "auto" : "smooth" });
   b.focus({ preventScroll: true });
+  // the decks above the footer draw near the screen only: their true heights first, or the scroll would overshoot
+  settleRows().then(() => b.scrollIntoView({ block: "start", behavior: reducedMotion() ? "auto" : "smooth" }));
 }
 
 // The way back from the footer: following the link adds one history entry (the same address), so Back returns to the place the
@@ -220,13 +220,13 @@ export function provBanner(key) {
 // ---------------------------------------------------------------- talents picked against the opponent
 // In ranked, every card's talent is picked in a private draft before turn 1, for that match: a talent that guards against some
 // elements only (the element shields) is chosen against the opponent (owner, 2026-10-24). The exporters flag them from the talent
-// texts (tools/matchup_talents.py: `matchup_talents` of deck-lists.json and ranking.json); the site marks them where a deck shows a
+// texts (tools/matchup_talents.py: `matchup_talents` of deck-lists.json); the site marks them where a deck shows a
 // card's talent.
 
 /** Whether talent `i` of card `c` is picked against the opponent. */
 export const isMatchupTalent = (c, i) => {
-  // the same rule in both files (tools/matchup_talents.py): the deck lists' (loaded at boot), else the stage ranking's
-  const m = (DB.lists && DB.lists.matchup_talents) || (DB.ranking && DB.ranking.matchup_talents);
+  // the deck lists' (loaded at boot; tools/matchup_talents.py)
+  const m = DB.lists && DB.lists.matchup_talents;
   return !!(m && c && (m[c.id] || []).includes(Number(i)));
 };
 

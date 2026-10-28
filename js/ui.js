@@ -1,7 +1,7 @@
 // Shared interface pieces: the disclosure (collapsible region), FLIP reordering, segmented control, filter chip, and the
 // small "go to a tab" helper used by the Owned <-> My decks links.
 
-import { h, icon, reducedMotion } from "./util.js?v=e550ac9b69";
+import { h, icon, reducedMotion } from "./util.js?v=d299a81e8e";
 
 export const CURVE = "cubic-bezier(.4, 0, .2, 1)";
 
@@ -136,6 +136,21 @@ export function setChip(chip, count, pressed, onTitle, offTitle) {
   const dead = !count && !pressed;
   chip.el.disabled = dead;
   chip.el.title = dead ? offTitle : onTitle;
+}
+
+/**
+ * Lays out, for one frame, the rows that content-visibility leaves undrawn off screen (.cv-rows, views.css), so each records
+ * its true height in place of the stand-in: a jump far down the page (the footer's Method, past the Deck tier list) then lands
+ * where it aims. Resolves once the rows are back to drawing near the screen only. Hidden views cost nothing.
+ */
+export function settleRows() {
+  const lists = [...document.querySelectorAll(".cv-rows")].filter((l) => l.offsetParent);
+  if (!lists.length) return Promise.resolve();
+  lists.forEach((l) => l.classList.add("settle"));
+  return new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(() => {
+    lists.forEach((l) => l.classList.remove("settle"));
+    done();
+  })));
 }
 
 /** Scroll the page so an element is just under the sticky header. */

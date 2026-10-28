@@ -1,8 +1,8 @@
 // Deck tier list tab: the lab's two deck lists of the game patch (data/deck-lists.json, tools/export_deck_lists.py), one list at
 // a time, in this order (the owner, 2026-10-27): "Elo" (the default: the 64 best decks by their Elo from our AI's games) and
-// "Speed" (the mean round of a deck's wins). A ranked list, no tier letters and no hidden deck (owner, 2026-10-21). Most Elo
-// neighbours are within each other's margin: a deck whose interval reaches the deck above's carries a quiet "≈ #n" after its
-// rank (the lab's tie flag), so the list never claims an order it does not know. While the ranking is not final the view says so
+// "Speed" (the mean round of a deck's wins). A ranked list, no tier letters and no hidden deck (owner, 2026-10-21). Most
+// neighbours are within each other's margin: after its rank, a deck carries its likely place in the list ("likely #1–9", the
+// lab's 10th to 90th percentile of its rank), so the list never claims an order it does not know. While the ranking is not final the view says so
 // in one line at its top (patch.js provBanner); every explanation lives in the footer's Method section (owner, 2026-10-24), so
 // the top of the view is the title, the banner, the switch and the card search.
 // Every deck carries its two figures, named like the two lists and in their order, the active list's figure big
@@ -13,16 +13,16 @@
 // lives in the address (#tiers, #tiers/speed). A language change redraws the page and keeps the list, the query, the filter and
 // the open tox and variants.
 
-import { h, icon, pct, fmtInt, reducedMotion } from "./util.js?v=e550ac9b69";
-import { DB, loadLists, loadFacets } from "./data.js?v=e550ac9b69";
-import { on, isOwned, ownedCount, getLang } from "./store.js?v=e550ac9b69";
-import { cardName, chip, L } from "./cards.js?v=e550ac9b69";
-import { segmented, scrollToEl, cascade, band, CURVE, disclosure } from "./ui.js?v=e550ac9b69";
-import { t, tx } from "./i18n.js?v=e550ac9b69";
-import { tipButton } from "./cardtext.js?v=e550ac9b69";
-import { findRow, terms, namedCards } from "./search.js?v=e550ac9b69";
-import { introLine, limitParams, provBanner, isMatchupTalent, matchupMark, DECK_TABLE_SHOWN } from "./patch.js?v=e550ac9b69";
-import { paintOwned, deckSlot, listFigures, matchupLine, LISTS } from "./decklist.js?v=e550ac9b69";
+import { h, icon, pct, fmtInt, reducedMotion } from "./util.js?v=d299a81e8e";
+import { DB, loadLists, loadFacets } from "./data.js?v=d299a81e8e";
+import { on, isOwned, ownedCount, getLang } from "./store.js?v=d299a81e8e";
+import { cardName, chip, L } from "./cards.js?v=d299a81e8e";
+import { segmented, scrollToEl, cascade, band, CURVE, disclosure } from "./ui.js?v=d299a81e8e";
+import { t, tx } from "./i18n.js?v=d299a81e8e";
+import { tipButton } from "./cardtext.js?v=d299a81e8e";
+import { findRow, terms, namedCards } from "./search.js?v=d299a81e8e";
+import { introLine, limitParams, provBanner, isMatchupTalent, matchupMark, DECK_TABLE_SHOWN } from "./patch.js?v=d299a81e8e";
+import { paintOwned, deckSlot, listFigures, matchupLine, LISTS } from "./decklist.js?v=d299a81e8e";
 
 // each list's address: the first (Elo, the default) is the bare #tiers. The addresses of the earlier lists land on Elo and are
 // rewritten to its own: "#tiers/top" (Against the top), "#tiers/final" and "#tiers/race" (the ranking before it); the players'
@@ -99,7 +99,7 @@ function render() {
   readyBtn = h("button.chip.ready", { type: "button", "aria-pressed": "false", hidden: true, onclick: () => { readyOnly = !readyOnly; applyShown(); } }, [h("span.chip-l", t("tl.ready")), h("span.n")]);
   headEl = h("h2.sr", { id: "rk-list-h" });
   sayEl = h("p.sr", { "aria-live": "polite" });          // a change of list is announced (the list itself swaps silently)
-  listEl = h("ol.rk-list", { "aria-labelledby": "rk-list-h" });
+  listEl = h("ol.rk-list.cv-rows", { "aria-labelledby": "rk-list-h" });      // drawn near the screen only (views.css)
   // a filter that leaves the list empty says so, with the way back (DESIGN.md "Deck tier list")
   emptyEl = h("p.rk-empty", { hidden: true }, [h("span", t("rk.emptyReady")),
     h("button.btn.ghost", { type: "button", onclick: () => { readyOnly = false; applyShown(); readyBtn.focus(); } }, t("rk.showAll"))]);
@@ -123,15 +123,15 @@ function render() {
   paintList(false);
 }
 
-/** The footer's Method sub-section of this tab: why it is temporary, what the Elo is and which AI played its games, how close
- * decks are marked, the speed list, the figures, the tox, the variants, the talents and the caveats. Numbers come from
+/** The footer's Method sub-section of this tab: why it is temporary, what the Elo is and which AI played its games, what the
+ * likely place says, the speed list, the figures, the tox, the variants, the talents and the caveats. Numbers come from
  * deck-lists.json; no version of the ranking is named (owner, 2026-10-24); the AI is named in its own line. */
 function methodLines() {
   const lp = limitParams(R);
   return [
     R.final ? null : h("p", [...tx("rk.mWhy")]),
     h("p", tx("rk.mElo", { ai: R.pilots.full, rated: fmtInt(R.elo.rated), n: R.elo.rows.length, min: R.elo.min_games, mlo: lp.lo, mhi: lp.hi })),
-    h("p", tx("rk.mTie")),
+    h("p", tx("rk.mRange")),
     tx("rk.mSpeed", { min: pct(R.speed.min_win_rate, 0), wins: R.speed.min_wins }),
     t("rk.mFigs"),
     // the "+5" sentence only when the decks carry their 8 most bought tox
@@ -172,17 +172,18 @@ function deckEl(d, full) {
   const badge = h("div.obadge", { hidden: true });
   const slots = d.cs.map((c, k) => deckSlot(c, d.talents[k], { full }));
   const e = d[list];
-  // quiet facts about the rank in words, never boxes: in the Elo list, a deck within the margin of the deck above ("≈ #2": their
-  // intervals overlap, so their order is not settled; a screen reader hears it inside the heading, after the rank); in the speed
-  // list, a rank shared on equal rounds
-  const tie = e.tied && list === "elo" && e.rank > 1;
-  const words = [!e.tied || (list === "elo" && !tie) ? null : tie
-    ? h("span.deck-word.rk-tie", { title: t("rk.tieTip", { rank: e.rank - 1 }), "aria-hidden": "true" }, `≈ #${e.rank - 1}`)
-    : h("span.deck-word", { title: t("rk.tiedTip.speed") }, t("rk.tied"))];
+  // quiet facts about the rank in words, never boxes: the deck's likely place in this list ("likely #1–9": the places it takes in
+  // 8 of 10 redraws of every figure within its margin; none when it is a single place; a screen reader hears it inside the
+  // heading, after the rank); in the speed list, a rank shared on equal rounds
+  const rg = e.range && e.range[0] !== e.range[1] ? { lo: e.range[0], hi: e.range[1] } : null;
+  const words = [
+    rg ? h("span.deck-word.rk-range", { title: t("rk.likelyTip." + list, rg), "aria-hidden": "true" }, t("rk.likely", rg)) : null,
+    e.tied ? h("span.deck-word", { title: t("rk.tiedTip.speed") }, t("rk.tied")) : null,
+  ];
   const n = R.decks.indexOf(d);
   const el = h("li.deck" + (full ? ".spot" : ""), { id: `deck-${list}-${e.rank}-${decks.length}`, "aria-label": t("tl.rankAria", { rank: e.rank, cards: d.cs.map(cardName).join(", ") }) }, [
-    // the heading names the deck too, so a screen reader's list of headings reads the decks (and the tie, when there is one)
-    h("div.deck-head", [h("h3.rk", [`#${e.rank}`, tie ? h("span.sr", t("rk.tieSr", { rank: e.rank - 1 })) : null,
+    // the heading names the deck too, so a screen reader's list of headings reads the decks (and its likely place)
+    h("div.deck-head", [h("h3.rk", [`#${e.rank}`, rg ? h("span.sr", t("rk.likelySr", rg)) : null,
       h("span.sr", " " + d.cs.map(cardName).join(", "))]), ...words, badge]),
     h("div.deck-body", [
       h("div.deck-cards" + (full ? ".full" : ""), slots),

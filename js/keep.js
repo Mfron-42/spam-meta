@@ -5,12 +5,12 @@
 //   - inAppNotice(): a dismissible notice shown inside an app's in-app browser (Discord, Instagram, TikTok...), whose
 //     storage is separate from the visitor's real browser and is sometimes wiped.
 
-import { h, icon, reducedMotion } from "./util.js?v=e550ac9b69";
-import { DB } from "./data.js?v=e550ac9b69";
-import { ownedKeys, ownedCount, canPersist } from "./store.js?v=e550ac9b69";
-import { encode } from "./code.js?v=e550ac9b69";
-import { toast, openCollection } from "./dialogs.js?v=e550ac9b69";
-import { t } from "./i18n.js?v=e550ac9b69";
+import { h, icon, reducedMotion } from "./util.js?v=d299a81e8e";
+import { DB } from "./data.js?v=d299a81e8e";
+import { ownedKeys, ownedCount, canPersist } from "./store.js?v=d299a81e8e";
+import { encode } from "./code.js?v=d299a81e8e";
+import { toast, openCollection } from "./dialogs.js?v=d299a81e8e";
+import { t } from "./i18n.js?v=d299a81e8e";
 
 // ---------------------------------------------------------------- Copy my code
 /** Copies the collection code. When the browser refuses the clipboard, the collection dialog opens with the code shown. */

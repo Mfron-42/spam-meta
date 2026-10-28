@@ -3,19 +3,19 @@
 // card. Each card shown under a filter or a search says why it matched. The filters live in the address (facetmodel.js
 // toQuery), so a search can be shared. A language change rebuilds the tab from the same state.
 
-import { h, icon, norm, fmtInt } from "./util.js?v=e550ac9b69";
-import { searchField, terms as searchTerms, hasAll, announcer } from "./search.js?v=e550ac9b69";
-import { DB, loadFacets } from "./data.js?v=e550ac9b69";
-import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js?v=e550ac9b69";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=e550ac9b69";
-import { cardTile, ownToggle, setOwnedView, cardName, RARITIES, unsize } from "./cards.js?v=e550ac9b69";
-import { flip, band } from "./ui.js?v=e550ac9b69";
-import { toast, openCollection } from "./dialogs.js?v=e550ac9b69";
-import { cardText } from "./cardtext.js?v=e550ac9b69";
-import { t, STRINGS } from "./i18n.js?v=e550ac9b69";
-import { GAME_PATCH, DECK_TABLE_SHOWN } from "./patch.js?v=e550ac9b69";
-import { buildIndex, fromQuery, toQuery, passes as facetPasses, noFilter, relaxations, NUMS } from "./facetmodel.js?v=e550ac9b69";
-import { facetFilters, ownAddress, writeAddress, hashTab } from "./facets.js?v=e550ac9b69";
+import { h, icon, norm, fmtInt } from "./util.js?v=d299a81e8e";
+import { searchField, terms as searchTerms, hasAll, announcer } from "./search.js?v=d299a81e8e";
+import { DB, loadFacets } from "./data.js?v=d299a81e8e";
+import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js?v=d299a81e8e";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=d299a81e8e";
+import { cardTile, ownToggle, setOwnedView, cardName, RARITIES, unsize } from "./cards.js?v=d299a81e8e";
+import { flip, band } from "./ui.js?v=d299a81e8e";
+import { toast, openCollection } from "./dialogs.js?v=d299a81e8e";
+import { cardText } from "./cardtext.js?v=d299a81e8e";
+import { t, STRINGS } from "./i18n.js?v=d299a81e8e";
+import { GAME_PATCH, DECK_TABLE_SHOWN } from "./patch.js?v=d299a81e8e";
+import { buildIndex, fromQuery, toQuery, passes as facetPasses, noFilter, relaxations, NUMS } from "./facetmodel.js?v=d299a81e8e";
+import { facetFilters, ownAddress, writeAddress, hashTab } from "./facets.js?v=d299a81e8e";
 
 // the toolbar's filter triggers, in order, and the groups each one opens
 const TRIGGERS = [["el", ["el"]], ["ra", ["ra"]], ["hit", ["hit"]], ["gen", ["gen"]], ["fx", ["fx"]], ["tox", ["tox"]], ["tgt", ["tgt"]],
@@ -169,7 +169,7 @@ function build() {
   ui.search = searchField({ id: "cx-q", placeholder: t("cx.searchPh"), label: t("cx.searchAria"), clearLabel: t("cx.clearSearch"), value: S.q,
     onChange: (v) => { S.q = v; apply(); F.refresh(); } });
 
-  ui.sort = h("select#cx-sort", { "aria-label": t("cx.sortAria"), onchange: () => { sort = ui.sort.value; apply(); } },
+  ui.sort = h("select#cx-sort", { name: "cx-sort", autocomplete: "off", "aria-label": t("cx.sortAria"), onchange: () => { sort = ui.sort.value; apply(); } },
     Object.entries(SORTS).map(([k, v]) => h("option", { value: k }, t(v[0]))));
   ui.sort.value = sort;
   const sortField = h("label.field.select", [h("span.sr", t("ct.sortBy")), ui.sort, icon("chevron")]);

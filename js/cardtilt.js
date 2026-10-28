@@ -17,7 +17,7 @@
 // listeners for the page; a hand measures its cards once when the pointer enters it (and again after a scroll), and only
 // the cards on screen are written. Pointer only: nothing for the keyboard or a screen reader. Reduced motion: nothing moves.
 
-import { reducedMotion } from "./util.js?v=e550ac9b69";
+import { reducedMotion } from "./util.js?v=d299a81e8e";
 
 const HERO = { maxY: 14, maxX: 12, persp: 3.5, art: 4, front: 1.5, pop: 4 };   // degrees at the edges; perspective in card
 const TILE = { maxY: 10, maxX: 9, persp: 4, art: 4, front: 1.5, pop: 3 };      // widths; layer depths in % of the card width
@@ -181,7 +181,8 @@ export function attachTilt(cell) {
   // the S back, facing the other way, seen only in a turn (no thickness: the card stays a thin card)
   const back = document.createElement("div");
   back.className = "cg-thumb cg-cardback ct-back";
-  back.append(Object.assign(document.createElement("img"), { src, alt: "", decoding: "async", draggable: false }));
+  // the picture's own size (500 x 715), so its box is known before it decodes
+  back.append(Object.assign(document.createElement("img"), { src, alt: "", width: 500, height: 715, decoding: "async", draggable: false }));
   back.setAttribute("aria-hidden", "true");
   cw.prepend(back);
   cell.classList.add("ct");

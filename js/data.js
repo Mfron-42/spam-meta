@@ -1,7 +1,7 @@
 // Loads the generated JSON once and builds the lookups every view needs. Every request carries the publish version
 // (version.js), so a new publish never mixes with data an earlier visit cached.
 
-import { versioned, withQuery } from "./version.js?v=e550ac9b69";
+import { versioned, withQuery } from "./version.js?v=d299a81e8e";
 
 const cache = new Map();
 // data paths are resolved from this module, not from the page, so a page in a sub-folder (site/overlay/) reads the same files
@@ -17,7 +17,7 @@ async function getJSON(path) {
   return cache.get(path);
 }
 
-export const DB = { cards: [], byId: new Map(), byKey: new Map(), meta: null, keywords: null, ranking: null, lists: null, tier: null, decks: null, cardTiers: null, cardCounters: null, facets: null };
+export const DB = { cards: [], byId: new Map(), byKey: new Map(), meta: null, keywords: null, lists: null, tier: null, decks: null, cardTiers: null, cardCounters: null, facets: null };
 
 /**
  * cards.json and meta.json: needed by every view; keywords.json (the card texts' keyword chips and tooltips, cardtext.js)
@@ -57,26 +57,6 @@ export async function loadLists() {
     DB.lists = r;
   }
   return DB.lists;
-}
-
-/**
- * The stage ranking run (tools/export_ranking.py; My decks' and the Deck builder's until 2026-10-27, deck-table.json since):
- * its Final round robin (`by_score`), its race and speed lists and its AIs (`pilots`), each deck with its card objects (`cs`,
- * board order) and each card's talent (`tls`, the talent object, or null). Loaded by the Card tier list, whose Tournament view
- * comes from that run (its matchup talents are the fallback of patch.js isMatchupTalent).
- */
-export async function loadRanking() {
-  if (!DB.ranking) {
-    const r = await getJSON("data/ranking.json");
-    for (const list of [r.by_score, r.by_race, r.by_speed].filter(Boolean)) {
-      for (const d of list.decks) {
-        d.cs = d.cards.map((id) => DB.byId.get(id));
-        d.tls = d.cs.map((c, i) => (c && c.talents[d.talents[i]]) || null);
-      }
-    }
-    DB.ranking = r;
-  }
-  return DB.ranking;
 }
 
 /** A deck is a set of 4 cards (board order is ignored): its sorted card ids join tierlist.json and decks.json. */

@@ -6,14 +6,14 @@
 // "Without these cards" (search.js outRow; the game's ban mode) leaves out the decks holding a card the visitor names; both
 // survive a redraw (a card ticked, a language change), not a reload.
 
-import { h, icon, fmtInt } from "./util.js?v=e550ac9b69";
-import { loadDecks } from "./data.js?v=e550ac9b69";
-import { on, isOwned, ownedCount } from "./store.js?v=e550ac9b69";
-import { deckRow, missingLine, scaleGroups, tableHead } from "./decklist.js?v=e550ac9b69";
-import { findRow, terms, namedCards, outRow, bringBack, announcer } from "./search.js?v=e550ac9b69";
-import { openCollection } from "./dialogs.js?v=e550ac9b69";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=e550ac9b69";
-import { t } from "./i18n.js?v=e550ac9b69";
+import { h, icon, fmtInt } from "./util.js?v=d299a81e8e";
+import { loadDecks } from "./data.js?v=d299a81e8e";
+import { on, isOwned, ownedCount } from "./store.js?v=d299a81e8e";
+import { deckRow, missingLine, scaleGroups, tableHead } from "./decklist.js?v=d299a81e8e";
+import { findRow, terms, namedCards, outRow, bringBack, announcer } from "./search.js?v=d299a81e8e";
+import { openCollection } from "./dialogs.js?v=d299a81e8e";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=d299a81e8e";
+import { t } from "./i18n.js?v=d299a81e8e";
 
 let root, D, listeners = new Set();
 let result = { build: [], near: [] };

@@ -23,7 +23,7 @@
      dark tiles; only ever beside that orb, never a fill */
   --el-fire: #ff9d4d; --el-water: #6ab4f5; --el-earth: #c9a684; --el-nature: #b4d354; --el-light: #f2e58a; --el-shadow: #c58cf0;
   /* card tier scale (Card tier list only): apricot to dusk, calm, night ink passes 4.5:1 on every step */
-  --tier-sp: #f0ca9b; --tier-s: #e9b698; --tier-a: #dea49c; --tier-b: #cb95a0; --tier-c: #b48aa3; --tier-d: #9a80a2; --tier-e: #80779b;
+  --tier-s: #f0ca9b; --tier-a: #e9b698; --tier-b: #dea49c; --tier-c: #cb95a0; --tier-d: #b48aa3; --tier-e: #9a80a2; --tier-f: #80779b;
   --display: "Lilita One", "Nunito", system-ui, sans-serif;
   --text: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
   --curve: cubic-bezier(.4, 0, .2, 1);
@@ -55,7 +55,7 @@ p { margin: 0; max-width: 68ch; }
 ul, ol { margin: 0; padding: 0; list-style: none; }
 b, strong { font-weight: 700; }
 button, input, select, textarea { font: inherit; color: inherit; }
-button, a { touch-action: manipulation; }
+button, a, select, label, summary, [role="button"] { touch-action: manipulation; }      /* no double-tap zoom delay on a control */
 img { max-width: 100%; }
 a { color: inherit; }
 [hidden] { display: none !important; }
@@ -63,7 +63,7 @@ a { color: inherit; }
 ::selection { background: rgba(70, 211, 255, .35); }
 
 .muted { color: var(--muted); }
-.note { color: var(--muted); font-size: 14px; line-height: 1.45; max-width: 72ch; }
+.note { color: var(--muted); font-size: 14px; line-height: 1.45; max-width: 72ch; text-wrap: pretty; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; -webkit-user-select: none; user-select: none; }   /* never copied with the visible text */
 .wrap { width: 100%; max-width: calc(1120px + 2 * var(--gut)); margin: 0 auto; padding-inline: var(--gut); }
 main.wrap { padding-block: 32px 64px; }

@@ -1,17 +1,16 @@
 /* SPAM Meta: the Card tier list tab (js/cardtiers.js). Tier rows on the ground: the tier letter in its tier colour (the card
-   tier scale of DESIGN.md) as the row's anchor, the card icons beside it, a hairline between rows, no panel and no socket;
-   the view switch (All games | Tournament | Final); the card preview and pinned card with the strip of the card's decks (All games:
-   its likely range, the tiers it spans, the rough-estimate notice, the average contribution); the Details table. Every class is
-   prefixed ct-. */
+   tier scale of DESIGN.md) as the row's anchor, the card icons beside it, a hairline between rows, no panel and no socket; the
+   Tiers | Details tabs and the filters; the card preview and pinned card with the strip of the card's range; the Details
+   table. Every class is prefixed ct-. */
 
 .ct-head { margin-bottom: 0; }
 
 /* ---------------------------------------------------------------- toolbar, filters */
 .ct-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; margin-top: 24px; }
-/* the view switch is the site's .seg (base.css), as on the Deck tier list; the Tiers | Details tablist wears the same track */
-.ct-bar-r { display: flex; align-items: center; gap: 8px; }
-/* the tabs are quieter than the view switch: one cyan control in the bar (the One Cyan Rule), the selected tab lifted, not lit */
-.ct-tabs button[aria-selected="true"] { background: var(--panel-hi); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+/* the Tiers | Details tablist wears the site's .seg track (base.css), quieter than a switch: the selected tab lifted, not lit in
+   cyan (the One Cyan Rule: the filter count is the bar's one cyan) */
+.ct-tabs button:not([aria-selected="true"]) { color: var(--muted); }
+.ct-tabs button[aria-selected="true"] { background: var(--panel-hi); color: var(--ink); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), inset 0 0 0 1px var(--edge); }
 .ct-filters { display: flex; flex-wrap: wrap; gap: 8px 24px; padding-top: 16px; }
 .ct-fgroup { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .ct-fgroup-l { margin-right: 4px; color: var(--muted); font: 600 14px/1.4 var(--text); }
@@ -21,13 +20,13 @@
 .ct-find { margin-top: 16px; }
 .ct-clear { margin-left: auto; }
 
-/* card tier scale: one colour per tier, used only by the tier label, tier chips, swatches and the strips; "out" (no final deck)
-   is Panel Lifted */
-.tc-sp { --tc: var(--tier-sp); } .tc-s { --tc: var(--tier-s); } .tc-a { --tc: var(--tier-a); } .tc-b { --tc: var(--tier-b); }
-.tc-c { --tc: var(--tier-c); } .tc-d { --tc: var(--tier-d); } .tc-e { --tc: var(--tier-e); } .tc-out { --tc: var(--panel-hi); }
+/* card tier scale: one colour per tier, used only by the tier label, tier chips, swatches and the strips; "few" (not enough
+   data) is Panel Lifted */
+.tc-s { --tc: var(--tier-s); } .tc-a { --tc: var(--tier-a); } .tc-b { --tc: var(--tier-b); } .tc-c { --tc: var(--tier-c); }
+.tc-d { --tc: var(--tier-d); } .tc-e { --tc: var(--tier-e); } .tc-f { --tc: var(--tier-f); } .tc-few { --tc: var(--panel-hi); }
 .chip i.ct-sw { width: 16px; height: 16px; border-radius: 4px; background: var(--tc); }
-/* Panel Lifted on a chip would vanish: the "no final deck" swatch carries a field-edge outline */
-.chip i.ct-sw.tc-out { box-shadow: inset 0 0 0 1px var(--edge); }
+/* Panel Lifted on a chip would vanish: the "not enough data" swatch carries a field-edge outline */
+.chip i.ct-sw.tc-few { box-shadow: inset 0 0 0 1px var(--edge); }
 
 /* ---------------------------------------------------------------- tier rows */
 .ct-view { margin-top: 16px; }
@@ -36,7 +35,7 @@
 .ct-row { display: grid; grid-template-columns: 88px minmax(0, 1fr); }
 /* a line above every row that follows a shown row, so a search that hides rows never doubles the panel's top edge */
 .ct-row:not([hidden]) ~ .ct-row { border-top: 1px solid var(--line); }
-/* the last row ("Not in the Top 50" / "Not in the race") only shows when it holds cards */
+/* the last row ("Not enough data") only shows when it holds cards */
 .ct-row.ct-row-none { display: none; }
 /* a search hides the cards that do not match and lets the rows shrink to what is left */
 .ct-finding .ct-ic.dim { display: none; }
@@ -44,9 +43,10 @@
 /* the letter and the count follow the scroll inside a tall row, so the tier stays named while its cards scroll by */
 .ct-tl-in { position: sticky; top: calc(var(--chrome-h) + 64px); display: grid; gap: 4px; justify-items: start; }
 .ct-tl-k { font: 400 40px/1 var(--display); letter-spacing: .01em; }
-.ct-tl-word { font: 400 18px/1.15 var(--display); }
+/* the last row's words ("Not enough data"), quiet: the caption type, two lines at most in the rail */
+.ct-tl-word { font: 600 14px/1.3 var(--text); }
 .ct-tl-n { color: var(--muted); font: 600 14px/1.2 var(--text); }
-.ct-tl.tc-out { color: var(--muted); }
+.ct-tl.tc-few { color: var(--muted); }
 .ct-cards { position: relative; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 12px; min-height: 104px; padding: 24px 0 16px 8px; }
 .ct-empty { position: absolute; left: 16px; right: 16px; top: 50%; margin: 0; transform: translateY(-50%); color: var(--muted); font: 600 14px/1.4 var(--text);
   opacity: 0; visibility: hidden; pointer-events: none; transition: opacity var(--t-fade) var(--curve), visibility 0s linear var(--t-fade); }
@@ -64,37 +64,37 @@
 .ct-ic.dim { opacity: .45; }
 .ct-ic.dim:hover, .ct-ic.dim:focus-visible, .ct-ic.dim[aria-expanded="true"] { opacity: 1; }
 .ct-ic-orb { position: absolute; left: -8px; top: -8px; width: 20px; height: 20px; background-size: contain; background-repeat: no-repeat; background-position: center; pointer-events: none; }
-/* the last row (the cards the view does not rank) is quieter: its icons at the phone size, so it weighs less than the tiers */
-.ct-row.ct-out .ct-ic { width: 44px; }
-.ct-row.ct-out .ct-ic-orb { left: -6px; top: -6px; width: 16px; height: 16px; }
+/* the last row (the cards with not enough data) is quieter: its icons a step smaller than the tiers' (the phone size here,
+   36px on a phone), so it weighs less than the tiers */
+.ct-row.ct-few .ct-ic { width: 44px; }
+.ct-row.ct-few .ct-ic-orb { left: -6px; top: -6px; width: 16px; height: 16px; }
 
-/* ---------------------------------------------------------------- the strip (js/deckstrip.js): a card's decks in the view, on its
-   win-rate axis (lowest on the left) over a sunken track. Race: a quiet density of its race decks, its five best as marks. All
-   games: the likely range as a soft bar, the five best decks as marks, the figure as a tick. The marks take the card's tier
-   colour. */
+/* ---------------------------------------------------------------- the strip (js/deckstrip.js): a card's strength on the page's
+   one axis (lowest on the left) over a sunken track: its range as a soft bar in its tier colour, the strength as a tick. */
 .ct-st-w { display: grid; gap: 4px; width: 100%; }
 .ct-st { position: relative; display: block; height: 24px; overflow: hidden; border-radius: 4px; background: var(--socket); }
 .ct-st::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: var(--sunken); pointer-events: none; }
-.ct-st-h { position: absolute; bottom: 0; display: block; background: color-mix(in srgb, var(--ink-2) 38%, transparent); }
-/* All games: the likely range of the card's figure, a soft bar in its tier colour across the track's middle, under the marks, and
-   the figure itself on it, a short Cream Lavender tick (the bar belongs to the number printed above) */
+/* the range, a soft bar in the tier colour across the track's middle, and the strength itself on it, a short Cream
+   Lavender tick (the bar belongs to the number printed above) */
 .ct-st-ci { position: absolute; top: 8px; bottom: 8px; display: block; min-width: 2px; border-radius: 4px; background: color-mix(in srgb, var(--tc) 60%, transparent); }
 .ct-st-f { position: absolute; z-index: 2; top: 6px; bottom: 6px; display: block; width: 2px; margin-left: -1px; border-radius: 4px; background: var(--ink); }
-.ct-st-d { position: absolute; z-index: 1; top: 3px; bottom: 3px; display: block; width: 2px; margin-left: -1px; border-radius: 4px; background: var(--tc); }
+/* 50%, an average card: a hairline across the whole track, under the bar and the tick */
+.ct-st-mid { position: absolute; top: 0; bottom: 0; display: block; width: 1px; margin-left: -.5px; background: var(--muted); opacity: .5; }
 .ct-st-ax { position: relative; display: flex; justify-content: space-between; color: var(--muted); font: 600 14px/1.2 var(--text); }
-/* the key: a sample of each mark before its words */
+.ct-st-ax-mid { position: absolute; top: 0; transform: translateX(-50%); }
+/* the key: a sample of the mark before its words */
 .ct-st-key { display: flex; flex-wrap: wrap; gap: 4px 16px; color: var(--muted); font: 600 14px/1.2 var(--text); }
 .ct-st-key > span { display: inline-flex; align-items: center; gap: 8px; }
-.ct-st-k { display: block; flex: none; width: 2px; height: 14px; border-radius: 4px; background: var(--tc); }
-.ct-st-k.h { width: 8px; height: 10px; border-radius: 0; background: color-mix(in srgb, var(--ink-2) 38%, transparent); transform: translateY(2px); }
-.ct-st-k.ci { position: relative; width: 16px; height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--tc) 60%, transparent); }
+.ct-st-k.ci { position: relative; display: block; flex: none; width: 16px; height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--tc) 60%, transparent); }
 .ct-st-k.ci::after { content: ""; position: absolute; left: 7px; top: -2px; bottom: -2px; width: 2px; border-radius: 4px; background: var(--ink); }
+.ct-st-k.mid { display: block; flex: none; width: 1px; height: 14px; background: var(--muted); opacity: .5; }
 .ct-c-where .ct-st, .ct-th-ax { max-width: 280px; }
 .ct-c-where .ct-st { height: 16px; }
-.ct-c-where .ct-st-d { top: 2px; bottom: 2px; }
 .ct-c-where .ct-st-ci { top: 5px; bottom: 5px; }
 .ct-c-where .ct-st-f { top: 3px; bottom: 3px; }
 .ct-th-ax { display: block; margin-top: 4px; }
+/* a row's own axis is for the phone, where the header is gone */
+td.ct-c-where .ct-st-ax { display: none; }
 
 /* ---------------------------------------------------------------- the card preview and pinned card */
 /* z-index 11, one under the sticky toolbar (12): the card keeps clear of it (cardtiers.js follow), and a frame the scroll paints
@@ -117,50 +117,18 @@
 .ct-pop-tier { display: grid; justify-items: center; gap: 4px; }
 .ct-pop-tier .ct-tchip { min-width: 44px; height: 36px; padding: 0 8px; border-radius: 8px; font-size: 22px; }
 .ct-pop-tier > span:not(.ct-tchip) { color: var(--muted); font: 600 14px/1.2 var(--text); white-space: nowrap; }
-/* All games: the tiers the likely range spans ("likely D–S"), under the tier and its place (and under the Details chip) */
-.ct-pop-tier > .ct-span, .ct-span { color: var(--ink-2); }
-/* in the header the span may wrap ("fourchette" over "A–S+" in French), so the column keeps the place's width and the names
-   beside it never narrow */
-.ct-pop-tier > span.ct-span { white-space: normal; text-align: center; text-wrap: balance; }
-.ct-c-tier .ct-span { display: block; margin-top: 4px; white-space: nowrap; }
 .ct-pop-st { margin-top: 16px; }
-/* the view's figure big with its deck count beside it, the other view's figure small under it with its one-word name */
+/* the strength big with its range beside it, its games and decks under them */
 .ct-pop-fig { display: grid; gap: 4px; margin-top: 16px; }
 .ct-pop-big { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
 .ct-pop-big b { color: var(--ink); font: 400 28px/1 var(--display); letter-spacing: .01em; }
-.ct-pop-big span, .ct-pop-other { color: var(--muted); font: 600 14px/1.3 var(--text); }
-.ct-pop-other { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
-.ct-pop-other b { color: var(--ink-2); font-weight: 700; }
-.ct-pop-other .ct-tchip { min-width: 24px; height: 20px; font-size: 14px; }
+.ct-pop-big span { color: var(--muted); font: 600 14px/1.3 var(--text); }
 .ct-pop-big.none b { color: var(--ink-2); font-size: 22px; }
-/* All games: the likely range right after the figure (Soft Lavender, one step above its basis, so it reads with the number), its
-   decks and games under them */
+/* the range right after the strength (Soft Lavender, one step above its basis, so it reads with the number) */
 .ct-pop-big .ct-pop-ci { color: var(--ink-2); white-space: nowrap; }
 .ct-pop-basis { color: var(--muted); font: 600 14px/1.3 var(--text); }
-/* the rough-estimate caveat: the data notice (base.css .dnote), where the figure is read */
-.ct-pop .ct-rough { margin-top: 12px; }
-/* the pinned card's average contribution (All games): a word that explains itself (the Deck tier list's figures, views.css .rf):
-   no box at rest, its name underlined in dots; a socket chip with the ring under the pointer, while its tooltip is open and on
-   keyboard focus; the chip reaches 8px past the text, so the text stays on the card's left edge */
-.ct-pop-add { margin-top: 12px; }
-.ct-add { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; max-width: calc(100% + 16px); margin: -4px -8px; padding: 4px 8px; border: 0; border-radius: 8px; background: none;
-  color: var(--muted); font: 600 14px/1.4 var(--text); text-align: left; cursor: pointer; transition: background var(--t-state) var(--curve), box-shadow var(--t-state) var(--curve); }
-.ct-add:hover, .ct-add.on, .ct-add:focus-visible { outline: none; background: var(--socket); box-shadow: var(--ring); }
-.ct-add-k { text-decoration: underline dotted var(--edge) 1.5px; text-underline-offset: 4px; transition: text-decoration-color var(--t-state) var(--curve); }
-.ct-add:hover .ct-add-k, .ct-add.on .ct-add-k, .ct-add:focus-visible .ct-add-k { text-decoration-color: transparent; }
-/* the contribution in points, signed: Win Green above an average card, Loss Red below (the number always printed), "pts" Dusk */
-.ct-add-v { color: var(--ink-2); font: 400 18px/1 var(--display); letter-spacing: .01em; }
-.ct-add-v.up { color: var(--win); } .ct-add-v.down { color: var(--loss); }
-.ct-add-u { color: var(--muted); font: 600 14px/1 var(--text); letter-spacing: 0; }
-.ct-pop-stv { margin-bottom: 4px; color: var(--muted); font: 600 14px/1.2 var(--text); }
-/* the last row's way out: its cards are all ranked in the race */
-/* a line of its own across the row, before the icons: a ghost button whose text lines up with them */
-.ct-go-w { flex: 0 0 100%; margin-top: -8px; }
-.ct-go { height: 36px; margin-left: -8px; padding: 0 8px; border-radius: 8px; color: var(--ink-2); font: 600 14px/1.2 var(--text); }
-.ct-go .ico { flex: none; }
-.ct-pop-v { margin-top: 16px; color: var(--ink-2); font: 600 14px/1.4 var(--text); }
-.ct-pop-v b { color: var(--ink); font-weight: 700; }
-.ct-pop-h .tag.ptag { margin-top: 4px; }
+/* the patch tag, a row of its own under the names and the tier */
+.ct-pop-h > .tag.ptag { grid-column: 2 / -1; justify-self: start; margin-top: -4px; }
 .ct-pop-pc { margin-top: 12px; color: var(--ink-2); font: 600 14px/1.4 var(--text); text-wrap: pretty; }
 .ct-pop .pold { margin-top: 8px; }
 .ct-pop-sugg { display: grid; gap: 4px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
@@ -170,9 +138,8 @@
 .ct-pop-act { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
 .ct-pop-open { width: 100%; height: 36px; font-size: 16px; }
 .ct-tchip { display: inline-grid; place-items: center; min-width: 28px; height: 24px; padding: 0 4px; border-radius: 4px; background: var(--tc); color: var(--accent-ink); font: 400 16px/1 var(--display); }
-/* Panel Lifted would vanish on the Details panel: the "no final deck" chip carries a field-edge outline */
-.ct-tchip.tc-out { color: var(--ink-2); font: 600 14px/1 var(--text); padding: 0 8px; white-space: nowrap; box-shadow: inset 0 0 0 1px var(--edge); }
-.ct-tchip.tc-out.short { min-width: 28px; padding: 0 4px; }
+/* Panel Lifted would vanish on the Details panel: the "not enough data" dash chip carries a field-edge outline */
+.ct-tchip.tc-few { color: var(--ink-2); font: 600 14px/1 var(--text); box-shadow: inset 0 0 0 1px var(--edge); }
 
 /* ---------------------------------------------------------------- details table */
 .ct-dt-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; }
@@ -196,26 +163,18 @@
 .ct-nm { display: block; color: var(--ink); font: 400 16px/1.15 var(--display); }
 .ct-nm-sub { display: block; color: var(--muted); }
 .ct-rkm { display: none; color: var(--muted); }
-.ct-ax-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.ct-ax-s { font: 400 18px/1 var(--display); color: var(--ink); }
 .ct-fig { display: block; color: var(--ink); font: 400 18px/1.15 var(--display); }
 .ct-fig-n { color: var(--muted); font: 600 14px/1.3 var(--text); }
-.ct-cap b { color: var(--ink-2); font-weight: 700; }
-/* the other views' figures, on one line (wrapping by whole pairs) */
-.ct-cap { display: flex; flex-wrap: wrap; gap: 0 12px; color: var(--muted); }
-.ct-cap > span { white-space: nowrap; }
-/* All games: the likely range under the figure, and the rough-estimate caveat (the data notice's glyph and colour) */
+/* a card with not enough data: the words in place of the figure, its games under them */
+.ct-fig.none { color: var(--ink-2); font: 600 14px/1.3 var(--text); }
+/* the range under the strength, the decks under it */
 .ct-ci { display: block; color: var(--ink-2); white-space: nowrap; }
-.ct-rough-s { display: flex; align-items: center; gap: 4px; color: var(--muted); }
-.ct-rough-s .ico { flex: none; }
-/* the other views' line: "no deck" quiet, All games' rough-estimate glyph after its range */
-.ct-cap-none { color: var(--muted); }
-.ct-cap-rough { display: inline-grid; place-items: center; margin-left: 4px; vertical-align: -3px; color: var(--muted); }
+.ct-c-fig .ct-fig-n { display: block; }
 .ct-dt-empty { display: grid; justify-items: start; gap: 12px; padding: 24px 0; color: var(--ink-2); }
 
 /* ---------------------------------------------------------------- tablet and phone */
 @media (min-width: 760px) {
-  /* the view switch and the filters stay under the header while the rows scroll */
+  /* the tabs and the filters stay under the header while the rows scroll */
   .ct-bar { position: sticky; top: var(--chrome-h); z-index: 12; margin-inline: calc(-1 * var(--gut)); padding: 8px var(--gut); }
   /* a card reached by keyboard is never hidden under the sticky bar */
   .ct-ic, .ct-cardc { scroll-margin-top: 64px; }
@@ -233,7 +192,11 @@
   .ct-tab td.ct-c-card, .ct-tab td.ct-c-where { grid-column: 1 / -1; }
   .ct-tab td.ct-c-fig { grid-column: span 2; }
   .ct-c-where .ct-st { max-width: none; }
+  /* no header on a phone: each strip carries its axis under it */
+  td.ct-c-where .ct-st-ax { display: flex; }
   .ct-tab td[data-label]::before { content: attr(data-label); display: block; margin-bottom: 4px; color: var(--muted); font: 600 14px/1.4 var(--text); }
+  /* a card with not enough data has no strip: its cell and its label go */
+  .ct-tab td.ct-c-where:empty { display: none; }
   .ct-rkm { display: inline; }
 }
 @media (max-width: 759px) {
@@ -242,12 +205,13 @@
   .ct-tl { padding: 16px 4px 16px 0; }
   .ct-tl-in { top: calc(var(--chrome-h) + 8px); }
   .ct-tl-k { font-size: 28px; }
-  .ct-tl-word { font: 600 14px/1.15 var(--text); }
   .ct-cards { min-height: 88px; padding: 16px 0 16px 4px; }
   .ct-ic { width: 44px; }
   .ct-ic-orb { left: -6px; top: -6px; width: 16px; height: 16px; }
+  .ct-row.ct-few .ct-ic { width: 36px; }
+  .ct-row.ct-few .ct-ic-orb { left: -5px; top: -5px; width: 14px; height: 14px; }
   .ct-sort { flex: 1 1 100%; min-width: 0; }
-  .ct-pop { position: fixed; left: 8px; right: 8px; top: auto; bottom: 8px; width: auto; max-height: min(72vh, var(--room, 72vh)); overflow: auto; overscroll-behavior: contain; transform: translateY(24px);
+  .ct-pop { position: fixed; left: 8px; right: 8px; top: auto; bottom: calc(8px + env(safe-area-inset-bottom)); width: auto; max-height: min(72vh, var(--room, 72vh)); overflow: auto; overscroll-behavior: contain; transform: translateY(24px);
     transition: opacity var(--t-move) var(--curve), transform var(--t-move) var(--curve), visibility 0s linear var(--t-move); }
   .ct-pop.on { transform: none; transition: opacity var(--t-move) var(--curve), transform var(--t-move) var(--curve), visibility 0s; }
   .ct-pop.pinned { max-height: min(72vh, var(--room, 72vh)); }

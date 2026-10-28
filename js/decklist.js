@@ -5,13 +5,13 @@
 // the two scales as two groups (scaleGroups: never sorted together), the paging and their footer Method sub-section. Rows arrive
 // in the table's order (the full AI's scale by its rating, then the fast AI's picks), so a filter that keeps it keeps the ranking.
 
-import { h, icon, dec, fmtInt } from "./util.js?v=e550ac9b69";
-import { DB } from "./data.js?v=e550ac9b69";
-import { getLang, isOwned, ownedCount } from "./store.js?v=e550ac9b69";
-import { gameCard, chip, cardName, L } from "./cards.js?v=e550ac9b69";
-import { t, tx } from "./i18n.js?v=e550ac9b69";
-import { tipButton } from "./cardtext.js?v=e550ac9b69";
-import { introLine, provBanner, isMatchupTalent, matchupMark } from "./patch.js?v=e550ac9b69";
+import { h, icon, dec, fmtInt } from "./util.js?v=d299a81e8e";
+import { DB } from "./data.js?v=d299a81e8e";
+import { getLang, isOwned, ownedCount } from "./store.js?v=d299a81e8e";
+import { gameCard, chip, cardName, L } from "./cards.js?v=d299a81e8e";
+import { t, tx } from "./i18n.js?v=d299a81e8e";
+import { tipButton } from "./cardtext.js?v=d299a81e8e";
+import { introLine, provBanner, isMatchupTalent, matchupMark } from "./patch.js?v=d299a81e8e";
 
 // ---------------------------------------------------------------- a deck's card
 /**
@@ -67,25 +67,33 @@ export const LISTS = ["elo", "speed"];
  * page's tooltip (cardtext.js tipButton) on hover, keyboard focus or a tap, in plain sentences that are also its description for
  * a screen reader. Under the Elo, one quiet note: the AI whose games it rests on, or "not in the 64" for a deck of the speed list
  * outside the Elo list (its Elo is still its own, on the same scale). A figure the deck lacks keeps its slot with a quiet state
- * ("too few wins") and its tooltip says why. `d`: a deck of deck-lists.json; `active`: the list shown; `keys`: the figures drawn
- * (My decks and the Deck builder draw the speed only: the Elo is their rating line).
+ * ("too few wins") and its tooltip says why. A figure's tooltip ends with the deck's likely place in that list when it spans
+ * more than one place, so a tap or the keyboard reach what the row's "likely #1-9" (a mouse title) says. `d`: a deck of
+ * deck-lists.json; `active`: the list shown; `keys`: the figures drawn (My decks and the Deck builder draw the speed only: the Elo
+ * is their rating line).
  */
 export function listFigures(d, active, keys = LISTS) {
   const R = DB.lists, P = R.pilots;
   const big = (k) => k === active;
   const ai = (name) => h("span", { translate: "no" }, name);   // an AI's name is a code token: never machine-translated
   const fig = {};
+  const likely = (k, x) => (x && x.range && x.range[0] !== x.range[1] ? " " + t("rk.likelyTip." + k, { lo: x.range[0], hi: x.range[1] }) : "");
   const e = d.elo, out = e.rank == null;
   // the note: on the Elo list, the AI whose games the figure rests on (the list's pilot, named on its figure); on the Speed list,
   // the deck's place in the Elo list, the fact a reader of that list needs ("#3 by Elo", or "not in the 64")
   const note = out ? t("fx.eloOut", { n: R.elo.rows.length }) : active === "speed" ? t("fx.eloRank", { rank: e.rank }) : ai(P.full);
   fig.elo = { value: elo(e.value), unit: "±" + fmtInt(e.pm), note,
     desc: t("fx.elo", { v: elo(e.value), pm: fmtInt(e.pm), games: fmtInt(e.games), ai: P.full }) +
-      (out ? " " + t("fx.eloOutTip", { n: R.elo.rows.length }) : "") };
+      (out ? " " + t("fx.eloOutTip", { n: R.elo.rows.length }) : likely("elo", e)) };
   const ws = d.speed;
+  // the speed's 95% margin (the Elo's coverage: a "±" means one thing on the site), one decimal rounded up (never narrower than
+  // measured: "±0.1" for 0.08)
+  const pm = ws.pm != null ? dec(Math.ceil(ws.pm * 10 - 1e-9) / 10, 1) : null;
   fig.speed = ws.rounds != null
-    // one decimal, big or small: whole rounds would put 11.03 and 11.84 a round apart and 11.84 and 12.15 on one value
-    ? { value: dec(ws.rounds, 1), unit: t("fx.rounds"), desc: t("fx.speed", { v: dec(ws.rounds, 1), wins: fmtInt(ws.wins) }) }
+    // one decimal, big or small: whole rounds would put 11.03 and 11.84 a round apart and 11.84 and 12.15 on one value; its margin
+    // after it, as the Elo's
+    ? { value: dec(ws.rounds, 1), unit: (pm ? "±" + pm + " " : "") + t("fx.rounds"),
+      desc: t("fx.speed", { v: dec(ws.rounds, 1), pm: pm || "", wins: fmtInt(ws.wins) }) + likely("speed", ws) }
     : { state: t("fx.fewWins"), desc: t("fx.speedFew", { wins: fmtInt(ws.wins || 0) }) };
   // a toolbar: the role that tells a screen reader the arrow keys move between its buttons
   const row = h("div.rfig", { role: "toolbar", "aria-label": t("fx.aria"), onkeydown: rove, onfocusin: keep }, keys.map((k, i) => {
