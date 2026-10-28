@@ -18,7 +18,7 @@
 .dr-tdisc, .dr-mxd .tdisc, .dr-clear { position: relative; }
 .dr-tdisc::after, .dr-mxd .tdisc::after, .dr-clear::after { content: ""; position: absolute; inset: -4px 0; }
 .dr-mxc::after, .dr-vsb::after { content: ""; position: absolute; inset: -9px -4px; }
-.dr-toss::after { content: ""; position: absolute; inset: -6px -4px; }
+.dr-evenb::after, .dr-close::after { content: ""; position: absolute; inset: -9px -4px; }
 .dr-panel:focus { outline: none; }
 
 /* ---------------------------------------------------------------- what the visitor knows */
@@ -78,22 +78,25 @@
 /* the head: the call, then its win chance big with its basis beside it */
 .dr-vh { display: grid; gap: 8px; }
 .dr-call { font-size: 28px; }
-.dr-lean { color: var(--ink-2); font: 400 18px/1.3 var(--display); letter-spacing: .01em; }
 .dr-fig { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
 .dr-p { color: var(--ink); font: 400 40px/1 var(--display); letter-spacing: .01em; font-variant-numeric: tabular-nums; }
 .dr-basis { max-width: 46ch; color: var(--muted); font: 600 14px/1.4 var(--text); text-wrap: pretty; }
 .dr-stepl { color: var(--muted); font: 600 14px/1.4 var(--text); margin-bottom: -8px; }
 .dr-sub { color: var(--ink-2); font: 400 18px/1.15 var(--display); letter-spacing: .01em; }
 
-/* a word that explains itself (Toss-up, the evidence, a matrix cell, a matchup): the Deck figures' states */
-.dr-toss, .dr-ev, .dr-mxc, .dr-vsb, .dr-gm { position: relative; margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: help;
+/* a word that explains itself (Even match, a close call, the evidence, a matrix cell, a matchup): the Deck figures' states */
+.dr-evenb, .dr-close, .dr-ev, .dr-mxc, .dr-vsb, .dr-gm { position: relative; margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: help;
   transition: background var(--t-state) var(--curve), box-shadow var(--t-state) var(--curve); }
-.dr-toss, .dr-ev, .dr-mxc, .dr-vsb { border-radius: 8px; }
-.dr-toss { margin: -4px -8px; padding: 4px 8px; text-decoration: underline dotted var(--edge) 2px; text-underline-offset: 6px; }
-/* beside a figure that is not a call (your best deck, the draft done): the word one step down, the figure keeps the head */
-.dr-tossw { display: inline-flex; }
-.dr-toss.dr-toss-s { color: var(--ink-2); font: 400 18px/1 var(--display); letter-spacing: .01em; text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
-.dr-toss:hover, .dr-toss.on, .dr-toss:focus-visible, .dr-ev:hover, .dr-ev.on, .dr-ev:focus-visible, .dr-mxc:hover, .dr-mxc.on, .dr-mxc:focus-visible,
+.dr-evenb, .dr-close, .dr-ev, .dr-mxc, .dr-vsb { border-radius: 8px; }
+/* "Even match": after the figure, Lilita 18 Soft Lavender, one step under the figure (the heading stays the call) */
+.dr-evenw { display: inline-flex; }
+.dr-evenb { margin: -4px -8px; padding: 4px 8px; color: var(--ink-2); font: 400 18px/1 var(--display); letter-spacing: .01em;
+  text-decoration: underline dotted var(--edge) 1.5px; text-underline-offset: 4px; }
+/* the close call: a quiet line under the figure (the evidence mark's dress, no glyph) naming the second choice and its chance */
+.dr-closel { margin-top: -4px; }
+.dr-close { display: inline-flex; align-items: center; min-height: 28px; margin-left: -8px; padding: 0 8px; color: var(--ink-2); font: 600 14px/1.3 var(--text);
+  text-decoration: underline dotted var(--edge) 1.5px; text-underline-offset: 4px; text-align: left; }
+.dr-evenb:hover, .dr-evenb.on, .dr-evenb:focus-visible, .dr-close:hover, .dr-close.on, .dr-close:focus-visible, .dr-ev:hover, .dr-ev.on, .dr-ev:focus-visible, .dr-mxc:hover, .dr-mxc.on, .dr-mxc:focus-visible,
 .dr-vsb:hover, .dr-vsb.on, .dr-vsb:focus-visible { outline: none; background: var(--socket); box-shadow: var(--ring); text-decoration-color: transparent; }
 
 /* evidence: a glyph whose shape is the state, and its word; never a colour of its own */

@@ -7,36 +7,41 @@
 // the first time the tab is seen, never at the idle mount.
 // Honesty (the lead, 2026-10-28): a deck's evidence is a quiet mark with its tooltip, measured (the exact talents were played),
 // composed (these cards, never with these talents) or estimate (these four cards never played together), and a talent the data
-// never saw on that card is marked guessed; a win chance within 5 points of even reads "Toss-up", the call becoming its lean.
+// never saw on that card is marked guessed. The heading is always the call; when the second choice is less than 3 points behind
+// it, a close-call mark names it; a win chance of 46% to 54% reads "Even match" beside its figure.
 // The likely opponents are named by their count only (the owner retired the players' meta from the site): no deck of them is
 // ever drawn. The state is kept while the tab lives (sessionStorage, so a phone tab dropped mid-match comes back), the
 // format in the address (#draft/<format>).
 
-import { h, icon, fmtInt, pct } from "./util.js?v=aa3c01bc6a";
-import { DB, loadMatchup } from "./data.js?v=aa3c01bc6a";
-import { on, ownedKeys, getLang } from "./store.js?v=aa3c01bc6a";
-import { cardName, chip, L } from "./cards.js?v=aa3c01bc6a";
-import { t, tx } from "./i18n.js?v=aa3c01bc6a";
-import { searchField, announcer, terms, namedCards, outRow } from "./search.js?v=aa3c01bc6a";
-import { deckSlot } from "./decklist.js?v=aa3c01bc6a";
-import { tipButton } from "./cardtext.js?v=aa3c01bc6a";
-import { methodSection, methodLink } from "./patch.js?v=aa3c01bc6a";
-import { disclosure } from "./ui.js?v=aa3c01bc6a";
-import { toast } from "./dialogs.js?v=aa3c01bc6a";
-import { versioned } from "./version.js?v=aa3c01bc6a";
+import { h, icon, fmtInt, pct } from "./util.js?v=49a344f7c9";
+import { DB, loadMatchup } from "./data.js?v=49a344f7c9";
+import { on, ownedKeys, getLang } from "./store.js?v=49a344f7c9";
+import { cardName, chip, L } from "./cards.js?v=49a344f7c9";
+import { t, tx } from "./i18n.js?v=49a344f7c9";
+import { searchField, announcer, terms, namedCards, outRow } from "./search.js?v=49a344f7c9";
+import { deckSlot } from "./decklist.js?v=49a344f7c9";
+import { tipButton } from "./cardtext.js?v=49a344f7c9";
+import { methodSection, methodLink } from "./patch.js?v=49a344f7c9";
+import { disclosure } from "./ui.js?v=49a344f7c9";
+import { toast } from "./dialogs.js?v=49a344f7c9";
+import { versioned } from "./version.js?v=49a344f7c9";
 
 // the formats, in the tablist's order, with their group and their address
 const FMTS = [["conquest", "tour", "conquest"], ["fearless-draft", "tour", "fdraft"], ["fearless", "game", "fearless"], ["draft", "game", "draft"]];
 const KEY = Object.fromEntries(FMTS.map(([f, , k]) => [f, k]));
-const TOSS = 0.05;              // a win chance within this of even is a toss-up (the lead's rule)
+const EVEN = 5;                 // a printed win chance less than this many points from 50 is an even match (46% to 54%)
+const CLOSE = 3;                // a second choice less than this many points behind the call is a close call (the lead's rule)
 // cards offered under a field: four, two on a phone (one row of two, so the line's reserved room is one row, not a hole)
 const SEARCH = () => (matchMedia("(max-width: 640px)").matches ? 2 : 4);
 const thumb = (c, w = 24, hh = 34) => h("img", { class: "dr-art", loading: "lazy", decoding: "async", alt: "", width: w, height: hh, src: `assets/thumbs/s/${c.key}.webp` });
 const card = (id) => DB.byId.get(id);
 const ids = (cs) => cs.map((c) => c.id);
 const fig = (p) => pct(p, 0);
-// read on the printed figure, so a "55%" reads the same on every answer
-const toss = (p) => Math.abs(Math.round(p * 100) - 50) < Math.round(TOSS * 100);
+// read on the printed figures, so a "55%" reads the same on every answer
+const pts = (p) => Math.round(p * 100);
+const even = (p) => Math.abs(pts(p) - 50) < EVEN;
+/** The close-call mark's words when `second` (a win chance) is less than CLOSE points from the call's `best`, else null. */
+const closeTo = (best, second, what) => (second != null && Math.abs(pts(best) - pts(second)) < CLOSE ? { what, p: fig(second) } : null);
 const STORE = "spam-meta:draft:v1";   // while the tab lives: what the visitor entered, dropped when the tab closes
 
 let root = null;
@@ -280,16 +285,17 @@ function runner(box, paint) {
   };
 }
 
-/** The head of an answer: the call (an imperative, Headline 28), its win chance big with its basis beside it, then the deck's
- * evidence (`ev`). A win chance within 5 points of even reads "Toss-up" (a word that explains itself; the lead's rule: a close
- * call reads as a toss-up, not a pick) and the call becomes its lean, one step smaller. */
-function verdict(call, p, basis, { imperative = true, ev = null, level = 3 } = {}) {
-  const close = toss(p);
-  const [tb, td] = close ? tipButton("button.dr-toss" + (imperative ? "" : ".dr-toss-s"), t("dr.toss"), t("dr.toss"), t("dr.tossTip")) : [null, null];
+/** The head of an answer: the call (Headline 28: an imperative or a name), always; its win chance big with its basis beside
+ * it, and "Even match" after the figure when it reads 46% to 54% (a word that explains itself); then the close-call mark when the
+ * second choice is less than 3 points behind (`close`: {what, p}, closeTo()), and the deck's evidence (`ev`). The lead's rule
+ * (2026-10-28): a recommendation is about the gap between the options, not about how near the match is to 50%. */
+function verdict(call, p, basis, { ev = null, level = 3, close = null } = {}) {
+  const [eb, ed] = even(p) ? tipButton("button.dr-evenb", t("dr.even"), t("dr.even"), t("dr.evenTip")) : [null, null];
+  const [cb, cd] = close ? tipButton("button.dr-close", t("dr.close", close), t("dr.close", close), t("dr.closeTip")) : [null, null];
   return h("div.dr-vh", [
-    h(`h${level}.dr-call`, close && imperative ? [tb, td, h("span.sr", ". " + t("dr.lean", { what: call }))] : call),
-    close && imperative ? h("p.dr-lean", { "aria-hidden": "true" }, t("dr.lean", { what: call })) : null,
-    h("div.dr-fig", [h("b.dr-p", fig(p)), close && !imperative ? h("span.dr-tossw", [tb, td]) : null, h("p.dr-basis", basis)]),
+    h(`h${level}.dr-call`, call),
+    h("div.dr-fig", [h("b.dr-p", fig(p)), eb ? h("span.dr-evenw", [eb, ed]) : null, h("p.dr-basis", basis)]),
+    cb ? h("p.dr-closel", [cb, cd]) : null,
     ev ? h("p.dr-evl", ev) : null,
   ]);
 }
@@ -460,7 +466,8 @@ function paintIngame(box, r) {
   ]));
   const head = t(S.mine ? "dr.ig.head" : "dr.ig.headAll");      // "Your best deck" only from the visitor's own cards
   box.show([
-    verdict(head, best.win, basis, { imperative: false, ev: evidence(best.full_games, best.variant_full_games) }),
+    verdict(head, best.win, basis, { ev: evidence(best.full_games, best.variant_full_games),
+      close: r.decks[1] ? closeTo(best.win, r.decks[1].win, t("dr.ig.altCall")) : null }),
     deckCards(cs, best.talents, best.talents_model_only),
     others.length ? h("div.dr-alts", [h("h4.dr-sub", t("dr.ig.next")), h("ul.dr-alt-list", others)]) : null,
   ], `${head}: ${fig(best.win)}`);
@@ -478,7 +485,7 @@ function conquestPanel() {
     if (!best) { prepBox.wait(t("dr.ig.few", { n: myCards().length })); return; }
     const snap = ui.prepSnap;
     S.cq.me = best.decks.map((d) => d.cards.map(card));
-    S.cq.prep = best;
+    S.cq.prep = Object.assign({}, best, { second: r.results[1] ? r.results[1].value : null });
     mine.paint();
     paintPrep(prepBox);
     ui.compute();
@@ -494,7 +501,7 @@ function conquestPanel() {
     if (avail.length < 12) { prepBox.wait(t("dr.mineFew", { n: avail.length, min: 12 })); return; }
     ui.prepSnap = matchSnap();
     S.cq.myBan = S.cq.theirBan = null; S.cq.games = [];
-    runPrep({ kind: "conquest.prep", cards: ids(avail), myTalents: myTalents(), top: 1 });
+    runPrep({ kind: "conquest.prep", cards: ids(avail), myTalents: myTalents(), top: 2 });
   } }, t("dr.cq.suggest"));
   ui.compute = () => {
     const full = (side) => S.cq[side].every((d) => d.length === 4);
@@ -668,7 +675,7 @@ function paintPrep(box) {
   if (!r) { box.el.hidden = true; return; }
   box.el.hidden = false;
   box.show([
-    verdict(t("dr.cq.suggestHead"), r.value, t("dr.cq.suggestBasis"), { imperative: false, level: 4 }),
+    verdict(t("dr.cq.suggestHead"), r.value, t("dr.cq.suggestBasis"), { level: 4, close: closeTo(r.value, r.second, t("dr.cq.prepAlt")) }),
     h("ol.dr-prep", r.decks.map((d, k) => h("li", [
       h("span.dr-deck-n", t("dr.deckN", { n: k + 1 })),
       deckLine(d.cards.map(card), d.talents),
@@ -689,7 +696,7 @@ function cell(p, tp, mineCs, theirCs) {
   const mo = (tp.our_talents_model_only || []).some(Boolean) || (tp.their_best_response_model_only || []).some(Boolean);
   const desc = [t("dr.winTip", { p: fig(p) }), talentLine("dr.yourTl", mineCs, tp.our_talents), talentLine("dr.theirTl", theirCs, tp.their_best_response),
     t("dr.ev.pair", { ours: ev(tp.our_variant_full_games), theirs: ev(tp.their_variant_full_games) }), mo ? t("dr.ev.someGuessed") : ""].filter(Boolean).join(" ");
-  const [b, d] = tipButton("button.dr-mxc" + (toss(p) ? ".dr-even" : ""), fig(p), [h("span", fig(p)), mo ? h("i.ev-g.gm", { "aria-hidden": "true" }) : null], desc);
+  const [b, d] = tipButton("button.dr-mxc" + (even(p) ? ".dr-even" : ""), fig(p), [h("span", fig(p)), mo ? h("i.ev-g.gm", { "aria-hidden": "true" }) : null], desc);
   return h("td", [b, d]);
 }
 
@@ -723,7 +730,10 @@ function paintBan(box, rs) {
   ]))));
   disclosure(mxBtn, mx, { open: ui.mxOpen || false, onToggle: (v) => { ui.mxOpen = v; } });
   box.show([
-    verdict(t("dr.cq.ban", { n: b + 1 }), r.recommend.worstCase, t("dr.cq.banBasis"), { level: 4 }),
+    verdict(t("dr.cq.ban", { n: b + 1 }), r.recommend.worstCase, t("dr.cq.banBasis"), { level: 4, close: (() => {
+      const next = r.options.filter((o) => o.ban !== b).sort((x, y) => y.worstCase - x.worstCase)[0];
+      return next ? closeTo(r.recommend.worstCase, next.worstCase, t("dr.cq.banAlt", { n: next.ban + 1 })) : null;
+    })() }),
     h("ol.dr-opts", opts),
     mixed,
     h("div.dr-mxd", [mxBtn, mx]),
@@ -774,7 +784,11 @@ function paintPlay(box, r) {
   });
   const mix = r.play.filter((x) => x.prob > 0.01);
   box.show([
-    verdict(t("dr.cq.play", { n: k + 1 }), r.value, t("dr.cq.playBasis"), { level: 4 }),
+    verdict(t("dr.cq.play", { n: k + 1 }), r.value, t("dr.cq.playBasis"), { level: 4, close: mix.length > 1 ? null : (() => {
+      const mineK = (r.perDeck || []).find((x) => x.deck === k);
+      const next = (r.perDeck || []).filter((x) => x.deck !== k).sort((x, y) => y.vsTheirMix - x.vsTheirMix)[0];
+      return mineK && next ? closeTo(mineK.vsTheirMix, next.vsTheirMix, t("dr.cq.playAlt", { n: next.deck + 1 })) : null;
+    })() }),
     mix.length > 1 ? h("p.dr-note-s", t("dr.cq.mixPlay", { list: mix.map((x) => t("dr.cq.mixPart", { n: x.deck + 1, p: fig(x.prob) })).join(t("ui.comma")) })) : null,
     deckLine(me[k]),
     h("ul.dr-vs", vs),
@@ -958,7 +972,10 @@ function paintNext(box, r) {
   const [main, other] = act(r, c);
   box.show([
     h("p.dr-stepl", t("dr.fd.stepN", { n: r.step + 1, what: t(`dr.fd.s.${r.actor}.${r.action}`) })),
-    verdict(call, r.win, t("dr.fd.basis")),
+    verdict(call, r.win, t("dr.fd.basis"), { close: (() => {
+      const next = r.alternatives.slice().sort((x, y) => (me ? y.win - x.win : x.win - y.win))[0];
+      return next ? closeTo(r.win, next.win, t(`dr.fd.altCall.${r.actor}.${r.action}`, { name: cardName(card(next.card)) })) : null;
+    })() }),
     h("div.dr-act", [main, alts.length ? h("div.dr-altl", [h("span.fd-sug-l", t(me ? "dr.fd.alts" : "dr.fd.altsOpp")), h("ul.dr-chips", alts)]) : null, other]),
     expect,
   ], `${call}: ${fig(r.win)}`);
@@ -1015,7 +1032,7 @@ function paintFinal(box, r) {
     stepped();
   } }, t("dr.fd.next"));
   box.show([
-    verdict(t("dr.fd.done"), r.p, t("dr.fd.doneBasis"), { imperative: false }),
+    verdict(t("dr.fd.done"), r.p, t("dr.fd.doneBasis")),
     h("div.dr-act", next),
     h("h4.dr-sub", t("dr.fd.yourDeck")),
     deckCards(mine, r.our_talents, r.our_talents_model_only),
@@ -1035,7 +1052,7 @@ function method() {
       M ? h("li", tx("dr.m.model", { games: fmtInt(M.games), ai: h("span", { translate: "no" }, ai) })) : null,
       h("li", tx("dr.m.talents")),
       h("li", tx("dr.m.marks")),
-      h("li", tx("dr.m.toss")),
+      h("li", tx("dr.m.even")),
       M ? h("li", tx("dr.m.field", { n: M.field })) : null,
       h("li", tx("dr.m.conquest")),
       h("li", tx("dr.m.fdraft")),

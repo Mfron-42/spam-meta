@@ -9,8 +9,8 @@
 //   banAdvice(P)                 which of their 3 decks to ban: the 3 x 3 ban game (their ban a best response or the equilibrium)
 //   prep(model, opts)            the best 3 disjoint decks against a field of likely opponent trios (deckpick.js candidates)
 
-import { solveZeroSum } from './game_theory.js?v=aa3c01bc6a';
-import { candidatePool, fieldMatrix, sampleTrios, normaliseField } from './deckpick.js?v=aa3c01bc6a';
+import { solveZeroSum } from './game_theory.js?v=49a344f7c9';
+import { candidatePool, fieldMatrix, sampleTrios, normaliseField } from './deckpick.js?v=49a344f7c9';
 
 // State: bitmasks of the decks still needing a win. Value = P(I win the match), both sides playing the equilibrium.
 export function matchValue(P, mine, theirs, memo = new Map()) {

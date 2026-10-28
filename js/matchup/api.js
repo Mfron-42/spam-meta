@@ -13,9 +13,9 @@
 // A deck is {cards: [4 card ids], order?: [4 card ids], talentOptions?}. Every response carries ok, kind and ms; an error is
 // {ok: false, kind, error}.
 
-import { orderAdvice, banAdvice, prep, matchValue, maskOf } from './conquest.js?v=aa3c01bc6a';
-import { draftAdvice } from './draft.js?v=aa3c01bc6a';
-import { ingameAdvice } from './deckpick.js?v=aa3c01bc6a';
+import { orderAdvice, banAdvice, prep, matchValue, maskOf } from './conquest.js?v=49a344f7c9';
+import { draftAdvice } from './draft.js?v=49a344f7c9';
+import { ingameAdvice } from './deckpick.js?v=49a344f7c9';
 
 export const KINDS = ['winprob', 'matrix', 'conquest.ban', 'conquest.order', 'conquest.prep', 'fearless_draft.next', 'ingame.fearless', 'ingame.draft'];
 

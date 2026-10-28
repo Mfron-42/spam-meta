@@ -13,16 +13,16 @@
 // lives in the address (#tiers, #tiers/speed). A language change redraws the page and keeps the list, the query, the filter and
 // the open tox and variants.
 
-import { h, icon, pct, fmtInt, reducedMotion } from "./util.js?v=aa3c01bc6a";
-import { DB, loadLists, loadFacets } from "./data.js?v=aa3c01bc6a";
-import { on, isOwned, ownedCount, getLang } from "./store.js?v=aa3c01bc6a";
-import { cardName, chip, L } from "./cards.js?v=aa3c01bc6a";
-import { segmented, scrollToEl, cascade, band, CURVE, disclosure } from "./ui.js?v=aa3c01bc6a";
-import { t, tx } from "./i18n.js?v=aa3c01bc6a";
-import { tipButton } from "./cardtext.js?v=aa3c01bc6a";
-import { findRow, terms, namedCards } from "./search.js?v=aa3c01bc6a";
-import { introLine, limitParams, provBanner, isMatchupTalent, matchupMark, DECK_TABLE_SHOWN } from "./patch.js?v=aa3c01bc6a";
-import { paintOwned, deckSlot, listFigures, matchupLine, LISTS } from "./decklist.js?v=aa3c01bc6a";
+import { h, icon, pct, fmtInt, reducedMotion } from "./util.js?v=49a344f7c9";
+import { DB, loadLists, loadFacets } from "./data.js?v=49a344f7c9";
+import { on, isOwned, ownedCount, getLang } from "./store.js?v=49a344f7c9";
+import { cardName, chip, L } from "./cards.js?v=49a344f7c9";
+import { segmented, scrollToEl, cascade, band, CURVE, disclosure } from "./ui.js?v=49a344f7c9";
+import { t, tx } from "./i18n.js?v=49a344f7c9";
+import { tipButton } from "./cardtext.js?v=49a344f7c9";
+import { findRow, terms, namedCards } from "./search.js?v=49a344f7c9";
+import { introLine, limitParams, provBanner, isMatchupTalent, matchupMark, DECK_TABLE_SHOWN } from "./patch.js?v=49a344f7c9";
+import { paintOwned, deckSlot, listFigures, matchupLine, LISTS } from "./decklist.js?v=49a344f7c9";
 
 // each list's address: the first (Elo, the default) is the bare #tiers. The addresses of the earlier lists land on Elo and are
 // rewritten to its own: "#tiers/top" (Against the top), "#tiers/final" and "#tiers/race" (the ranking before it); the players'

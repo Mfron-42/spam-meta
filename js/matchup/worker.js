@@ -2,8 +2,8 @@
 // calls (conquest.prep, the in-game modes) never block the page.
 //   postMessage({id, init: {weights, field}})   -> {id, ok: true, cards}
 //   postMessage({id, request})                  -> {id, response}   (the response of api.handle)
-import { loadModel } from './matchup.js?v=aa3c01bc6a';
-import { handle } from './api.js?v=aa3c01bc6a';
+import { loadModel } from './matchup.js?v=49a344f7c9';
+import { handle } from './api.js?v=49a344f7c9';
 
 let model = null;
 let field = null;

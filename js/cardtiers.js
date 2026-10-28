@@ -9,18 +9,18 @@
 // at the top. Data: data/cardtiers.json (tools/export_cardtiers.py); every number on this page is that file's.
 // A language change rebuilds the page from the same state (tab, filters, search).
 
-import { h, $, $$, icon, fmtInt, pct, reducedMotion } from "./util.js?v=aa3c01bc6a";
-import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=aa3c01bc6a";
-import { DB, loadCardTiers, loadFacets } from "./data.js?v=aa3c01bc6a";
-import { on, getLang } from "./store.js?v=aa3c01bc6a";
-import { cardName, otherName, chip, L, elName, raName } from "./cards.js?v=aa3c01bc6a";
-import { disclosure, filterChip, setChip, cascade, band, chromeBottom, CURVE } from "./ui.js?v=aa3c01bc6a";
-import { buildIndex, fromQuery, toQuery, passes as facetPasses, noFilter, filterCount } from "./facetmodel.js?v=aa3c01bc6a";
-import { facetFilters, ownAddress, writeAddress, hashTab } from "./facets.js?v=aa3c01bc6a";
-import { t, tx } from "./i18n.js?v=aa3c01bc6a";
-import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, provBanner, methodSection } from "./patch.js?v=aa3c01bc6a";
-import { textNodes, hideTip } from "./cardtext.js?v=aa3c01bc6a";
-import { deckStrip, TC } from "./deckstrip.js?v=aa3c01bc6a";
+import { h, $, $$, icon, fmtInt, pct, reducedMotion } from "./util.js?v=49a344f7c9";
+import { searchField, announcer, terms, hasAll, nameHay } from "./search.js?v=49a344f7c9";
+import { DB, loadCardTiers, loadFacets } from "./data.js?v=49a344f7c9";
+import { on, getLang } from "./store.js?v=49a344f7c9";
+import { cardName, otherName, chip, L, elName, raName } from "./cards.js?v=49a344f7c9";
+import { disclosure, filterChip, setChip, cascade, band, chromeBottom, CURVE } from "./ui.js?v=49a344f7c9";
+import { buildIndex, fromQuery, toQuery, passes as facetPasses, noFilter, filterCount } from "./facetmodel.js?v=49a344f7c9";
+import { facetFilters, ownAddress, writeAddress, hashTab } from "./facets.js?v=49a344f7c9";
+import { t, tx } from "./i18n.js?v=49a344f7c9";
+import { changeOf, glyph, patchTag, patchDetail, oldNumbersNote, provBanner, methodSection } from "./patch.js?v=49a344f7c9";
+import { textNodes, hideTip } from "./cardtext.js?v=49a344f7c9";
+import { deckStrip, TC } from "./deckstrip.js?v=49a344f7c9";
 
 // the row of the cards with too few games for a tier ("Not enough data"), after the tiers
 const FEW = "few";

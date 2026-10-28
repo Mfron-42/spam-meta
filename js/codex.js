@@ -3,19 +3,19 @@
 // card. Each card shown under a filter or a search says why it matched. The filters live in the address (facetmodel.js
 // toQuery), so a search can be shared. A language change rebuilds the tab from the same state.
 
-import { h, icon, norm, fmtInt } from "./util.js?v=aa3c01bc6a";
-import { searchField, terms as searchTerms, hasAll, announcer } from "./search.js?v=aa3c01bc6a";
-import { DB, loadFacets } from "./data.js?v=aa3c01bc6a";
-import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js?v=aa3c01bc6a";
-import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=aa3c01bc6a";
-import { cardTile, ownToggle, setOwnedView, cardName, RARITIES, unsize } from "./cards.js?v=aa3c01bc6a";
-import { flip, band } from "./ui.js?v=aa3c01bc6a";
-import { toast, openCollection } from "./dialogs.js?v=aa3c01bc6a";
-import { cardText } from "./cardtext.js?v=aa3c01bc6a";
-import { t, STRINGS } from "./i18n.js?v=aa3c01bc6a";
-import { GAME_PATCH, DECK_TABLE_SHOWN } from "./patch.js?v=aa3c01bc6a";
-import { buildIndex, fromQuery, toQuery, passes as facetPasses, noFilter, relaxations, NUMS } from "./facetmodel.js?v=aa3c01bc6a";
-import { facetFilters, ownAddress, writeAddress, hashTab } from "./facets.js?v=aa3c01bc6a";
+import { h, icon, norm, fmtInt } from "./util.js?v=49a344f7c9";
+import { searchField, terms as searchTerms, hasAll, announcer } from "./search.js?v=49a344f7c9";
+import { DB, loadFacets } from "./data.js?v=49a344f7c9";
+import { on, isOwned, ownedCount, ownedKeys, addMany, replaceOwned, getLang, canPersist } from "./store.js?v=49a344f7c9";
+import { keepLine, paintNoStore, inAppNotice } from "./keep.js?v=49a344f7c9";
+import { cardTile, ownToggle, setOwnedView, cardName, RARITIES, unsize } from "./cards.js?v=49a344f7c9";
+import { flip, band } from "./ui.js?v=49a344f7c9";
+import { toast, openCollection } from "./dialogs.js?v=49a344f7c9";
+import { cardText } from "./cardtext.js?v=49a344f7c9";
+import { t, STRINGS } from "./i18n.js?v=49a344f7c9";
+import { GAME_PATCH, DECK_TABLE_SHOWN } from "./patch.js?v=49a344f7c9";
+import { buildIndex, fromQuery, toQuery, passes as facetPasses, noFilter, relaxations, NUMS } from "./facetmodel.js?v=49a344f7c9";
+import { facetFilters, ownAddress, writeAddress, hashTab } from "./facets.js?v=49a344f7c9";
 
 // the toolbar's filter triggers, in order, and the groups each one opens
 const TRIGGERS = [["el", ["el"]], ["ra", ["ra"]], ["hit", ["hit"]], ["gen", ["gen"]], ["fx", ["fx"]], ["tox", ["tox"]], ["tgt", ["tgt"]],
