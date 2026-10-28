@@ -2,25 +2,24 @@
 // own modules (store, i18n, data, cards), so it draws the same game cards from the same data, speaks the same two languages
 // and shares the visitor's language choice with SPAM Meta. Its strings are the "ov." keys of js/i18n.js.
 
-import { setLang, langChosen, on, getLang } from "../../js/store.js?v=49a344f7c9";
-import { t, tx, applyStatic } from "../../js/i18n.js?v=49a344f7c9";
-import { h, pct, dec, icon, fmtInt } from "../../js/util.js?v=49a344f7c9";
-import { DB, loadCore, loadLists, loadCardTiers } from "../../js/data.js?v=49a344f7c9";
-import { gameCard, cardName } from "../../js/cards.js?v=49a344f7c9";
-import { GAME_PATCH, DECK_RANKING_SHOWN, CARD_TIERS_SHOWN } from "../../js/patch.js?v=49a344f7c9";
-import { ambient } from "../../js/ambient.js?v=49a344f7c9";
-import { copyText, disclosure } from "../../js/ui.js?v=49a344f7c9";
-import { createStage } from "./stage.js?v=49a344f7c9";
-import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=49a344f7c9";
+import { setLang, langChosen, on, getLang } from "../../js/store.js?v=813db21b65";
+import { t, tx, applyStatic } from "../../js/i18n.js?v=813db21b65";
+import { h, pct, dec, icon, fmtInt } from "../../js/util.js?v=813db21b65";
+import { DB, loadCore, loadLists, loadCardTiers } from "../../js/data.js?v=813db21b65";
+import { gameCard, cardName } from "../../js/cards.js?v=813db21b65";
+import { GAME_PATCH, DECK_RANKING_SHOWN, CARD_TIERS_SHOWN } from "../../js/patch.js?v=813db21b65";
+import { ambient } from "../../js/ambient.js?v=813db21b65";
+import { copyText, disclosure } from "../../js/ui.js?v=813db21b65";
+import { createStage } from "./stage.js?v=813db21b65";
+import { loadRelease, formatSize, formatDay, recommended, alternative } from "./release.js?v=813db21b65";
 
-// The overlay's own display: four crops of the real renderer's output over a stand-in board with made-up figures (tools/overlay_media/:
+// The overlay's own display: three crops of the real renderer's output over a stand-in board with made-up figures (tools/overlay_media/:
 // shoot.js drives the overlay build's UX harness, crop.py writes these files), so every one is a composite and carries
 // "Illustration, made-up numbers". Pixels only (WebP). One file per language. `w`/`h`: the largest file's own size (set on the img
 // so nothing jumps); the frame opens the largest. `src` null: not in yet, the frame shows its empty state.
 const MEDIA = {
   dmg: { composite: true, w: 1600, h: 1200, src: { fr: "dmg-fr", en: "dmg-en" }, sizes: [800, 1600] },
   death: { composite: true, w: 1280, h: 960, src: { fr: "death-fr", en: "death-en" }, sizes: [640, 1280] },
-  odds: { composite: true, w: 792, h: 594, src: { fr: "odds-fr", en: "odds-en" }, sizes: [396, 792] },
   win: { composite: true, w: 1600, h: 1200, src: { fr: "win-fr", en: "win-en" }, sizes: [800, 1600] },
 };
 const mediaUrl = (name, w) => new URL(`../media/${name}-${w}.webp`, import.meta.url).href;
@@ -232,7 +231,7 @@ subnav.addEventListener("scroll", subnavEdges, { passive: true });
 window.addEventListener("resize", subnavEdges);
 subnavEdges();
 
-// ---- the four feature pictures: the real file when it is in, else the frame's empty state
+// ---- the three feature pictures: the real file when it is in, else the frame's empty state
 function drawShots() {
   for (const fig of document.querySelectorAll(".shot[data-media]")) {
     const key = fig.dataset.media, media = MEDIA[key], frame = fig.querySelector(".shot-frame");
@@ -251,7 +250,7 @@ function drawShots() {
         if (media.composite) fig.querySelector("figcaption").prepend(h("span.tag.soft.shot-tag"), " ");
       }
       img.srcset = media.sizes.map((w) => `${mediaUrl(name, w)} ${w}w`).join(", ");
-      img.sizes = "(min-width: 1184px) 536px, (min-width: 760px) calc(50vw - 56px), calc(100vw - 32px)";
+      img.sizes = "(min-width: 1184px) 644px, (min-width: 760px) calc(60vw - 68px), calc(100vw - 32px)";
       img.src = mediaUrl(name, media.sizes[0]);
       img.alt = t(`ov.alt.${key}`);
       a.href = mediaUrl(name, big);

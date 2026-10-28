@@ -13,18 +13,18 @@
 // ever drawn. The state is kept while the tab lives (sessionStorage, so a phone tab dropped mid-match comes back), the
 // format in the address (#draft/<format>).
 
-import { h, icon, fmtInt, pct } from "./util.js?v=49a344f7c9";
-import { DB, loadMatchup } from "./data.js?v=49a344f7c9";
-import { on, ownedKeys, getLang } from "./store.js?v=49a344f7c9";
-import { cardName, chip, L } from "./cards.js?v=49a344f7c9";
-import { t, tx } from "./i18n.js?v=49a344f7c9";
-import { searchField, announcer, terms, namedCards, outRow } from "./search.js?v=49a344f7c9";
-import { deckSlot } from "./decklist.js?v=49a344f7c9";
-import { tipButton } from "./cardtext.js?v=49a344f7c9";
-import { methodSection, methodLink } from "./patch.js?v=49a344f7c9";
-import { disclosure } from "./ui.js?v=49a344f7c9";
-import { toast } from "./dialogs.js?v=49a344f7c9";
-import { versioned } from "./version.js?v=49a344f7c9";
+import { h, icon, fmtInt, pct } from "./util.js?v=813db21b65";
+import { DB, loadMatchup } from "./data.js?v=813db21b65";
+import { on, ownedKeys, getLang } from "./store.js?v=813db21b65";
+import { cardName, chip, L } from "./cards.js?v=813db21b65";
+import { t, tx } from "./i18n.js?v=813db21b65";
+import { searchField, announcer, terms, namedCards, outRow } from "./search.js?v=813db21b65";
+import { deckSlot } from "./decklist.js?v=813db21b65";
+import { tipButton } from "./cardtext.js?v=813db21b65";
+import { methodSection, methodLink } from "./patch.js?v=813db21b65";
+import { disclosure } from "./ui.js?v=813db21b65";
+import { toast } from "./dialogs.js?v=813db21b65";
+import { versioned } from "./version.js?v=813db21b65";
 
 // the formats, in the tablist's order, with their group and their address
 const FMTS = [["conquest", "tour", "conquest"], ["fearless-draft", "tour", "fdraft"], ["fearless", "game", "fearless"], ["draft", "game", "draft"]];

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SPAM Overlay : sache ce qui va se passer avant de cliquer</title>
-<meta name="description" content="Un overlay de fan pour le jeu de cartes SPAM : dégâts, chance de mourir, chances de la boutique et effet de chaque choix sur ta chance de gagner, affichés sur tes propres cartes.">
+<meta name="description" content="Un overlay de fan pour le jeu de cartes SPAM : dégâts, chance de mourir et effet de chaque choix sur ta chance de gagner, affichés sur tes propres cartes.">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#15122c">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
@@ -13,16 +13,16 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="SPAM Overlay">
 <meta property="og:title" content="SPAM Overlay : sache ce qui va se passer avant de cliquer">
-<meta property="og:description" content="Dégâts, chance de mourir, chances de la boutique et effet de chaque choix sur ta victoire, affichés autour de tes cartes. Outil de fan non officiel.">
+<meta property="og:description" content="Dégâts, chance de mourir et effet de chaque choix sur ta victoire, affichés autour de tes cartes. Outil de fan non officiel.">
 
 <link rel="preload" href="../fonts/lilita-one-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../fonts/nunito-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="../data/cards.json?v=49a344f7c9" as="fetch" crossorigin>
-<link rel="stylesheet" href="../css/base.css?v=49a344f7c9">
-<link rel="stylesheet" href="../css/ambient.css?v=49a344f7c9">
-<link rel="stylesheet" href="../css/cards.css?v=49a344f7c9">
-<link rel="stylesheet" href="css/overlay.css?v=49a344f7c9">
-<link rel="modulepreload" href="js/showcase.js?v=49a344f7c9">
+<link rel="preload" href="../data/cards.json?v=813db21b65" as="fetch" crossorigin>
+<link rel="stylesheet" href="../css/base.css?v=813db21b65">
+<link rel="stylesheet" href="../css/ambient.css?v=813db21b65">
+<link rel="stylesheet" href="../css/cards.css?v=813db21b65">
+<link rel="stylesheet" href="css/overlay.css?v=813db21b65">
+<link rel="modulepreload" href="js/showcase.js?v=813db21b65">
 </head>
 <body class="ov" data-dl="loading">
 <a class="skip" href="#main" data-i18n="head.skip">Aller au contenu</a>
@@ -113,8 +113,8 @@
     </figure>
   </section>
 
-  <!-- what it shows: the four things that matter before a click (damage, death, shop odds, win change), each with a real render of the
-       overlay; then the quieter features. The figures in the pictures are made up (the caption says so). -->
+  <!-- what it shows: the three things that matter before a click (damage, death, win change), each with a real render of the
+       overlay; then the quieter features (the shop's rarity odds went with overlay 0.1.26: the game shows them itself). The figures in the pictures are made up (the caption says so). -->
   <section class="band" id="what" aria-labelledby="what-h">
     <div class="wrap">
       <div class="sec-head">
@@ -140,21 +140,13 @@
           </div>
           <figcaption><span data-i18n="ov.cap.death">De gauche à droite : 31 % (contour), 70 % (plein), mort certaine (crâne seul).</span></figcaption>
         </figure>
-        <figure class="kf shot" data-media="odds">
-          <div class="shot-frame"></div>
-          <div class="kf-text">
-            <h3 data-i18n="ov.k.odds">Chances de rareté</h3>
-            <p data-i18n="ov.k.oddsT">Sous Relancer, la chance de chaque rareté au prochain tirage, à ton niveau de chance.</p>
-          </div>
-          <figcaption><span data-i18n="ov.cap.odds">Prochain tirage : 52 % commune, 30 % rare, 13 % épique, 5 % légendaire.</span></figcaption>
-        </figure>
         <figure class="kf shot" data-media="win">
           <div class="shot-frame"></div>
           <div class="kf-text">
             <h3 data-i18n="ov.k.win">Chaque choix, en points de victoire</h3>
-            <p data-i18n="ov.k.winT">Sur chaque tox, sous Relancer et près de Passer : ce que le choix change à ta chance de gagner, en points (wr, pour win rate).</p>
+            <p data-i18n="ov.k.winT">Sur chaque tox, au-dessus de Relancer et près de Passer : ce que le choix change à ta chance de gagner, en points, avec la couronne.</p>
           </div>
-          <figcaption><span data-i18n="ov.cap.win">+3 et +7 wr sur deux tox (≈ : moins sûr), le point cyan sur le meilleur, −1 en passant.</span></figcaption>
+          <figcaption><span data-i18n="ov.cap.win">+3 et +7 sur deux tox (≈ : moins sûr), le point cyan sur le meilleur, −1 en passant.</span></figcaption>
         </figure>
       </div>
 
@@ -373,6 +365,6 @@
 
 <noscript><div class="wrap noscript"><p lang="fr">Cette page a besoin de JavaScript pour dessiner les cartes.</p><p lang="en">This page needs JavaScript to draw the cards.</p></div></noscript>
 
-<script type="module" src="js/showcase.js?v=49a344f7c9"></script>
+<script type="module" src="js/showcase.js?v=813db21b65"></script>
 </body>
 </html>

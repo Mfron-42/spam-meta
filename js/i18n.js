@@ -12,8 +12,8 @@
 // {one, other} chosen by Intl.PluralRules on the parameter `count`, else `n` (French: 0 to 1.99 are "one"). `**bold**` is honoured by tx()
 // only. French copy uses plain spaces before : ; ? ! - they become no-break spaces when the table loads.
 
-import { h, fmtInt, dec } from "./util.js?v=49a344f7c9";
-import { getLang } from "./store.js?v=49a344f7c9";
+import { h, fmtInt, dec } from "./util.js?v=813db21b65";
+import { getLang } from "./store.js?v=813db21b65";
 
 const EN = {
   // ---- document and header
@@ -813,7 +813,7 @@ const EN = {
   "foot.overlay": "SPAM Overlay: the odds of every move, in the game.",
   "foot.overlayLink": "See the overlay",
   "ov.docTitle": "SPAM Overlay: know what happens before you click",
-  "ov.docDesc": "A fan-made overlay for the card game SPAM: damage, death chance, shop odds and the effect of each choice on your win chance, shown on your own cards.",
+  "ov.docDesc": "A fan-made overlay for the card game SPAM: damage, death chance and the effect of each choice on your win chance, shown on your own cards.",
   "ov.home": "SPAM Overlay, top of the page",
   "ov.nav": "Page sections",
   "ov.nav.what": "What it shows",
@@ -885,11 +885,8 @@ const EN = {
   "ov.k.death": "Death chance",
   "ov.k.deathT": "A skull marks a possible death, with its chance: solid from 50%, outlined from 1%. Alone, with no figure, it marks a certain death.",
   "ov.cap.death": "Left to right: 31% (outlined), 70% (solid), certain death (skull alone).",
-  "ov.k.odds": "Rarity odds",
-  "ov.k.oddsT": "Under Reroll, the chance of each rarity on the next roll, at your luck level.",
-  "ov.cap.odds": "Next roll: 52% common, 30% rare, 13% epic, 5% legendary.",
   "ov.k.win": "Each choice, in win-chance points",
-  "ov.k.winT": "On each tox, under Reroll and beside Skip: what the choice changes in your win chance, in points, with the crown.",
+  "ov.k.winT": "On each tox, above Reroll and beside Skip: what the choice changes in your win chance, in points, with the crown.",
   "ov.cap.win": "+3 and +7 on two tox (≈: less certain), the cyan dot on the best one, −1 for skipping.",
   "ov.grp.more": "And also",
   "ov.f.honest": "Never more precise than its data",
@@ -897,7 +894,6 @@ const EN = {
   "ov.f.honestS": "<8%",
   "ov.alt.dmg": "The overlay over a SPAM board with Ignea’s spell hovered. Above each enemy card a red damage range: 90 to 190, 120 to 180, 38 and 50 to 90 from left to right. A green heal of 70 under one of your cards.",
   "ov.alt.death": "Close-up of three enemy cards: an outlined skull with 31% and a damage range of 120 to 180, a solid skull with 70% and 38, and a bare solid skull.",
-  "ov.alt.odds": "Close-up of the Reroll button with +2 wr under it, then the odds of each rarity on two lines: 52% common, 30% rare, 13% epic, 5% legendary, each with its pips.",
   "ov.alt.win": "The shop with the overlay: ≈ +3 and +7 wr above two tox with a cyan dot on the second, −1 wr beside Skip.",
   "ov.f.gauge": "Your win chance, above End turn",
   "ov.f.gaugeT": "A crowned figure and its gauge above End turn: your chance to win, as the AI sees it. Rest the cursor on it for the details.",
@@ -956,7 +952,7 @@ const EN = {
   "ov.faq.q1": "Is it official?",
   "ov.faq.a1": "No. It is a fan-made tool, not affiliated with the game's publisher.",
   "ov.faq.q2": "Where do the numbers come from?",
-  "ov.faq.a2": "From a simulator of the game and the lab’s current best AI, {ai}. It knows only what the game sends your client: an opponent’s talent stays unknown until it fires. Odds are exact or sampled, and the shop’s rarity odds are the game’s own; a win chance is an estimate that games played to the end refine. Nothing is shown for a choice the engine has not evaluated.",
+  "ov.faq.a2": "From a simulator of the game and the lab’s current best AI, {ai}. It knows only what the game sends your client: an opponent’s talent stays unknown until it fires. Odds are exact or sampled; a win chance is an estimate that games played to the end refine. Nothing is shown for a choice the engine has not evaluated.",
   "ov.faq.q3": "Does it send my data anywhere?",
   "ov.faq.a3": "No. Everything is computed on your PC and nothing from your game is sent. The overlay goes online only when you press one of its buttons: “Check for updates” and “Update and restart” (GitHub), or “Install Npcap for me” (npcap.com).",
   "ov.faq.q4": "Will it slow my PC down?",
@@ -1768,7 +1764,7 @@ const FR = {
   "foot.overlay": "SPAM Overlay : les chances de chaque coup, en jeu.",
   "foot.overlayLink": "Voir l’overlay",
   "ov.docTitle": "SPAM Overlay : sache ce qui va se passer avant de cliquer",
-  "ov.docDesc": "Un overlay de fan pour le jeu de cartes SPAM : dégâts, chance de mourir, chances de la boutique et effet de chaque choix sur ta chance de gagner, affichés sur tes propres cartes.",
+  "ov.docDesc": "Un overlay de fan pour le jeu de cartes SPAM : dégâts, chance de mourir et effet de chaque choix sur ta chance de gagner, affichés sur tes propres cartes.",
   "ov.home": "SPAM Overlay, haut de la page",
   "ov.nav": "Sections de la page",
   "ov.nav.what": "Ce qu’il montre",
@@ -1840,11 +1836,8 @@ const FR = {
   "ov.k.death": "Chance de mourir",
   "ov.k.deathT": "Un crâne marque une mort possible, avec sa chance : plein dès 50 %, en contour dès 1 %. Seul, sans chiffre, il marque une mort certaine.",
   "ov.cap.death": "De gauche à droite : 31 % (contour), 70 % (plein), mort certaine (crâne seul).",
-  "ov.k.odds": "Chances de rareté",
-  "ov.k.oddsT": "Sous Relancer, la chance de chaque rareté au prochain tirage, à ton niveau de chance.",
-  "ov.cap.odds": "Prochain tirage : 52 % commune, 30 % rare, 13 % épique, 5 % légendaire.",
   "ov.k.win": "Chaque choix, en points de victoire",
-  "ov.k.winT": "Sur chaque tox, sous Relancer et près de Passer : ce que le choix change à ta chance de gagner, en points, avec la couronne.",
+  "ov.k.winT": "Sur chaque tox, au-dessus de Relancer et près de Passer : ce que le choix change à ta chance de gagner, en points, avec la couronne.",
   "ov.cap.win": "+3 et +7 sur deux tox (≈ : moins sûr), le point cyan sur le meilleur, −1 en passant.",
   "ov.grp.more": "Et aussi",
   "ov.f.honest": "Jamais plus précis que ses données",
@@ -1852,7 +1845,6 @@ const FR = {
   "ov.f.honestS": "<8 %",
   "ov.alt.dmg": "L’overlay sur un plateau de SPAM, le sort d’Ignea survolé. Au-dessus de chaque carte adverse, une plage de dégâts rouge : 90 à 190, 120 à 180, 38 et 50 à 90 de gauche à droite. Un soin vert de 70 sous une de tes cartes.",
   "ov.alt.death": "Gros plan sur trois cartes adverses : un crâne en contour à 31 % avec 120 à 180 de dégâts, un crâne plein à 70 % avec 38, et un crâne plein seul.",
-  "ov.alt.odds": "Gros plan sur le bouton Relancer avec +2 wr dessous, puis les chances de chaque rareté sur deux lignes : 52 % commune, 30 % rare, 13 % épique, 5 % légendaire, chacune avec ses points.",
   "ov.alt.win": "La boutique avec l’overlay : ≈ +3 et +7 wr au-dessus de deux tox avec un point cyan sur le second, −1 wr à côté de Passer.",
   "ov.f.gauge": "Ta chance de gagner, au-dessus de Fin du tour",
   "ov.f.gaugeT": "Un chiffre couronné et sa jauge au-dessus de Fin du tour : ta chance de gagner, vue par l’IA. Laisse le curseur dessus pour le détail.",
@@ -1911,7 +1903,7 @@ const FR = {
   "ov.faq.q1": "C’est un outil officiel ?",
   "ov.faq.a1": "Non. C’est un outil de fan, sans lien avec l’éditeur du jeu.",
   "ov.faq.q2": "D’où viennent les chiffres ?",
-  "ov.faq.a2": "D’un simulateur du jeu et de la meilleure IA actuelle du labo, {ai}. Elle ne connaît que ce que le jeu envoie à ton client : le talent d’un adversaire reste inconnu tant qu’il ne s’est pas déclenché. Les chances sont exactes ou échantillonnées, et celles des raretés en boutique sont celles du jeu ; une chance de victoire est une estimation que des parties jouées jusqu’au bout affinent. Rien ne s’affiche pour un choix que le moteur n’a pas évalué.",
+  "ov.faq.a2": "D’un simulateur du jeu et de la meilleure IA actuelle du labo, {ai}. Elle ne connaît que ce que le jeu envoie à ton client : le talent d’un adversaire reste inconnu tant qu’il ne s’est pas déclenché. Les chances sont exactes ou échantillonnées ; une chance de victoire est une estimation que des parties jouées jusqu’au bout affinent. Rien ne s’affiche pour un choix que le moteur n’a pas évalué.",
   "ov.faq.q3": "Est-ce qu’il envoie mes données ?",
   "ov.faq.a3": "Non. Tout est calculé sur ton PC, rien de ton jeu n’est envoyé. L’overlay ne va en ligne que lorsque tu appuies sur un de ses boutons : « Rechercher une mise à jour » et « Mettre à jour et redémarrer » (GitHub), ou « Installer Npcap pour moi » (npcap.com).",
   "ov.faq.q4": "Est-ce que ça ralentit mon PC ?",

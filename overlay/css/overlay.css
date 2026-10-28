@@ -193,11 +193,16 @@ main { display: block; }
 .feat.s-under .sample { justify-self: start; margin: 4px 0; }
 kbd { display: inline-flex; align-items: center; height: 28px; padding: 0 8px; border-radius: 4px; background: var(--panel-hi); box-shadow: 0 2px 0 var(--socket); color: var(--ink); font: 700 14px/1 var(--text); white-space: nowrap; }
 
-/* the four headline features (damage, death, shop odds, win change): each a picture, then its name and two sentences, then what the
-   made-up figures in the picture say; two by two from 760px, one column on a phone. Every frame takes its picture's own ratio
-   (showcase.js sets it), nothing is cropped. The picture comes first so the four frames line up whatever the text length. */
-.keyf { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px 48px; align-items: start; }
+/* the three headline features (damage, death, win change; the shop's rarity odds went with overlay 0.1.26, the game shows them):
+   from 760px each is one row, its picture in the left three fifths (larger than the old two-by-two grid gave it), its name, two sentences and what
+   the made-up figures say on the right; one column on a phone, the picture first. Every frame takes its picture's own ratio
+   (showcase.js sets it), nothing is cropped, and the three frames share one column so they line up whatever the text length. */
+.keyf { display: grid; grid-template-columns: minmax(0, 1fr); gap: 32px; align-items: start; }
 .kf { align-content: start; gap: 12px; }
+.kf.shot { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); grid-template-rows: auto 1fr; gap: 12px 48px; }
+.kf.shot > .shot-frame { grid-column: 1; grid-row: 1 / span 2; }
+.kf.shot > .kf-text { grid-column: 2; grid-row: 1; margin-top: 0; }
+.kf.shot > figcaption { grid-column: 2; grid-row: 2; align-self: start; }
 .kf-text { display: grid; gap: 4px; margin-top: 4px; }
 .kf-text h3 { font-size: 22px; text-wrap: balance; }
 .kf-text p { color: var(--ink-2); max-width: 60ch; text-wrap: pretty; }
@@ -449,7 +454,9 @@ body[data-dl="loading"] .hero-note { visibility: hidden; }
   .feat > p { flex: 1 0 100%; order: 2; }
   .sample { flex: none; min-height: 36px; padding: 4px 8px; }
   .fgroup h3 { padding-bottom: 8px; }
-  .keyf { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .kf.shot { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; }
+  .kf.shot > .shot-frame, .kf.shot > .kf-text, .kf.shot > figcaption { grid-column: auto; grid-row: auto; }
+  .kf.shot > .kf-text { margin-top: 4px; }
   .keyf + .feats { margin-top: 32px; }
   .steps { margin-top: 16px; gap: 16px; }
   .priv { margin-top: 16px; }
