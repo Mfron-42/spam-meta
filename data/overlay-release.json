@@ -1,27 +1,27 @@
 {
   "available": true,
-  "version": "0.1.26",
-  "released": "2026-10-28",
-  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.26",
-  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.26",
+  "version": "0.1.27",
+  "released": "2026-10-29",
+  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.27",
+  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.27",
   "notes": {
-    "en": "- Game 1.26.5. The engine is updated for game 1.26.5; the game now shows the rarity odds itself.\n- The rarity odds are the game's own now. Since the game's update of 28 October, its shop shows the chance of each rarity for the next roll, under the Reroll button. The overlay no longer draws its own copy, in the shop or in the panel. The change a reroll brings to your win chance now sits above the Reroll button, so it never covers the game's odds.",
-    "fr": "- Jeu 1.26.5. Le moteur est mis \u00e0 jour pour le jeu 1.26.5 ; le jeu affiche maintenant lui-m\u00eame les chances de raret\u00e9.\n- Les chances de raret\u00e9 sont celles du jeu. Depuis la mise \u00e0 jour du jeu du 28 octobre, sa boutique affiche la chance de chaque raret\u00e9 au prochain tirage, sous le bouton Relancer. L'overlay n'en dessine plus sa propre copie, ni dans la boutique ni dans le panneau. Ce qu'une relance change \u00e0 votre chance de victoire s'affiche d\u00e9sormais au-dessus du bouton Relancer, pour ne jamais cacher les chances du jeu."
+    "en": "- One advice, the AI's own. The \"do this\" dot is always the AI's choice, and the win chance shown is the value its search gives that move. The other moves follow in the order of their value. A move that shows a higher figure but was simulated less than the AI's choice says so (\"few sims (2)\") instead of a gain against the dot. The overlay no longer mixes figures from several sources, and no longer moves the dot by its own rules.\n- A clearer shop. The AI's choice is the only one with a win chance: its estimated win. Every other choice shows how confident the AI is in it (\"confidence 12%\"), in a smaller text, so it never reads as a win chance. Before the AI has decided, every choice shows its quick estimate (\"\u2248\"), and the dot is a ring.\n- Test games are a detail. The AI's test games no longer pick or sort anything: they show in the win chance's detail (\"Test games: 62% of 40\") and in the panel's expanded view.\n- Safe mode is gone. Alt+R and the panel's Greedy / Safe toggle ranked moves by their worst outcome, a second advice beside the AI's. They are removed.\n- Report this advice. See an odd advice? Press Alt+B, or pick \"Report this advice\" in the tray. The overlay saves that decision, anonymised, so it can be checked and the AI improved. \"Open the reports folder\" in the tray shows the saved files.\n- Game data collection. The overlay is free; to use it, it collects anonymous game data: your finished matches and your reports, with no username, no account ID and no personal data. A new install asks you to accept it on the last setup step; an update from 0.1.26 collects with no prompt. The launcher's Privacy section links to what is collected.\n- spam-meta.com. Updates and the privacy page now come from https://spam-meta.com.",
+    "fr": "- Un seul conseil, celui de l'IA. Le point \u00ab fais \u00e7a \u00bb est toujours le choix de l'IA, et la chance de victoire affich\u00e9e est la valeur que sa recherche donne \u00e0 ce coup. Les autres coups suivent dans l'ordre de leur valeur. Un coup qui affiche un chiffre plus haut mais a \u00e9t\u00e9 moins simul\u00e9 que le choix de l'IA le dit (\u00ab peu simul\u00e9e (2) \u00bb) au lieu d'un gain contre le point. L'overlay ne m\u00e9lange plus des chiffres de plusieurs sources et ne d\u00e9place plus le point selon ses propres r\u00e8gles.\n- Une boutique plus claire. Le choix de l'IA est le seul \u00e0 porter une chance de victoire : sa victoire estim\u00e9e. Chaque autre choix montre la confiance de l'IA en lui (\u00ab confiance 12 % \u00bb), en plus petit, pour ne jamais se lire comme une chance de victoire. Avant que l'IA ait d\u00e9cid\u00e9, chaque choix montre son estimation rapide (\u00ab \u2248 \u00bb) et le point est un anneau.\n- Les parties test sont un d\u00e9tail. Les parties test de l'IA ne choisissent et ne trient plus rien : elles s'affichent dans le d\u00e9tail de la chance de victoire (\u00ab Parties test : 62 % sur 40 \u00bb) et dans la vue d\u00e9taill\u00e9e du panneau.\n- Le mode prudent dispara\u00eet. Alt+R et le bouton Gourmand / Prudent du panneau classaient les coups selon leur pire issue, un second conseil \u00e0 c\u00f4t\u00e9 de celui de l'IA. Ils sont retir\u00e9s.\n- Signaler ce conseil. Un conseil vous para\u00eet bizarre ? Appuyez sur Alt+B, ou choisissez \u00ab Signaler ce conseil \u00bb dans la zone de notification. L'overlay enregistre cette d\u00e9cision, anonymis\u00e9e, pour qu'elle soit v\u00e9rifi\u00e9e et que l'IA progresse. \u00ab Ouvrir le dossier des signalements \u00bb montre les fichiers enregistr\u00e9s.\n- Collecte des donn\u00e9es de jeu. L'overlay est gratuit ; pour l'utiliser, il collecte des donn\u00e9es de jeu anonymes : vos parties termin\u00e9es et vos signalements, sans pseudo, sans identifiant de compte ni donn\u00e9e personnelle. Une nouvelle installation vous demande de l'accepter \u00e0 la derni\u00e8re \u00e9tape ; une mise \u00e0 jour depuis la 0.1.26 collecte sans rien demander. La section Confidentialit\u00e9 du lanceur renvoie vers ce qui est collect\u00e9.\n- spam-meta.com. Les mises \u00e0 jour et la page de confidentialit\u00e9 viennent maintenant de https://spam-meta.com."
   },
   "assets": [
     {
       "kind": "setup",
-      "name": "SPAM-Overlay-Setup-0.1.26.exe",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.26/SPAM-Overlay-Setup-0.1.26.exe",
-      "size_bytes": 165408869,
-      "sha256": "adc9ec3b769488055e5a5276217c36a5cea023e7b6b2958bbb8590258737f6d2"
+      "name": "SPAM-Overlay-Setup-0.1.27.exe",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.27/SPAM-Overlay-Setup-0.1.27.exe",
+      "size_bytes": 165426408,
+      "sha256": "e7c030fc4e17edacee661762c70b17f4f9c757132277b2377d21f45b4aba6316"
     },
     {
       "kind": "zip",
-      "name": "spam-overlay-0.1.26-win64.zip",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.26/spam-overlay-0.1.26-win64.zip",
-      "size_bytes": 253315322,
-      "sha256": "4001bbb9b22e86b23622c2c0706ea6f6f80ddea0daaa959f11fcb4c1ed657dff"
+      "name": "spam-overlay-0.1.27-win64.zip",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.27/spam-overlay-0.1.27-win64.zip",
+      "size_bytes": 253326610,
+      "sha256": "1740c8dcab6dc36227be694dea32725c9e60a70c5c3231f827a8b7497e3e5889"
     }
   ]
 }
