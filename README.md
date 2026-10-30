@@ -8,7 +8,7 @@ This repository now holds only the redirect from its old address to the site, an
 
 **This site is AI-generated.**
 
-The deck ranking of patch 1.26 (temporary) rates 3,104 decks by Elo, from the games our AI v3s10n_f0 played on both sides in an offline copy of the game; the site lists the 64 best, and the fastest. Data generated on 2026-10-28.
+The deck ranking of patch 1.26.5 (temporary) rates 124 decks by Elo, from the games our AI v3s10n_f0 played on both sides in an offline copy of the game; the site lists the 64 best. Data generated on 2026-10-30.
 
 Bug or question? Discord: noob9795
 
