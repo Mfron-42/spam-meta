@@ -1,27 +1,27 @@
 {
   "available": true,
-  "version": "0.1.28",
-  "released": "2026-10-29",
-  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.28",
-  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.28",
+  "version": "0.1.29",
+  "released": "2026-10-30",
+  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.29",
+  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.29",
   "notes": {
-    "en": "- The shop searches. The AI now plays out its shop choices a couple of turns ahead before it advises, the way it already did for spells. In the lab this search won 1.8 more points of win rate than the old shop over 133 decks. The AI's choice shows the value its search gives it; the other choices it looked at show their own value, smaller. A choice that shows a higher figure but was simulated less than the AI's choice is marked \"\u2248\" and says so.\n- Advice at once, then the search. The shop's first answer comes in a few milliseconds: the same advice as 0.1.27, with its dot drawn as a ring. The search replaces it a fraction of a second later and fills the dot.",
-    "fr": "- La boutique cherche. L'IA joue maintenant ses choix de boutique quelques tours en avance avant de conseiller, comme elle le faisait d\u00e9j\u00e0 pour les sorts. Au labo, cette recherche gagne 1,8 point de taux de victoire de plus que l'ancienne boutique sur 133 decks. Le choix de l'IA montre la valeur que sa recherche lui donne ; les autres choix qu'elle a regard\u00e9s montrent leur propre valeur, en plus petit. Un choix qui affiche un chiffre plus haut mais a \u00e9t\u00e9 moins simul\u00e9 que le choix de l'IA porte \u00ab \u2248 \u00bb et le dit.\n- Un conseil tout de suite, puis la recherche. La premi\u00e8re r\u00e9ponse de la boutique arrive en quelques millisecondes : le m\u00eame conseil qu'en 0.1.27, avec son point dessin\u00e9 en anneau. La recherche le remplace une fraction de seconde plus tard et remplit le point."
+    "en": "- A stronger AI. The overlay now runs the newest best AI: a net trained on the current patch, for both its moves and its shop. Head to head against the previous best AI, it wins about 55% of the games.\n- Spent talents stay spent. A once-a-game talent of your opponent (Contre, 13eme mois, Longueur\u2026) that has already fired is no longer counted as ready again. The AI used to expect a spent 13eme mois to pay its gold again, or a spent Contre to strike back again.",
+    "fr": "- Une IA plus forte. L'overlay utilise maintenant la meilleure IA la plus r\u00e9cente : un r\u00e9seau entra\u00een\u00e9 sur le patch actuel, pour ses coups comme pour sa boutique. En face \u00e0 face contre la meilleure IA pr\u00e9c\u00e9dente, elle gagne environ 55 % des parties.\n- Un talent utilis\u00e9 reste utilis\u00e9. Un talent \u00e0 usage unique de l'adversaire (Contre, 13eme mois, Longueur\u2026) qui s'est d\u00e9j\u00e0 d\u00e9clench\u00e9 n'est plus compt\u00e9 comme de nouveau pr\u00eat. L'IA s'attendait \u00e0 ce qu'un 13eme mois d\u00e9j\u00e0 utilis\u00e9 rapporte encore son or, ou qu'un Contre d\u00e9j\u00e0 utilis\u00e9 riposte encore."
   },
   "assets": [
     {
       "kind": "setup",
-      "name": "SPAM-Overlay-Setup-0.1.28.exe",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.28/SPAM-Overlay-Setup-0.1.28.exe",
-      "size_bytes": 165435709,
-      "sha256": "79f48d1e749d8f37b2d6451b7b6350f99be850e7ee8cf857f5a0621a922532f3"
+      "name": "SPAM-Overlay-Setup-0.1.29.exe",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.29/SPAM-Overlay-Setup-0.1.29.exe",
+      "size_bytes": 165736347,
+      "sha256": "442a098f3a56f29c42a1724b8857ffc1e6dfe5970b39a82880affd4a4bea476c"
     },
     {
       "kind": "zip",
-      "name": "spam-overlay-0.1.28-win64.zip",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.28/spam-overlay-0.1.28-win64.zip",
-      "size_bytes": 253333066,
-      "sha256": "bab54993fd06796c3f747a11f5f226f83faa6a6e3d5c4a87c557e09396385f29"
+      "name": "spam-overlay-0.1.29-win64.zip",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.29/spam-overlay-0.1.29-win64.zip",
+      "size_bytes": 256395903,
+      "sha256": "4e219f0d58e7787596c265549ce165ddd82e3c3e89f8bfae6b4949a62fc22db9"
     }
   ]
 }
