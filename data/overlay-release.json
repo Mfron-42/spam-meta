@@ -1,27 +1,27 @@
 {
   "available": true,
-  "version": "0.1.30",
+  "version": "0.1.31",
   "released": "2026-10-31",
-  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.30",
-  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.30",
+  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.31",
+  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.31",
   "notes": {
-    "en": "- Game 1.28. The overlay works with the new game version. 0.1.29 could not read the 1.28 game files, so it could not prepare its engine for it. The 24 new cards show with their art, and the Camouflage tox with the game's own icon.\n- The AI for 1.28. The overlay runs the same AI as our bot on 1.28, its nets extended to read the new cards and mechanics. That extension is not trained yet, so its advice on the 24 new cards, Camouflage and the new effects may be weak until the 1.28 training.",
-    "fr": "- Jeu 1.28. L'overlay fonctionne avec la nouvelle version du jeu. La 0.1.29 ne pouvait pas lire les fichiers du jeu 1.28, et ne pouvait donc pas y pr\u00e9parer son moteur. Les 24 nouvelles cartes s'affichent avec leur illustration, et le tox Camouflage avec l'ic\u00f4ne du jeu.\n- L'IA pour la 1.28. L'overlay utilise la m\u00eame IA que notre bot sur la 1.28, ses r\u00e9seaux \u00e9tendus pour lire les nouvelles cartes et m\u00e9caniques. Cette extension n'est pas encore entra\u00een\u00e9e : ses conseils sur les 24 nouvelles cartes, le Camouflage et les nouveaux effets peuvent \u00eatre faibles jusqu'\u00e0 l'entra\u00eenement 1.28."
+    "en": "- A sharper advice search on 1.28. The search now plays camouflaged boards and the slot choice of Kagura and Sarah by the game's own rules, so it no longer misjudges them.",
+    "fr": "- Une recherche de conseils plus juste sur la 1.28. La recherche joue d\u00e9sormais les plateaux camoufl\u00e9s et le choix d'emplacement de Kagura et de Sarah selon les r\u00e8gles du jeu, et ne les \u00e9value donc plus mal."
   },
   "assets": [
     {
       "kind": "setup",
-      "name": "SPAM-Overlay-Setup-0.1.30.exe",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.30/SPAM-Overlay-Setup-0.1.30.exe",
-      "size_bytes": 166265391,
-      "sha256": "1f587add55fa70aa7f33842ebc7b3975f8e6e99c52195aff17f0e1273ab80576"
+      "name": "SPAM-Overlay-Setup-0.1.31.exe",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.31/SPAM-Overlay-Setup-0.1.31.exe",
+      "size_bytes": 166260111,
+      "sha256": "db2061bb9e7dfe7594560b482c5413febffde4bd5fed00fdf63644ec87c38636"
     },
     {
       "kind": "zip",
-      "name": "spam-overlay-0.1.30-win64.zip",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.30/spam-overlay-0.1.30-win64.zip",
-      "size_bytes": 262754863,
-      "sha256": "0b5b9e5284f0e7b31c11adbd83cdbfc481ae7eb81ca2a826b74918f613d888f8"
+      "name": "spam-overlay-0.1.31-win64.zip",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.31/spam-overlay-0.1.31-win64.zip",
+      "size_bytes": 262771599,
+      "sha256": "a822037df5b90f7d6a1470d5a138d7e74ba6a30d534a15d9da62751512fa77fc"
     }
   ]
 }
