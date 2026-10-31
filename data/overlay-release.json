@@ -1,27 +1,27 @@
 {
   "available": true,
-  "version": "0.1.31",
+  "version": "0.1.32",
   "released": "2026-10-31",
-  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.31",
-  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.31",
+  "release_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.32",
+  "notes_url": "https://github.com/Mfron-42/spam-overlay-releases/releases/tag/v0.1.32",
   "notes": {
-    "en": "- A sharper advice search on 1.28. The search now plays camouflaged boards and the slot choice of Kagura and Sarah by the game's own rules, so it no longer misjudges them.",
-    "fr": "- Une recherche de conseils plus juste sur la 1.28. La recherche joue d\u00e9sormais les plateaux camoufl\u00e9s et le choix d'emplacement de Kagura et de Sarah selon les r\u00e8gles du jeu, et ne les \u00e9value donc plus mal."
+    "en": "- Game 1.28.1. The AI now guesses your opponent's talents from the 1.28.1 talent table, the same one our bot uses. The engine already reads the game's own data, so the four changed cards (Tree of Mysteries, Glow Glutton, Polychrome Owl, Treasurer) count with their new values.",
+    "fr": "- Jeu 1.28.1. L'IA devine d\u00e9sormais les talents de ton adversaire avec la table de talents de la 1.28.1, la m\u00eame que notre bot. Le moteur lit d\u00e9j\u00e0 les donn\u00e9es du jeu : les quatre cartes modifi\u00e9es (Arbre des Myst\u00e8res, Glouton des Lueurs, Chouette Polychrome, Tr\u00e9sori\u00e8re) comptent avec leurs nouvelles valeurs."
   },
   "assets": [
     {
       "kind": "setup",
-      "name": "SPAM-Overlay-Setup-0.1.31.exe",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.31/SPAM-Overlay-Setup-0.1.31.exe",
-      "size_bytes": 166260111,
-      "sha256": "db2061bb9e7dfe7594560b482c5413febffde4bd5fed00fdf63644ec87c38636"
+      "name": "SPAM-Overlay-Setup-0.1.32.exe",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.32/SPAM-Overlay-Setup-0.1.32.exe",
+      "size_bytes": 166203664,
+      "sha256": "3941b040db6dfa283c3789e4869387bf7dfe214632d0b87ec6b61ddcc08477c6"
     },
     {
       "kind": "zip",
-      "name": "spam-overlay-0.1.31-win64.zip",
-      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.31/spam-overlay-0.1.31-win64.zip",
-      "size_bytes": 262771599,
-      "sha256": "a822037df5b90f7d6a1470d5a138d7e74ba6a30d534a15d9da62751512fa77fc"
+      "name": "spam-overlay-0.1.32-win64.zip",
+      "url": "https://github.com/Mfron-42/spam-overlay-releases/releases/download/v0.1.32/spam-overlay-0.1.32-win64.zip",
+      "size_bytes": 262771384,
+      "sha256": "66c757ad72e8151192056be7b2b6eb1e04a45cf85b1269f8d6c3912b627fdadc"
     }
   ]
 }
