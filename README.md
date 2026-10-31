@@ -8,7 +8,7 @@ This repository now holds only the redirect from its old address to the site, an
 
 **This site is AI-generated.**
 
-The deck ranking of patch 1.28-h1 (temporary) rates 49 decks by Elo, from the games our AI v128_bgc played on both sides in an offline copy of the game; the site lists the 49 best. Data generated on 2026-10-31.
+The deck ranking of patch 1.28-h1 (temporary) rates 43 decks by Elo, from the games our AI v128_bgc played on both sides in an offline copy of the game; the site lists the 43 best. Data generated on 2026-10-31.
 
 Bug or question? Discord: noob9795
 
